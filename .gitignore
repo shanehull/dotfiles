@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+!.gitsubmodules
+!install.sh
+!.tool-versions
+
