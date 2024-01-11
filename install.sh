@@ -5,6 +5,11 @@ if ! type nix &> /dev/null; then
   curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
 fi
 
+# Install brew
+if ! type brew &> /dev/null; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
 # Build our flake
 if [ ! -d ./nix/result ]; then
   nix build -o ./nix/result ./nix/.#darwinConfigurations.shed.system --extra-experimental-features 'nix-command flakes'
