@@ -1,6 +1,6 @@
 [submodule "nvim"]
 	path = nvim
-	url = https://github.com/shanehull/nvim-dotfiles
+	url = git@github.com:shanehull/nvim-dotfiles.git
 [submodule "nix"]
 	path = nix
-	url = https://github.com/shanehull/nix-dotfiles
+	url = git@github.com:shanehull/nix-dotfiles.git
