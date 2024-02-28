@@ -3,8 +3,6 @@ vim.opt.termguicolors = true
 
 vim.o.mouse = nil
 
-vim.opt.clipboard = "unnamedplus"
-
 vim.opt.nu = true
 vim.opt.relativenumber = true
 
@@ -36,7 +34,3 @@ vim.g.mapleader = " "
 
 vim.opt.spelllang = "en_us"
 vim.opt.spell = true
-
--- pandoc syntax highlighting - don't fold
-vim.opt.foldmethod = "manual"
-vim.opt.foldenable = false
