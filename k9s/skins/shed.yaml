@@ -5,8 +5,8 @@
 # Styles...
 foreground: &foreground default
 background: &background default
-current_line: &current_line "#383D4A"
-selection: &selection "#D9DEE8"
+current_line: &current_line "#4b505c"
+selection: &selection "#383D4A"
 comment: &comment "#8891A7"
 cyan: &cyan "#88C0D0"
 green: &green "#A3BE8C"
@@ -28,6 +28,12 @@ k9s:
     fgColor: *foreground
     bgColor: *background
     suggestColor: *orange
+    buttonFgColor: default
+    buttonBgColor: default
+    buttonFocusFgColor: *yellow
+    buttonFocusBgColor: *blue
+    labelFgColor: *orange
+    fieldFgColor: *foreground
   # ClusterInfoView styles.
   info:
     fgColor: *blue
@@ -35,9 +41,9 @@ k9s:
   # Dialog styles.
   dialog:
     fgColor: *foreground
-    bgColor: default
-    buttonFgColor: *foreground
-    buttonBgColor: *magenta
+    bgColor: *background
+    buttonFgColor: default
+    buttonBgColor: default
     buttonFocusFgColor: *yellow
     buttonFocusBgColor: *blue
     labelFgColor: *orange
@@ -48,7 +54,7 @@ k9s:
       fgColor: *selection
       focusColor: *current_line
     menu:
-      fgColor: *foreground
+      fgColor: default
       keyColor: *blue
       # Used for favorite namespaces
       numKeyColor: *blue

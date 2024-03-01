@@ -1,6 +1,7 @@
 return {
 	{
 		"huggingface/llm.nvim",
+		enabled = false,
 		opts = {
 			enable_suggestions_on_files = {
 				"*.*",
