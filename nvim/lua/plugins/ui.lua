@@ -52,6 +52,7 @@ return {
 	-- Pretty cmdline
 	{
 		"folke/noice.nvim",
+		enabled = false,
 		tag = "v2.0.0",
 		event = "VeryLazy",
 		dependencies = {
