@@ -36,6 +36,7 @@ return {
 					null_ls.builtins.diagnostics.statix,
 					null_ls.builtins.diagnostics.terraform_validate,
 					null_ls.builtins.completion.spell,
+					null_ls.builtins.completion.luasnip,
 					eslint_d_actions,
 				},
 				on_attach = function(client, bufnr)
