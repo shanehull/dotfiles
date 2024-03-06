@@ -33,10 +33,7 @@ return {
 	{
 		"mbbill/undotree",
 		event = "VeryLazy",
-		config = function()
-			vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
-		end,
-		keys = { { "<leader>u", "UndotreeToggle" } },
+		keys = { { "<leader>u", "UndotreeToggle", desc = "Toggle Undotree" } },
 	},
 
 	-- PrimeTime lethal weapon
@@ -47,8 +44,8 @@ return {
 			local mark = require("harpoon.mark")
 			local ui = require("harpoon.ui")
 
-			vim.keymap.set("n", "<leader>a", mark.add_file)
-			vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu)
+			vim.keymap.set("n", "<leader>a", mark.add_file, { desc = "Add file to harpoon" })
+			vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu, { desc = "Open harpoon" })
 		end,
 	},
 
