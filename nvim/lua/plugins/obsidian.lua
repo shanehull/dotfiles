@@ -20,15 +20,7 @@ return {
 			},
 		},
 	},
-	config = function()
+	cmd = function()
 		vim.opt.conceallevel = 2
-		require("obsidian").setup({
-			workspaces = {
-				{
-					name = "secondbrain",
-					path = "~/secondbrain",
-				},
-			},
-		})
 	end,
 }
