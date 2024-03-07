@@ -7,27 +7,30 @@ return {
 				"*.*",
 			},
 			backend = "ollama",
-			model = "magicoder:latest",
+			model = "starcoder2:7b",
 			url = "http://192.168.1.34:11434/api/generate",
+			--url = "http://127.0.0.1:11434/api/generate",
 			debounce_ms = 1000,
 			lsp = {
 				bin_path = vim.api.nvim_call_function("stdpath", { "data" }) .. "/mason/bin/llm-ls",
 			},
 			tokenizer = {
-				repository = "ise-uiuc/Magicoder-S-CL-7B",
+				repository = "bigcode/starcoder2-7b",
 			},
 			request_body = {
-				options = {
-					--temperature = 0.1,
-					num_predict = 200,
+				parameters = {
+					max_new_tokens = 128,
+					temperature = 0.2,
+					top_p = 0.95,
 				},
 			},
 			fim = {
 				enabled = true,
-				prefix = "<｜fim▁begin｜>",
-				middle = "<｜fim▁hole｜>",
-				suffix = "<｜fim▁end｜>",
+				prefix = "<fim_prefix>",
+				middle = "<fim_middle>",
+				suffix = "<fim_suffix>",
 			},
+			context_window = 8192,
 		},
 	},
 }
