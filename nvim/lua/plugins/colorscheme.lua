@@ -1,11 +1,13 @@
 return {
 	{
-		"morhetz/gruvbox",
+		"ellisonleao/gruvbox.nvim",
 		lazy = false,
 		priority = 1000,
 		config = function()
-			vim.cmd("let g:gruvbox_transparent_bg = 1")
-			vim.cmd("autocmd VimEnter * hi Normal ctermbg=NONE guibg=NONE")
+			require("gruvbox").setup({
+				--terminal_colors = true, -- add neovim terminal colors
+				transparent_mode = true,
+			})
 			vim.cmd("colorscheme gruvbox")
 		end,
 	},

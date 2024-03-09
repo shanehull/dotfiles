@@ -45,9 +45,14 @@ return {
 		end,
 	},
 
-	-- Status tab
-	{ "vim-airline/vim-airline" },
-	{ "vim-airline/vim-airline-themes" },
+	-- Status line
+	{
+		"nvim-lualine/lualine.nvim",
+		config = function()
+			require("lualine").setup()
+		end,
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+	},
 
 	-- Pretty cmdline
 	{
