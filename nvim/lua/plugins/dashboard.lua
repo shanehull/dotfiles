@@ -29,12 +29,13 @@ return {
 
 			-- Set menu
 			dashboard.section.buttons.val = {
-				dashboard.button("n", "  > New file", ":ene <BAR> startinsert<CR>"),
-				dashboard.button("s", "󰈞  > Find file", ":Telescope find_files<CR>"),
-				dashboard.button("t", "  > Find text", ":Telescope live_grep<CR>"),
-				dashboard.button("r", "  > Recent files", ":Telescope oldfiles<CR>"),
+				dashboard.button("z", "ℤ  > New Zettelkasten", ":Zet<CR>"),
+				dashboard.button("n", "  > New File", ":ene <BAR> startinsert<CR>"),
+				dashboard.button("s", "󰈞  > Find File", ":Telescope find_files<CR>"),
+				dashboard.button("t", "  > Find Text", ":Telescope live_grep<CR>"),
+				dashboard.button("r", "  > Recent Files", ":Telescope oldfiles<CR>"),
 				dashboard.button("u", " > Update Plugins", ":Lazy update<CR>"),
-				dashboard.button("q", " > Quit NVIM", ":qa<CR>"),
+				dashboard.button("q", " > Quit", ":qa<CR>"),
 			}
 
 			-- Send config to alpha
