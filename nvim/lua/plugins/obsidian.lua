@@ -74,5 +74,8 @@ date: "%s"
 				error("Error creating file: " .. fpath)
 			end
 		end, { desc = "Create a new zettelkasten style note" })
+
+		-- Add a keymap to create a new zettelkasten style note
+		vim.api.nvim_set_keymap("n", "<leader>Z", ":Zet<CR>", { desc = "New zettelkasten note" })
 	end,
 }
