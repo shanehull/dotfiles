@@ -1,7 +1,6 @@
 return {
 	{
 		"sourcegraph/sg.nvim",
-		build = "nvim -l build/init.lua",
 		config = function()
 			-- Function to check if a module is available before requiring it.
 			local function safe_require(module)
@@ -23,5 +22,6 @@ return {
 				require("sg").setup({})
 			end
 		end,
+		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
 }
