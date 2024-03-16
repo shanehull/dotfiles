@@ -1,34 +1,20 @@
 return {
 	{
-		"tpope/vim-fugitive",
+		"NeogitOrg/neogit",
 		event = "VeryLazy",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"sindrets/diffview.nvim",
+			"nvim-telescope/telescope.nvim",
+		},
 		config = function()
-			vim.keymap.set("n", "<leader>gs", vim.cmd.Git, { desc = "Toggle git fugitive" })
+			require("neogit").setup({})
 
-			local TheShed_Fugitive = vim.api.nvim_create_augroup("TheShed_Fugitive", {})
+			vim.keymap.set("n", "<leader>gs", vim.cmd.Neogit, { desc = "Toggle neogit" })
 
-			local autocmd = vim.api.nvim_create_autocmd
-			autocmd("BufWinEnter", {
-				group = TheShed_Fugitive,
-				pattern = "*",
-				callback = function()
-					if vim.bo.ft ~= "fugitive" then
-						return
-					end
+			vim.keymap.set("n", "<leader>p", ":Neogit push<CR>", { desc = "Push to origin" })
 
-					local bufnr = vim.api.nvim_get_current_buf()
-
-					local opts = { buffer = bufnr, remap = false }
-
-					vim.keymap.set("n", "<leader>p", function()
-						vim.cmd.Git("push")
-					end, opts)
-
-					vim.keymap.set("n", "<leader>P", function()
-						vim.cmd.Git({ "pull", "--rebase" })
-					end, opts)
-				end,
-			})
+			vim.keymap.set("n", "<leader>P", ":!git pull -r<CR>", { desc = "Pull from origin (rebase)" })
 		end,
 	},
 }
