@@ -17,4 +17,19 @@ return {
 			vim.keymap.set("n", "<leader>P", ":!git pull -r<CR>", { desc = "Pull from origin (rebase)" })
 		end,
 	},
+
+	{
+		"lewis6991/gitsigns.nvim",
+		config = true,
+		opts = {
+			-- See `:help gitsigns.txt`
+			signs = {
+				add = { text = "+" },
+				change = { text = "~" },
+				delete = { text = "_" },
+				topdelete = { text = "‾" },
+				changedelete = { text = "~" },
+			},
+		},
+	},
 }
