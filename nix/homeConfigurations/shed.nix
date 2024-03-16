@@ -59,6 +59,7 @@
           yq
           wget
           htop
+          neofetch
 
           # zsh and plugins
           zsh
@@ -68,6 +69,7 @@
 
           # terminal and editor
           warp-terminal
+          tmux
           neovim
 
           # k8s tools
