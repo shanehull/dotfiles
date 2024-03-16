@@ -32,7 +32,7 @@ return {
 			end)
 			-- Handle error (e.g. keyboard interrupt)
 			if not status then
-				print("An error occurred:", result)
+				print("Aborted:", result)
 				return
 			end
 
@@ -71,8 +71,8 @@ date: "%s"
 				vim.api.nvim_command("normal G")
 				vim.api.nvim_command("startinsert")
 			else
-				print("Error creating file: " .. fpath)
+				error("Error creating file: " .. fpath)
 			end
-		end, {})
+		end, { desc = "Create a new zettelkasten style note" })
 	end,
 }
