@@ -10,7 +10,7 @@ return {
 				kitty = { enabled = false, font = "+2" },
 			},
 		},
-		keys = { { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" } },
+		keys = { { "<leader>z", ":ZenMode<cr>", desc = "Zen Mode" } },
 	},
 
 	-- Hide sensitive info
