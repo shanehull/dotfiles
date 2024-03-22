@@ -116,7 +116,6 @@
         };
         eza = {
           enable = true;
-          enableAliases = true;
         };
         fzf = {
           enable = true;
@@ -148,7 +147,7 @@
             export KUBE_EDITOR=vim
 
             # k9s config dir
-            export K9S_CONFIG_DIR=~/.config/k9s
+            export K9S_CONFIG_DIR=$HOME/.config/k9s
           '';
           plugins = [
             {
