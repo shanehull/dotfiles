@@ -1,6 +1,6 @@
 k9s:
   liveViewAutoRefresh: false
-  screenDumpDir: $K9S_CONFIG_DIR/screen-dumps
+  screenDumpDir: ~/.config/k9s/screen-dumps
   refreshRate: 2
   maxConnRetry: 5
   readOnly: false
@@ -13,7 +13,7 @@ k9s:
     reactive: false
     noIcons: false
     defaultsToFullScreen: false
-    skin: shed
+    skin: gruvbox
   skipLatestRevCheck: false
   disablePodCounting: false
   shellPod:
