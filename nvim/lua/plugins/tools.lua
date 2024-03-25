@@ -56,5 +56,12 @@ return {
 			require("nvim-autopairs").setup({})
 		end,
 	},
-	{ "preservim/nerdcommenter", event = "VeryLazy" },
+	{
+		"numToStr/Comment.nvim",
+		opts = {
+			mappings = {
+				basic = true,
+			},
+		},
+	},
 }
