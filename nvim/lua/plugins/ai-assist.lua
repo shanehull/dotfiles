@@ -22,6 +22,8 @@ return {
 				require("sg").setup({})
 			end
 		end,
+		-- Lazy load on md files - we don't need auto complete, but cmds will still be available
+		ft = { "md" },
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
 }
