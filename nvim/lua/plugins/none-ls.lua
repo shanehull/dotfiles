@@ -5,7 +5,6 @@ return {
 		dependencies = { "nvimtools/none-ls-extras.nvim" },
 		config = function()
 			local null_ls = require("null-ls")
-			local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 			local eslint_d_diag = require("none-ls.diagnostics.eslint_d")
 			local eslint_d_actions = require("none-ls.code_actions.eslint_d")
@@ -26,6 +25,7 @@ return {
 							"scss",
 							"html",
 							"json",
+							"jsonc",
 							"yaml",
 							"graphql",
 							"pandoc",
@@ -41,10 +41,13 @@ return {
 				},
 				on_attach = function(client, bufnr)
 					if client.supports_method("textDocument/formatting") then
+						local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
 						vim.api.nvim_clear_autocmds({
 							group = augroup,
 							buffer = bufnr,
 						})
+
 						vim.api.nvim_create_autocmd("BufWritePre", {
 							group = augroup,
 							buffer = bufnr,
