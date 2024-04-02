@@ -2,21 +2,25 @@ local function augroup(name)
 	return vim.api.nvim_create_augroup("lazyvim_" .. name, { clear = true })
 end
 
-vim.filetype.add({
-	pattern = {
-		["*.hujson"] = "hujson",
-	},
-})
--- Set hujson to jsonc
+-- Set hujson files to jsonc
+vim.filetype.add({ extension = { hujson = "hujson" } })
 vim.api.nvim_create_autocmd("FileType", {
 	group = augroup("hujson_ft"),
 	pattern = { "hujson" },
 	callback = function()
-		vim.opt_local.ft = "jsonc"
+		vim.bo.filetype = "jsonc"
 	end,
 })
 
--- wrap and check for spell in text filetypes
+-- Highlight on yank
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = augroup("highlight_yank"),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
+})
+
+-- Wrap and check for spell in text filetypes
 vim.api.nvim_create_autocmd("FileType", {
 	group = augroup("wrap_spell"),
 	pattern = { "gitcommit", "markdown" },
