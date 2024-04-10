@@ -143,8 +143,8 @@
             export SECOND_BRAIN=$HOME/secondbrain
 
             # editors
-            export EDITOR=vim
-            export KUBE_EDITOR=vim
+            export EDITOR='nvim -u ~/.config/nvim/init.lua'
+            export KUBE_EDITOR='nvim -u ~/.config/nvim/init.lua'
 
             # k9s config dir
             export K9S_CONFIG_DIR=$HOME/.config/k9s
