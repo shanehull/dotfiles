@@ -48,7 +48,6 @@ date: "%s"
 		vim.api.nvim_command("startinsert")
 	else
 		error("Error creating file: " .. fpath)
-		return
 	end
 end, { desc = "Create a new zettelkasten style note" })
 
