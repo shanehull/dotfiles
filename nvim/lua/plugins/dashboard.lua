@@ -23,13 +23,14 @@ return {
 				[[  ███████████ ███    ███ █████████ █████ █████ ████ █████  ]],
 				[[ ██████  █████████████████████ ████ █████ █████ ████ ██████ ]],
 				[[                                                                       ]],
-				[[                                                                       ]],
-				[[                                                                       ]],
+				[[                                   ┓                                   ]],
+				[[                                   ┣┓╋┓┏┏                              ]],
+				[[                                   ┗┛┗┗┻┛                              ]],
 			}
 
 			-- Set menu
 			dashboard.section.buttons.val = {
-				dashboard.button("nz", "🅉  > New Zettelkasten", ":Zet<CR>"),
+				dashboard.button("nz", "🅩  > New Zettelkasten", ":Zet<CR>"),
 				dashboard.button("fn", "󰈞  > Find Note", ":Telescope live_grep search_dirs=~/secondbrain<CR>"),
 				dashboard.button("nf", "  > New File", ":ene <BAR> startinsert<CR>"),
 				dashboard.button("ff", "󰈞  > Find File", ":Telescope find_files<CR>"),
