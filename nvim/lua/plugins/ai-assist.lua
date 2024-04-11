@@ -18,12 +18,15 @@ return {
 			-- Enable cody?
 			local enable_cody = env.ALLOW_AI_ASSIST
 
+			print(vim.bo.ft)
 			if enable_cody then
 				require("sg").setup({})
 			end
 		end,
-		-- Lazy load on md files - we don't need auto complete, but cmds will still be available
-		ft = { "md" },
+		-- Disable for markdown files
+		cond = function()
+			return vim.bo.ft ~= "markdown"
+		end,
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
 }
