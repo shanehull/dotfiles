@@ -30,6 +30,9 @@ return {
 							"graphql",
 							"pandoc",
 						},
+						args = {
+							"--single-quote",
+						},
 					}),
 					eslint_d_diag,
 					null_ls.builtins.diagnostics.golangci_lint,
