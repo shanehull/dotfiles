@@ -176,6 +176,7 @@
             "brain" = "cd $SECOND_BRAIN";
             "zet" = "shed zet";
             "checkcrt" = "shed checkcrt";
+            ":q" = "exit";
           };
         };
       };
