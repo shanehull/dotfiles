@@ -8,7 +8,8 @@ vim.api.nvim_create_autocmd("FileType", {
 	group = augroup("hujson_ft"),
 	pattern = { "hujson" },
 	callback = function()
-		vim.bo.filetype = "jsonc"
+		vim.opt_local.filetype = "json5"
+		vim.opt_local.expandtab = false
 	end,
 })
 
