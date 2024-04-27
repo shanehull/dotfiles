@@ -18,6 +18,9 @@ return {
 				path = "~/secondbrain",
 			},
 		},
+		attachments = {
+			img_folder = ".assets/imgs",
+		},
 	},
 	cmd = function()
 		vim.opt.conceallevel = 2

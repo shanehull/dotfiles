@@ -60,6 +60,7 @@
           wget
           htop
           neofetch
+          pngpaste
 
           # zsh and plugins
           zsh
