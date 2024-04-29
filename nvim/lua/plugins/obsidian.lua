@@ -19,7 +19,7 @@ return {
 			},
 		},
 		attachments = {
-			img_folder = ".assets/imgs",
+			img_folder = "assets/imgs",
 		},
 	},
 	cmd = function()
