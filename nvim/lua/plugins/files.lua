@@ -14,6 +14,18 @@ return {
 					},
 					live_grep = {
 						additional_args = { "--hidden" },
+						file_ignore_patterns = {
+							"yarn%.lock",
+							"node_modules/",
+							"raycast/",
+							"dist/",
+							"%.next",
+							"%.git/",
+							"%.gitlab/",
+							"build/",
+							"target/",
+							"package%-lock%.json",
+						},
 					},
 				},
 			})
