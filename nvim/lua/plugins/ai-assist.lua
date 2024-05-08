@@ -25,7 +25,9 @@ return {
 		end,
 		-- Disable for markdown files
 		cond = function()
-			return vim.bo.ft ~= "markdown"
+			if vim.bo.filetype == "markdown" then
+				return false
+			end
 		end,
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
