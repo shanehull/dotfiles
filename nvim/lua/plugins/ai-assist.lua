@@ -1,6 +1,17 @@
 return {
 	{
 		"sourcegraph/sg.nvim",
+		-- Load for everything except certain filetypes
+		lazy = true,
+		init = function()
+			vim.api.nvim_create_autocmd("BufEnter", {
+				callback = function()
+					if not vim.tbl_contains({ "markdown" }, vim.bo.ft) then
+						require("lazy").load({ plugins = { "sg.nvim" } })
+					end
+				end,
+			})
+		end,
 		config = function()
 			-- Function to check if a module is available before requiring it.
 			local function safe_require(module)
@@ -18,15 +29,8 @@ return {
 			-- Enable cody?
 			local enable_cody = env.ALLOW_AI_ASSIST
 
-			print(vim.bo.ft)
 			if enable_cody then
 				require("sg").setup({})
-			end
-		end,
-		-- Disable for markdown files
-		cond = function()
-			if vim.bo.filetype == "markdown" then
-				return false
 			end
 		end,
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
