@@ -199,8 +199,9 @@
             shell = {
               program = "/bin/zsh";
               args = [
+                "-l"
                 "-c"
-                "${pkgs.tmux}/bin/tmux"
+                "${pkgs.tmux}/bin/tmux attach -t main || ${pkgs.tmux}/bin/tmux new-session -t main"
               ];
             };
             window = {
