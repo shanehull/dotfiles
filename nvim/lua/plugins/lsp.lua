@@ -128,18 +128,21 @@ return {
 				snippet = {
 					expand = function(args)
 						require("luasnip").lsp_expand(args.body)
+						require("luasnip/loaders/from_vscode").load({
+							paths = { "~/.local/share/nvim/site/pack/packer/start/friendly-snippets" },
+						})
 					end,
 				},
 				mapping = cmp.mapping.preset.insert({
 					["<Up>"] = cmp.mapping.select_prev_item({ behavior = "select" }),
 					["<Down>"] = cmp.mapping.select_next_item({ behavior = "select" }),
-					--["<Tab>"] = cmp_action.tab_complete(),
-					--["<S-Tab>"] = cmp_action.select_prev_or_fallback(),
 					["<CR>"] = cmp.mapping.confirm({ select = false }),
 				}),
 				sources = cmp.config.sources({
-					{ name = "cody" },
 					{ name = "nvim_lsp" },
+					{ name = "path" },
+					{ name = "buffer" },
+					{ name = "cody" },
 				}),
 			})
 
