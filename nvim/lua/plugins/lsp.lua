@@ -19,19 +19,6 @@ return {
 			{ "williamboman/mason.nvim" },
 			{ "williamboman/mason-lspconfig.nvim", tag = "v1.26.0" },
 			{ "neovim/nvim-lspconfig" },
-
-			-- Autocompletion
-			{ "hrsh7th/cmp-buffer" },
-			{ "hrsh7th/cmp-path" },
-			{ "hrsh7th/cmp-cmdline" },
-			{ "hrsh7th/cmp-emoji" },
-			{ "saadparwaiz1/cmp_luasnip" },
-			{ "hrsh7th/cmp-nvim-lsp" },
-			{ "hrsh7th/cmp-nvim-lua" },
-
-			-- Snippets
-			{ "L3MON4D3/LuaSnip" },
-			{ "rafamadriz/friendly-snippets" },
 		},
 		config = function()
 			local lsp_zero = require("lsp-zero")
@@ -121,16 +108,30 @@ return {
 	-- Completions with cmp
 	{
 		"hrsh7th/nvim-cmp",
+		dependencies = {
+			-- Autocompletion
+			{ "hrsh7th/cmp-buffer" },
+			{ "hrsh7th/cmp-path" },
+			{ "hrsh7th/cmp-cmdline" },
+			{ "hrsh7th/cmp-emoji" },
+			{ "saadparwaiz1/cmp_luasnip" },
+			{ "hrsh7th/cmp-nvim-lsp" },
+			{ "hrsh7th/cmp-nvim-lua" },
+
+			-- Snippets
+			{ "L3MON4D3/LuaSnip" },
+			{ "rafamadriz/friendly-snippets" },
+
+			{ "onsails/lspkind.nvim" },
+		},
 		config = function()
-			-- Tab through suggestions and Enter to complete
+			require("luasnip.loaders.from_vscode").lazy_load()
+
 			local cmp = require("cmp")
 			cmp.setup({
 				snippet = {
 					expand = function(args)
 						require("luasnip").lsp_expand(args.body)
-						require("luasnip/loaders/from_vscode").load({
-							paths = { "~/.local/share/nvim/site/pack/packer/start/friendly-snippets" },
-						})
 					end,
 				},
 				mapping = cmp.mapping.preset.insert({
@@ -144,6 +145,12 @@ return {
 					{ name = "buffer" },
 					{ name = "cody" },
 				}),
+				formatting = {
+					format = require("lspkind").cmp_format({
+						maxwidth = 50,
+						ellipsis_char = "..",
+					}),
+				},
 			})
 
 			-- Setup cmdline completions
