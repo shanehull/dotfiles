@@ -64,13 +64,12 @@
 
           # zsh and plugins
           zsh
-          zsh-syntax-highlighting
-          zsh-autosuggestions
-          zsh-powerlevel10k
 
           # terminal and editor
           warp-terminal
+          alacritty
           tmux
+          starship
           neovim
 
           # k8s tools
@@ -95,6 +94,19 @@
           gnupg
           ollama
         ];
+        activation = {
+          aliasApplications = lib.hm.dag.entryAfter ["writeBoundary"] ''
+            app_folder=$(echo ~/Applications);
+            for app in $(find "$newGenPath/home-path/Applications" -type l); do
+              run rm -f $app_folder/$(basename $app)
+              run /usr/bin/osascript \
+                -e "tell app \"Finder\"" \
+                -e "make new alias file to POSIX file \"$(readlink $app)\" at POSIX file \"$app_folder\"" \
+                -e "set name of result to \"$(basename $app)\"" \
+                -e "end tell"
+            done
+          '';
+        };
       };
       programs = {
         home-manager = {
@@ -126,9 +138,8 @@
         zsh = {
           enable = true;
           initExtra = ''
-            # Powerlevel10k Zsh theme
-            source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-            test -f ~/.config/zsh/.p10k.zsh && source ~/.config/zsh/.p10k.zsh
+            # starship prompt
+            eval "$(starship init zsh)"
 
             # asdf init
             ASDF_DIR="${pkgs.asdf-vm}"/share/asdf-vm
@@ -150,13 +161,6 @@
             # k9s config dir
             export K9S_CONFIG_DIR=$HOME/.config/k9s
           '';
-          plugins = [
-            {
-              name = "powerlevel10k-config";
-              src = lib.cleanSource ./p10k-config;
-              file = ".p10k.zsh";
-            }
-          ];
           oh-my-zsh = {
             enable = true;
             plugins = [
@@ -179,6 +183,103 @@
             "checkcrt" = "shed checkcrt";
             ":q" = "exit";
           };
+          autosuggestion = {
+            enable = true;
+          };
+          syntaxHighlighting = {
+            enable = true;
+          };
+        };
+        alacritty = {
+          enable = true;
+          settings = {
+            env = {
+              "TERM" = "xterm-256color";
+            };
+            shell = {
+              program = "/bin/zsh";
+              args = [
+                "-c"
+                "${pkgs.tmux}/bin/tmux"
+              ];
+            };
+            window = {
+              opacity = 0.7;
+              padding = {
+                x = 10;
+                y = 25;
+              };
+              dynamic_padding = true;
+              decorations = "Transparent";
+            };
+            font = {
+              normal = {
+                family = "Hack Nerd Font";
+                style = "Regular";
+              };
+              bold = {
+                family = "Hack Nerd Font";
+                style = "Bold";
+              };
+              italic = {
+                family = "Hack Nerd Font";
+                style = "Italic";
+              };
+              bold_italic = {
+                family = "Hack Nerd Font";
+                style = "Bold Italic";
+              };
+              size = 13.0;
+            };
+            colors = {
+              # Default colors
+              primary = {
+                background = "0x282828";
+                foreground = "0xd4be98";
+              };
+
+              # Normal colors
+              normal = {
+                black = "0x3c3836";
+                red = "0xea6962";
+                green = "0xa9b665";
+                yellow = "0xd8a657";
+                blue = "0x7daea3";
+                magenta = "0xd3869b";
+                cyan = "0x89b482";
+                white = "0xd4be98";
+              };
+
+              # Bright colors
+              bright = {
+                black = "0x565575";
+                red = "0xff5458";
+                green = "0x62d196";
+                yellow = "0xffb378";
+                blue = "0x65b2ff";
+                magenta = "0x906cff";
+                cyan = "0x63f2f1";
+                white = "0xa6b3cc";
+              };
+            };
+          };
+        };
+        tmux = {
+          enable = true;
+          shell = "${pkgs.zsh}/bin/zsh";
+          historyLimit = 100000;
+          keyMode = "vi";
+          terminal = "screen-256color";
+          extraConfig = ''
+            set status-utf8 on
+            set utf8 on
+
+            set -g status-style fg=black,bg=white
+            set -g status-position top
+          '';
+        };
+        starship = {
+          enable = true;
         };
       };
     };
