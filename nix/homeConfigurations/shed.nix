@@ -266,16 +266,17 @@
         };
         tmux = {
           enable = true;
-          shell = "${pkgs.zsh}/bin/zsh";
           historyLimit = 100000;
           keyMode = "vi";
           terminal = "screen-256color";
           extraConfig = ''
-            set status-utf8 on
-            set utf8 on
-
             set -g status-style fg=black,bg=white
             set -g status-position top
+
+            bind h select-pane -L
+            bind j select-pane -D
+            bind k select-pane -U
+            bind l select-pane -R
           '';
         };
         starship = {
