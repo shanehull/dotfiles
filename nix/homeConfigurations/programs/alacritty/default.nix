@@ -24,7 +24,7 @@
         y = 25;
       };
       dynamic_padding = true;
-      decorations = "Transparent";
+      decorations = "Buttonless";
     };
     font = {
       normal = {
