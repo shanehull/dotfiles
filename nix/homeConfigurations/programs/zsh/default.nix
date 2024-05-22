@@ -9,6 +9,9 @@
     # starship prompt
     eval "$(starship init zsh)"
 
+    # autocomplete color
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=246'
+
     # asdf init
     ASDF_DIR="${pkgs.asdf-vm}"/share/asdf-vm
     . ${pkgs.asdf-vm}/share/asdf-vm/asdf.sh

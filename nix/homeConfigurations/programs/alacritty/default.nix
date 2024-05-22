@@ -7,7 +7,7 @@
   enable = true;
   settings = {
     env = {
-      "TERM" = "xterm-256color";
+      TERM = "xterm-256color";
     };
     shell = {
       program = "/bin/zsh";
@@ -18,10 +18,10 @@
       ];
     };
     window = {
-      opacity = 0.7;
+      opacity = 0.80;
       padding = {
-        x = 10;
-        y = 25;
+        x = 15;
+        y = 15;
       };
       dynamic_padding = true;
       decorations = "Buttonless";
