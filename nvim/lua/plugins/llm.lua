@@ -7,15 +7,15 @@ return {
 				"*.*",
 			},
 			backend = "ollama",
-			model = "starcoder2:7b",
-			url = "http://192.168.1.34:11434/api/generate",
-			--url = "http://127.0.0.1:11434/api/generate",
+			model = "starcoder2:3b",
+			-- url = "http://192.168.1.34:11434/api/generate",
+			url = "http://127.0.0.1:11434/api/generate",
 			debounce_ms = 1000,
 			lsp = {
 				bin_path = vim.api.nvim_call_function("stdpath", { "data" }) .. "/mason/bin/llm-ls",
 			},
 			tokenizer = {
-				repository = "bigcode/starcoder2-7b",
+				repository = "bigcode/starcoder2-3b",
 			},
 			request_body = {
 				parameters = {
