@@ -18,10 +18,14 @@
       ];
     };
     window = {
-      opacity = 0.80;
+      opacity = 0.90;
       padding = {
         x = 15;
-        y = 25;
+        y = 28;
+      };
+      dimensions = {
+        columns = 190;
+        lines = 60;
       };
       dynamic_padding = true;
       decorations = "transparent";
