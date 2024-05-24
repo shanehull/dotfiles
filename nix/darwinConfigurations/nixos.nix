@@ -55,8 +55,8 @@
       homebrew = {
         enable = true;
         onActivation.autoUpdate = true;
-        casks = ["warp" "multipass"];
-        brews = ["cloudflare-wrangler2"];
+        casks = ["multipass"];
+        brews = [];
       };
       # this doesn't work with tmux
       # security.pam.enableSudoTouchIdAuth = true;
