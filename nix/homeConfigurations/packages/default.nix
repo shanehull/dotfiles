@@ -14,6 +14,7 @@ with pkgs; [
   warp-terminal
   alacritty
   tmux
+  pam-reattach # for tmux touch id support
   starship
   neovim
 
@@ -33,6 +34,7 @@ with pkgs; [
   htop
   neofetch
   pngpaste
+  slides
 
   # k8s tools
   k9s
