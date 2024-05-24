@@ -14,17 +14,21 @@
       args = [
         "-l"
         "-c"
-        "${pkgs.tmux}/bin/tmux attach -t main || ${pkgs.tmux}/bin/tmux new-session -t main"
+        "${pkgs.tmux}/bin/tmux attach || ${pkgs.tmux}/bin/tmux"
       ];
     };
     window = {
       opacity = 0.80;
       padding = {
         x = 15;
-        y = 15;
+        y = 25;
       };
       dynamic_padding = true;
-      decorations = "Buttonless";
+      decorations = "transparent";
+    };
+    scrolling = {
+      history = 8000;
+      multiplier = 5;
     };
     font = {
       normal = {
@@ -48,32 +52,32 @@
     colors = {
       # Default colors
       primary = {
-        background = "0x282828";
-        foreground = "0xd4be98";
+        background = "#282828";
+        foreground = "#D4BE98";
       };
 
       # Normal colors
       normal = {
-        black = "0x3c3836";
-        red = "0xea6962";
-        green = "0xa9b665";
-        yellow = "0xd8a657";
-        blue = "0x7daea3";
-        magenta = "0xd3869b";
-        cyan = "0x89b482";
-        white = "0xd4be98";
+        black = "#3C3836";
+        red = "#EA6962";
+        green = "#A9B665";
+        yellow = "#D8A657";
+        blue = "#7DAEA3";
+        magenta = "#D3869B";
+        cyan = "#89B482";
+        white = "#D4BE98";
       };
 
       # Bright colors
       bright = {
-        black = "0x565575";
-        red = "0xff5458";
-        green = "0x62d196";
-        yellow = "0xffb378";
-        blue = "0x65b2ff";
-        magenta = "0x906cff";
-        cyan = "0x63f2f1";
-        white = "0xa6b3cc";
+        black = "#565575";
+        red = "#FF5458";
+        green = "#62D196";
+        yellow = "#FFB378";
+        blue = "#65B2FF";
+        magenta = "#906CFF";
+        cyan = "#63f2f1";
+        white = "#A6b3CC";
       };
     };
   };
