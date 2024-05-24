@@ -35,6 +35,7 @@ with pkgs; [
   neofetch
   pngpaste
   slides
+  vhs
 
   # k8s tools
   k9s
