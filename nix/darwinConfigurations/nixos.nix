@@ -58,12 +58,14 @@
         casks = ["warp" "multipass"];
         brews = ["cloudflare-wrangler2"];
       };
-      # this doesn't work with tmux (adds pam_tid in /etc/pam.d/sudo file)
-      security.pam.enableSudoTouchIdAuth = true;
-      # additionally, use pam_reattach, as this works with tmux
-      # pam_reattach is installed via: ../homeConfigurations/packages/default.nix
+      # this doesn't work with tmux
+      # security.pam.enableSudoTouchIdAuth = true;
+      # use pam_reattach in addition to pam_tid so it works  with tmux
+      # pam_reattach is installed via ../homeConfigurations/packages/default.nix
       environment.etc."pam.d/sudo_local".text = ''
-        auth       optional       ${pkgs.pam-reattach}/lib/pam/pam_reattach.so # nix-darwin: environment.etc."pam.d/sudo_local".text
+        # Written by nix-darwin
+        auth       optional       ${pkgs.pam-reattach}/lib/pam/pam_reattach.so
+        auth       sufficient     pam_tid.so
       '';
     };
   };
