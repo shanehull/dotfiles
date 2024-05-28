@@ -9,6 +9,8 @@
   keyMode = "vi";
   terminal = "screen-256color";
   extraConfig = ''
+    set-option -g prefix C-s
+
     set -g status-style fg=black,bg=white
     set -g status-position top
 
