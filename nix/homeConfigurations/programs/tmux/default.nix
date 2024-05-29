@@ -18,5 +18,9 @@
     bind j select-pane -D
     bind k select-pane -U
     bind l select-pane -R
+
+    bind-key -T copy-mode-vi 'v' send -X begin-selection
+    bind-key -T copy-mode-vi 'C-v' send -X rectangle-toggle
+    bind-key -T copy-mode-vi 'y' send -X copy-selection
   '';
 }
