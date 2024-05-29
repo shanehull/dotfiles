@@ -55,3 +55,12 @@ vim.api.nvim_create_autocmd("CursorHold", {
 		vim.diagnostic.open_float(nil, opts)
 	end,
 })
+
+-- Disable sg.nvim for md
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		if not vim.tbl_contains({ "markdown" }, vim.bo.ft) then
+			require("lazy").load({ plugins = { "sg.nvim" } })
+		end
+	end,
+})
