@@ -42,7 +42,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 
 -- Use hover/float for diagnostics text
 vim.api.nvim_create_autocmd("CursorHold", {
-	buffer = bufnr,
+	group = augroup("hover_diags"),
 	callback = function()
 		local opts = {
 			focusable = false,
@@ -58,6 +58,7 @@ vim.api.nvim_create_autocmd("CursorHold", {
 
 -- Disable sg.nvim for md
 vim.api.nvim_create_autocmd("BufEnter", {
+	group = augroup("markdown_sg_disabled"),
 	callback = function()
 		if not vim.tbl_contains({ "markdown" }, vim.bo.ft) then
 			require("lazy").load({ plugins = { "sg.nvim" } })
