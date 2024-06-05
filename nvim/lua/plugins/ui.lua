@@ -48,26 +48,18 @@ return {
 	-- Status line
 	{
 		"nvim-lualine/lualine.nvim",
-		config = function()
-			require("lualine").setup({
-				sections = {
-					lualine_x = {
-						{
-							require("lazy.status").updates,
-							cond = require("lazy.status").has_updates,
-							color = { fg = "#ff9e64" },
-						},
-					},
-				},
-			})
-		end,
+		opts = {
+			options = {
+				theme = "gruvbox_dark",
+			},
+		},
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 	},
 
 	-- Pretty cmdline
 	{
 		"folke/noice.nvim",
-		tag = "v4.0.0",
+		tag = "v4.0.1",
 		event = "VeryLazy",
 		dependencies = {
 			"MunifTanjim/nui.nvim",
