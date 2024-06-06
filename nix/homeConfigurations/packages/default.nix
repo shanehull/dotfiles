@@ -59,6 +59,7 @@ with pkgs; [
   eslint_d
   statix
   alejandra
+  yamlfmt
   yamllint
 
   # other

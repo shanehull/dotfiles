@@ -4,5 +4,7 @@
 !install.sh
 !.tool-versions
 !k9s
-!nix/
-!nvim/
+!yamllint
+!yamlfmt
+!nix
+!nvim

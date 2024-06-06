@@ -17,6 +17,7 @@ return {
 					null_ls.builtins.formatting.stylua,
 					null_ls.builtins.formatting.alejandra,
 					null_ls.builtins.formatting.terraform_fmt,
+					null_ls.builtins.formatting.yamlfmt,
 					null_ls.builtins.formatting.prettierd.with({
 						filetypes = {
 							"javascript",
@@ -26,7 +27,6 @@ return {
 							"html",
 							"json",
 							"jsonc",
-							"yaml",
 							"graphql",
 							"pandoc",
 						},
