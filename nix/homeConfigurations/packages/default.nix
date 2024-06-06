@@ -59,6 +59,7 @@ with pkgs; [
   eslint_d
   statix
   alejandra
+  yamllint
 
   # other
   gnupg
