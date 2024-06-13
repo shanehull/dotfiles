@@ -68,7 +68,7 @@ return {
 	-- Pretty cmdline
 	{
 		"folke/noice.nvim",
-		tag = "v4.0.1",
+		tag = "v4.1.0",
 		event = "VeryLazy",
 		dependencies = {
 			"MunifTanjim/nui.nvim",

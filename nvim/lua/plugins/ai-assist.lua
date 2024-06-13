@@ -1,7 +1,6 @@
 return {
 	{
 		"sourcegraph/sg.nvim",
-		-- Load for everything except certain filetypes
 		config = function()
 			-- Function to check if a module is available before requiring it.
 			local function safe_require(module)
@@ -19,9 +18,13 @@ return {
 			-- Enable cody?
 			local enable_cody = env.ALLOW_AI_ASSIST
 
-			if not vim.tbl_contains({ "markdown" }, vim.b.ft) and enable_cody then
-				require("sg").setup({})
+			-- Run if enabled and not certain ft
+			runFunc = function()
+				if not vim.tbl_contains({ "markdown" }, vim.bo.ft) and enable_cody then
+					require("sg").setup({})
+				end
 			end
+			vim.defer_fn(runFunc, 50)
 		end,
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
