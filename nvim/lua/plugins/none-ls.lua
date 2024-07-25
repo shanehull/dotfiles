@@ -29,6 +29,7 @@ return {
 							"jsonc",
 							"graphql",
 							"pandoc",
+							"markdown",
 						},
 						args = {
 							"--single-quote",
