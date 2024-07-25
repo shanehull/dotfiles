@@ -12,7 +12,7 @@ with pkgs; [
   # terminal, shell and editor
   zsh
   warp-terminal
-  alacritty
+  wezterm
   tmux
   pam-reattach # for tmux touch id support
   starship
@@ -40,6 +40,7 @@ with pkgs; [
   # k8s tools
   k9s
   helm-docs
+  kustomize
 
   # asdf
   # we do not install any langs using nix

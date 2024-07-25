@@ -9,7 +9,6 @@
   };
 
   zsh = import ./zsh {inherit pkgs config lib;};
-  alacritty = import ./alacritty {inherit pkgs config lib;};
   tmux = import ./tmux {inherit pkgs config lib;};
 
   starship = {
