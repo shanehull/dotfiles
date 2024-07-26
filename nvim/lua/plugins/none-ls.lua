@@ -9,6 +9,13 @@ return {
 			local eslint_d_diag = require("none-ls.diagnostics.eslint_d")
 			local eslint_d_actions = require("none-ls.code_actions.eslint_d")
 
+			local h = require("null-ls.helpers")
+			local cmd_resolver = require("null-ls.helpers.command_resolver")
+			local methods = require("null-ls.methods")
+			local u = require("null-ls.utils")
+
+			local FORMATTING = methods.internal.FORMATTING
+
 			null_ls.setup({
 				sources = {
 					null_ls.builtins.formatting.gofmt,
@@ -30,10 +37,30 @@ return {
 							"graphql",
 							"pandoc",
 							"markdown",
+							"md",
 						},
-						args = {
-							"--single-quote",
-						},
+						args = function(params)
+							if params.method == FORMATTING then
+								return { "$FILENAME" }
+							end
+
+							local row, end_row = params.range.row - 1, params.range.end_row - 1
+							local col, end_col = params.range.col - 1, params.range.end_col - 1
+							local start_offset = vim.api.nvim_buf_get_offset(params.bufnr, row) + col
+							local end_offset = vim.api.nvim_buf_get_offset(params.bufnr, end_row) + end_col
+
+							return {
+								"--single-quote",
+								"$FILENAME",
+								"--range-start=" .. start_offset,
+								"--range-end=" .. end_offset,
+							}
+						end,
+						dynamic_command = cmd_resolver.from_node_modules(),
+						to_stdin = true,
+						cwd = h.cache.by_bufnr(function(params)
+							return u.cosmiconfig("prettier")(params.bufname)
+						end),
 					}),
 					eslint_d_diag,
 					null_ls.builtins.diagnostics.golangci_lint,
