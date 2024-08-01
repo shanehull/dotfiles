@@ -31,6 +31,14 @@
 
     # k9s config dir
     export K9S_CONFIG_DIR=$HOME/.config/k9s
+
+    # jump words with opt+arrow
+    bindkey "^[[1;3C" forward-word
+    bindkey "^[[1;3D" backward-word
+
+    # jump beginning/end with opt+shift+arrow
+    bindkey "^[[1;4D" beginning-of-line
+    bindkey "^[[1;4C" end-of-line
   '';
   oh-my-zsh = {
     enable = true;
