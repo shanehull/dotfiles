@@ -6,7 +6,7 @@ config.leader = { key = "s", mods = "CTRL", timeout_milliseconds = 1000 }
 
 config.color_scheme = "Gruvbox dark, medium (base16)"
 config.font = wezterm.font("Hack Nerd Font")
-config.window_background_opacity = 0.80
+config.window_background_opacity = 0.85
 
 config.default_prog = {
 	"/bin/zsh",
