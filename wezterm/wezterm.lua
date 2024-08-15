@@ -13,6 +13,8 @@ config.default_prog = {
 	"-l",
 }
 
+config.audible_bell = "Disabled"
+
 config.keys = {
 	-- Split panes
 	{
