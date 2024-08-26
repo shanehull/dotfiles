@@ -53,3 +53,43 @@ end, { desc = "Create a new zettelkasten style note" })
 
 -- Add a keymap to create a new zettelkasten style note
 vim.api.nvim_set_keymap("n", "<leader>Z", ":Zet<CR>", { desc = "New zettelkasten note" })
+
+-- Command to insert a decision template
+vim.api.nvim_create_user_command("Decision", function()
+	local template = [[
+**Mental/physical state.**
+
+- [] Energized
+- [] Focused
+- [] Relaxed
+- [] Confident
+- [] Tired
+- [] Accepting
+- [] Accommodating
+- [] Anxious
+- [] Resigned
+- [] Frustrated
+- [] Angry
+
+**Decision opportunity:**
+
+**Variables:**
+
+**Alternatives:**
+
+**The decision:**
+
+**Expected outcome (and probabilities):**
+
+**Additional context:**
+    ]]
+
+	-- Get the current cursor position
+	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+
+	-- Insert the template at the current line
+	vim.api.nvim_buf_set_lines(0, row, row, false, vim.split(template, "\n"))
+end, {})
+
+-- Add a keymap to insert a decision template
+vim.api.nvim_set_keymap("n", "<leader>D", ":Decision<CR>", { desc = "New decision template" })
