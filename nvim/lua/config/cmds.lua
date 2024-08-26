@@ -57,19 +57,19 @@ vim.api.nvim_set_keymap("n", "<leader>Z", ":Zet<CR>", { desc = "New zettelkasten
 -- Command to insert a decision template
 vim.api.nvim_create_user_command("Decision", function()
 	local template = [[
-**Mental/physical state.**
+**Mental/physical state:**
 
-- [] Energized
-- [] Focused
-- [] Relaxed
-- [] Confident
-- [] Tired
-- [] Accepting
-- [] Accommodating
-- [] Anxious
-- [] Resigned
-- [] Frustrated
-- [] Angry
+- [ ] Energized
+- [ ] Focused
+- [ ] Relaxed
+- [ ] Confident
+- [ ] Tired
+- [ ] Accepting
+- [ ] Accommodating
+- [ ] Anxious
+- [ ] Resigned
+- [ ] Frustrated
+- [ ] Angry
 
 **Decision opportunity:**
 
@@ -79,7 +79,7 @@ vim.api.nvim_create_user_command("Decision", function()
 
 **The decision:**
 
-**Expected outcome (and probabilities):**
+**Expected outcome and probabilities:**
 
 **Additional context:**
     ]]
