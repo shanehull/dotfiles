@@ -54,6 +54,7 @@ with pkgs; [
   gotools
   golines
   golangci-lint
+  templ
   air
   stylua
   prettierd
