@@ -80,7 +80,6 @@ return {
 			mason.setup({})
 			mason_lspconfig.setup({
 				ensure_installed = {
-					"tsserver",
 					"gopls",
 					"golangci_lint_ls",
 					"typos_lsp",
