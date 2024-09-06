@@ -35,6 +35,11 @@
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       pull.ff = "only";
+      user = {
+        name = "shanehull";
+        email = "hello@shanehull.com";
+        signingkey = "954E6CE09F184BF5";
+      };
     };
   };
 }
