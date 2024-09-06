@@ -31,14 +31,21 @@
   };
   git = {
     enable = true;
+    userName = "shanehull";
+    userEmail = "hello@shanehull.com";
+    signing = {
+      signByDefault = true;
+      key = "954E6CE09F184BF5";
+    };
     extraConfig = {
-      init.defaultBranch = "main";
-      push.autoSetupRemote = true;
-      pull.ff = "only";
-      user = {
-        name = "shanehull";
-        email = "hello@shanehull.com";
-        signingkey = "954E6CE09F184BF5";
+      init = {
+        defaultBranch = "main";
+      };
+      push = {
+        autoSetupRemote = true;
+      };
+      pull = {
+        rebase = true;
       };
     };
   };
