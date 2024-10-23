@@ -5,8 +5,12 @@ local config = wezterm.config_builder()
 config.leader = { key = "s", mods = "CTRL", timeout_milliseconds = 1000 }
 
 config.color_scheme = "Gruvbox dark, medium (base16)"
-config.font = wezterm.font("Hack Nerd Font")
 config.window_background_opacity = 0.85
+config.font = wezterm.font("Hack Nerd Font")
+config.font_size = 12.0
+
+config.send_composed_key_when_left_alt_is_pressed = true
+config.send_composed_key_when_right_alt_is_pressed = true
 
 config.default_prog = {
 	"/bin/zsh",
