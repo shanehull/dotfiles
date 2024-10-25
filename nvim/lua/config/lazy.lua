@@ -22,7 +22,7 @@ require("lazy").setup({
 	},
 	checker = {
 		enabled = true,
-		frequency = 86400, -- check for updates once a day
+		frequency = 604800, -- check for updates once a week
 	},
 	performance = {
 		rtp = {
