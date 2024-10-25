@@ -32,15 +32,16 @@ with pkgs; [
   yq
   wget
   htop
-  neofetch
+  fastfetch
   pngpaste
-  slides
   vhs
+  btop
 
   # k8s tools
   k9s
   helm-docs
   kustomize
+  kubebuilder
 
   # asdf
   # we do not install any langs using nix
