@@ -8,4 +8,6 @@ terraform 1.8.4
 opentofu 1.8.0
 helm 3.14.1
 kubectl 1.29.2
-hugo 0.122.0
+hugo extended_0.134.2
+elixir v1.17.3
+erlang 27.1.1
