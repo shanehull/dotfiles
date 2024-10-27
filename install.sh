@@ -25,13 +25,12 @@ export PATH=$PATH:/etc/profiles/per-user/shane/bin/
 ## Install asdf plugins and tools ##
 ASDF_DIR=$(dirname $(dirname $(readlink -f $(which asdf))))
 . ${ASDF_DIR}/asdf.sh
+
 # Install asdf tool plugins
 cut -d' ' -f1 .tool-versions|xargs -I{} asdf plugin add {}
+
 # Install asdf tools (./.tool-versions is used by default)
 asdf install
-# Copy ./tool-versions to home (this sets global asdf tool versions)
+
+# Copy ./.tool-versions to home (this manages the global versions)
 cp ./.tool-versions ~/.tool-versions
-# Set global versions to the versions specific in ~/.tool-versions
-cat ~/.tool-versions | while read line ; do
-    eval asdf global $line
-done
