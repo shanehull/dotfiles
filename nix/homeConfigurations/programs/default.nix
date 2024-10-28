@@ -35,7 +35,7 @@
     userEmail = "hello@shanehull.com";
     signing = {
       signByDefault = true;
-      key = "B53433348CA2F9F9";
+      key = "954E6CE09F184BF5";
     };
     extraConfig = {
       init = {
