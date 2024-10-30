@@ -4,6 +4,8 @@ local config = wezterm.config_builder()
 
 config.leader = { key = "s", mods = "CTRL", timeout_milliseconds = 1000 }
 
+config.front_end = "WebGpu"
+
 config.color_scheme = "Gruvbox dark, medium (base16)"
 config.window_background_opacity = 0.85
 config.font = wezterm.font("Hack Nerd Font")
