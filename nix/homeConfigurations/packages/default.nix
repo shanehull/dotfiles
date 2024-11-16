@@ -36,6 +36,7 @@ with pkgs; [
   pngpaste
   vhs
   btop
+  awscli2
 
   # k8s tools
   k9s
