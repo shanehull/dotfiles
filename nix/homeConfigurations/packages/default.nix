@@ -64,10 +64,12 @@ with pkgs; [
   alejandra
   yamlfmt
   yamllint
+  lua-language-server
 
   # other
   gnupg
   ollama
+  yabai
 
   # custom packages from my public git repos
   (makeGhReleasePkg

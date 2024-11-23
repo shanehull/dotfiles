@@ -30,11 +30,7 @@
           enable = true;
         };
       };
-      services = {
-        nix-daemon = {
-          enable = true;
-        };
-      };
+      services = import ./services {inherit pkgs config lib;};
       users = {
         users.shane.home = "/Users/shane";
       };
