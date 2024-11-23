@@ -13,11 +13,11 @@ fi
 
 ## Build the flake ##
 if [ ! -d ./nix/result ]; then
-  /run/current-system/sw/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.shed.system --extra-experimental-features 'nix-command flakes'
+  /run/current-system/sw/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.${1}.system --extra-experimental-features 'nix-command flakes'
 fi
 
 ## Install the flake system wide ##
-./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#shed"
+./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}"
 
 ## Source nix packages for this shell ##
 export PATH=$PATH:/etc/profiles/per-user/shane/bin/

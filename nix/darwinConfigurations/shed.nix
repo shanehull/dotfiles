@@ -37,7 +37,6 @@
       };
       users = {
         users.shane.home = "/Users/shane";
-        users."shane.hull".home = "/Users/shane.hull";
       };
       system = {
         stateVersion = 4;
