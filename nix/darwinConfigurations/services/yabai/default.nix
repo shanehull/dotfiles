@@ -37,6 +37,8 @@
       "WezTerm"
       "Slack"
       "1Password"
+      "Discord"
+      "Signal"
     ]}
 
     ${rule} label="Arc" app="^Arc$" title="^(General|(Tab|Password|Website|Extension)s|AutoFill|Se(arch|curity)|Privacy|Advance|[Bb]itwarden)$" manage=off

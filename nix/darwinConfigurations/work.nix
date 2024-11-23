@@ -7,7 +7,7 @@
   }: {
     imports = [
       inputs.home-manager.darwinModules.home-manager
-      inputs.self.homeConfigurations.remote.nixosModule
+      inputs.self.homeConfigurations.work.nixosModule
       {
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
@@ -57,6 +57,7 @@
       security.pam.enableSudoTouchIdAuth = true;
       # use pam_reattach in addition to pam_tid so it works  with tmux
       # pam_reattach is installed via ../homeConfigurations/packages/default.nix
+      # see: https://github.com/LnL7/nix-darwin/issues/985
       environment.etc."pam.d/sudo_local".text = ''
         # Written by nix-darwin
         auth       optional       ${pkgs.pam-reattach}/lib/pam/pam_reattach.so

@@ -13,12 +13,12 @@
     };
   in {
     darwinConfigurations = {
-      shed = import ./darwinConfigurations/shed.nix flakeContext;
-      remote = import ./darwinConfigurations/remote.nix flakeContext;
+      home = import ./darwinConfigurations/home.nix flakeContext;
+      work = import ./darwinConfigurations/work.nix flakeContext;
     };
     homeConfigurations = {
-      shed = import ./homeConfigurations/shed.nix flakeContext;
-      remote = import ./homeConfigurations/remote.nix flakeContext;
+      home = import ./homeConfigurations/home.nix flakeContext;
+      work = import ./homeConfigurations/work.nix flakeContext;
     };
   };
 }
