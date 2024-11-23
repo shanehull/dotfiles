@@ -37,7 +37,7 @@
   };
   nixosModule = {...}: {
     home-manager.users = {
-      shane = homeModule;
+      "shane.hull" = homeModule;
     };
   };
 in

@@ -11,7 +11,6 @@ with pkgs; [
 
   # terminal, shell and editor
   zsh
-  warp-terminal
   wezterm
   tmux
   pam-reattach # for tmux touch id support
