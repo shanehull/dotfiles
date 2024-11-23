@@ -51,7 +51,7 @@
           trackpad = {
             TrackpadRightClick = true;
             TrackpadThreeFingerDrag = true;
-            Clicking = true;
+            Clicking = false;
           };
         };
       };
