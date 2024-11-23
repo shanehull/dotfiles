@@ -10,6 +10,9 @@
     pkgs,
     ...
   }: {
+    imports = [
+      # ...
+    ];
     config = {
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;

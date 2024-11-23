@@ -30,7 +30,11 @@
           enable = true;
         };
       };
-      services = import ./services {inherit pkgs config lib;};
+      services = {
+        nix-daemon = {
+          enable = true;
+        };
+      };
       users = {
         users."shane.hull".home = "/Users/shane.hull";
       };
@@ -41,6 +45,14 @@
             autohide = true;
             show-recents = false;
           };
+          NSGlobalDomain = {
+            AppleInterfaceStyle = "Dark";
+          };
+          trackpad = {
+            TrackpadRightClick = true;
+            TrackpadThreeFingerDrag = true;
+            Clicking = true;
+          };
         };
       };
       environment = {
@@ -49,8 +61,13 @@
       };
       homebrew = {
         enable = true;
-        onActivation.autoUpdate = true;
-        casks = ["multipass"];
+        casks = [
+          "multipass"
+          "aerospace"
+        ];
+        taps = [
+          "nikitabobko/tap"
+        ];
         brews = [];
       };
       # this doesn't work with tmux
