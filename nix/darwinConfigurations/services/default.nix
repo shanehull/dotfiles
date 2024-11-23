@@ -4,8 +4,10 @@
   lib,
   ...
 }: {
-  nix-daemon = {
-    enable = true;
+  services = {
+    nix-daemon = {
+      enable = true;
+    };
+    # yabai = import ./yabai {inherit pkgs config lib;};
   };
-  yabai = import ./yabai {inherit pkgs config lib;};
 }

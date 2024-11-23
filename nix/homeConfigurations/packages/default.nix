@@ -69,7 +69,6 @@ with pkgs; [
   # other
   gnupg
   ollama
-  yabai
 
   # custom packages from my public git repos
   (makeGhReleasePkg
