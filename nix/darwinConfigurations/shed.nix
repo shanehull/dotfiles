@@ -58,7 +58,7 @@
         brews = [];
       };
       # this doesn't work with tmux
-      # security.pam.enableSudoTouchIdAuth = true;
+      security.pam.enableSudoTouchIdAuth = true;
       # use pam_reattach in addition to pam_tid so it works  with tmux
       # pam_reattach is installed via ../homeConfigurations/packages/default.nix
       environment.etc."pam.d/sudo_local".text = ''

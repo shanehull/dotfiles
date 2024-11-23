@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ## Install nix ##
 if ! type /run/current-system/sw/bin/nix &> /dev/null; then
   curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
@@ -10,6 +12,7 @@ fi
 if ! type /opt/homebrew/bin/brew &> /dev/null; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
+
 
 ## Build the flake ##
 if [ ! -d ./nix/result ]; then
@@ -23,12 +26,6 @@ fi
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
 ## Install asdf plugins and tools ##
-
-# Install asdf tool plugins
 cut -d' ' -f1 .tool-versions|xargs -I{} asdf plugin add {}
-
-# Install asdf tools (./.tool-versions is used by default)
 asdf install
-
-# Copy ./.tool-versions to home (this manages the global versions)
 cp ./.tool-versions ~/.tool-versions
