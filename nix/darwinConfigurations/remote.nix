@@ -7,7 +7,7 @@
   }: {
     imports = [
       inputs.home-manager.darwinModules.home-manager
-      inputs.self.homeConfigurations.shed.nixosModule
+      inputs.self.homeConfigurations.remote.nixosModule
       {
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;

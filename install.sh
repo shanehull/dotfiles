@@ -20,11 +20,9 @@ fi
 ./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}"
 
 ## Source nix packages for this shell ##
-export PATH=$PATH:/etc/profiles/per-user/shane/bin/
+export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
 ## Install asdf plugins and tools ##
-ASDF_DIR=$(dirname $(dirname $(readlink -f $(which asdf))))
-. ${ASDF_DIR}/asdf.sh
 
 # Install asdf tool plugins
 cut -d' ' -f1 .tool-versions|xargs -I{} asdf plugin add {}
