@@ -39,6 +39,12 @@
     # jump beginning/end with opt+shift+arrow
     bindkey "^[[1;4D" beginning-of-line
     bindkey "^[[1;4C" end-of-line
+
+    # remotectl autocompletion
+    # TODO: don't do this at home
+    compdef remotectl
+    compdef _remotectl remotectl
+    source <(remotectl completion zsh)
   '';
   oh-my-zsh = {
     enable = true;
@@ -68,4 +74,5 @@
   syntaxHighlighting = {
     enable = true;
   };
+  enableCompletion = true;
 }

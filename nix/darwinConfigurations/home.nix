@@ -53,6 +53,12 @@
             TrackpadThreeFingerDrag = true;
             Clicking = false;
           };
+          controlcenter = {
+            Sound = true;
+          };
+          menuExtraClock = {
+            ShowSeconds = true;
+          };
         };
       };
       environment = {
