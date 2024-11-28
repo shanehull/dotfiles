@@ -44,6 +44,8 @@
           dock = {
             autohide = true;
             show-recents = false;
+            wvous-br-corner = 3;
+            wvous-bl-corner = 4;
           };
           NSGlobalDomain = {
             AppleInterfaceStyle = "Dark";
