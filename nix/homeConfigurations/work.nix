@@ -80,6 +80,7 @@
 
           # other
           gnupg
+          openssl
         ];
         activation = {
           # alias nix applications
@@ -103,7 +104,9 @@
         };
         zsh = {
           enable = true;
-          initExtra = ''
+          initExtra = let
+            openssl = pkgs.openssl.override {static = true;};
+          in ''
             # starship prompt
             eval "$(starship init zsh)"
 
@@ -145,6 +148,10 @@
 
             # set aws profile to sts
             export AWS_PROFILE=sts
+
+            # crypto fix for postgres asdf installs
+            export CPPFLAGS='-I${openssl.dev}/include'
+            export LDFLAGS='-L${openssl.out}/lib'
           '';
           oh-my-zsh = {
             enable = true;

@@ -82,6 +82,7 @@
 
           # other
           gnupg
+          openssl
           ollama
 
           # custom packages from my public git repos
@@ -126,7 +127,9 @@
         };
         zsh = {
           enable = true;
-          initExtra = ''
+          initExtra = let
+            openssl = pkgs.openssl.override {static = true;};
+          in ''
             # starship prompt
             eval "$(starship init zsh)"
 
@@ -160,6 +163,10 @@
             # jump beginning/end with opt+shift+arrow
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
+
+            # crypto fix for postgres asdf installs
+            export CPPFLAGS='-I${openssl.dev}/include'
+            export LDFLAGS='-L${openssl.out}/lib'
           '';
           oh-my-zsh = {
             enable = true;

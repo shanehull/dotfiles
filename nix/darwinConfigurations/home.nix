@@ -51,6 +51,7 @@
           trackpad = {
             TrackpadRightClick = true;
             TrackpadThreeFingerDrag = true;
+            TrackpadThreeFingerTapGesture = 0;
             Clicking = false;
           };
           controlcenter = {
