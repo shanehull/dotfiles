@@ -58,9 +58,15 @@
           };
           controlcenter = {
             Sound = true;
+            Bluetooth = true;
           };
           menuExtraClock = {
             ShowSeconds = true;
+          };
+          CustomUserPreferences = {
+            "~/Library/Preferences/com.apple.screencapture.plist" = {
+              target = "clipboard";
+            };
           };
         };
       };
