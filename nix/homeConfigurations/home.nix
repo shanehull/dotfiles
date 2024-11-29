@@ -164,9 +164,12 @@
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
 
-            # crypto fix for postgres asdf installs
+            # fix for postgres asdf installs
             export CPPFLAGS='-I${openssl.dev}/include'
             export LDFLAGS='-L${openssl.out}/lib'
+
+            $ kerl config options (asdf erlang installs)
+            export KERL_CONFIGURE_OPTIONS='--disable-hipe --without-javac'
           '';
           oh-my-zsh = {
             enable = true;
