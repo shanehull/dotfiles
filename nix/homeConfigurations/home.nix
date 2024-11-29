@@ -83,6 +83,7 @@
           # other
           gnupg
           openssl
+          lz4
           ollama
 
           # custom packages from my public git repos
@@ -127,9 +128,7 @@
         };
         zsh = {
           enable = true;
-          initExtra = let
-            openssl = pkgs.openssl.override {static = true;};
-          in ''
+          initExtra = ''
             # starship prompt
             eval "$(starship init zsh)"
 
@@ -164,11 +163,16 @@
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
 
-            # fix for postgres asdf installs
-            export CPPFLAGS='-I${openssl.dev}/include'
-            export LDFLAGS='-L${openssl.out}/lib'
+            # compile flags for openssl
+            export LDFLAGS='-L${pkgs.openssl.out}/lib'
+            export CPPFLAGS='-I${pkgs.openssl.dev}/include'
 
-            $ kerl config options (asdf erlang installs)
+            # postgres extra config options
+            export LZ4_CFLAGS='-I${pkgs.lz4.dev}/include'
+            export LZ4_LIBS='-L${pkgs.lz4.lib}/lib'
+            export POSTGRES_EXTRA_CONFIGURE_OPTIONS='--with-lz4 --with-uuid=e2fs'
+
+            # kerl config options (asdf erlang installs)
             export KERL_CONFIGURE_OPTIONS='--disable-hipe --without-javac'
           '';
           oh-my-zsh = {
