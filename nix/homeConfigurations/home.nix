@@ -79,6 +79,7 @@
           yamlfmt
           yamllint
           lua-language-server
+          lexical
 
           # other
           gnupg

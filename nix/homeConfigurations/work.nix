@@ -48,6 +48,7 @@
           vhs
           btop
           awscli2
+          _1password-cli
 
           # k8s tools
           k9s
@@ -77,6 +78,7 @@
           yamlfmt
           yamllint
           lua-language-server
+          lexical
 
           # other
           gnupg
