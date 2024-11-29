@@ -85,6 +85,7 @@
         ];
         brews = [
           # kerl (for asdf erlang installs) requires an overly specific openssl install
+          # TODO: eliminate openssl brew
           "openssl"
         ];
       };
