@@ -32,6 +32,7 @@ return {
 			vim.keymap.set("n", "<leader>ft", builtin.live_grep, { desc = "Find text with telescope" })
 			vim.keymap.set("n", "<leader>fg", builtin.git_files, { desc = "Find git files with telescope" })
 			vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Find help tags with telescope" })
+			vim.keymap.set("n", "<leader>fr", builtin.resume, { desc = "Resume telescope session" })
 		end,
 	},
 
