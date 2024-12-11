@@ -19,7 +19,7 @@
         packages = with pkgs; [
           # fonts
           fontconfig
-          (nerdfonts.override {fonts = ["Hack"];})
+          nerd-fonts.hack
 
           # terminal, shell and editor
           zsh
