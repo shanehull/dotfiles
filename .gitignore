@@ -2,7 +2,7 @@
 
 !.gitignore
 !install.sh
-!.tool-versions
+!.tool-versions-*
 !k9s
 !yamllint
 !yamlfmt
