@@ -161,6 +161,9 @@
 
             # kerl config options (asdf erlang installs)
             export KERL_CONFIGURE_OPTIONS='--disable-hipe --without-javac'
+
+            # use terraform for terragrunt
+            export TERRAGRUNT_TFPATH=$(which terraform)
           '';
           oh-my-zsh = {
             enable = true;
@@ -180,8 +183,6 @@
             "cat" = "bat";
             "ccat" = "bat --plain";
             "brain" = "cd $SECOND_BRAIN";
-            "zet" = "shed zet";
-            "checkcrt" = "shed checkcrt";
             ":q" = "exit";
           };
           autosuggestion = {
@@ -254,7 +255,7 @@
       };
     };
   };
-  nixosModule = {...}: {
+  nixosModule = _: {
     home-manager.users = {
       "shane.hull" = homeModule;
     };

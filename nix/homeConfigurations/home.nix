@@ -268,7 +268,7 @@
       };
     };
   };
-  nixosModule = {...}: {
+  nixosModule = _: {
     home-manager.users = {
       shane = homeModule;
     };
