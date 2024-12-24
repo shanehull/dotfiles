@@ -101,6 +101,15 @@ return {
 					},
 				},
 			})
+			lspconfig.lexical.setup({
+				cmd = { "lexical" },
+				root_dir = function(fname)
+					return lspconfig.util.root_pattern("mix.exs", ".git")(fname) or vim.loop.cwd()
+				end,
+				filetypes = { "elixir", "eelixir", "heex" },
+				-- optional settings
+				settings = {},
+			})
 		end,
 	},
 
