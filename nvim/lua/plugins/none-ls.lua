@@ -24,6 +24,7 @@ return {
 					null_ls.builtins.formatting.stylua,
 					null_ls.builtins.formatting.alejandra,
 					null_ls.builtins.formatting.terraform_fmt,
+					null_ls.builtins.formatting.terragrunt_fmt,
 					null_ls.builtins.formatting.yamlfmt,
 					null_ls.builtins.formatting.prettierd.with({
 						filetypes = {
@@ -67,6 +68,7 @@ return {
 					null_ls.builtins.diagnostics.golangci_lint,
 					null_ls.builtins.diagnostics.statix,
 					null_ls.builtins.diagnostics.terraform_validate,
+					null_ls.builtins.diagnostics.terragrunt_validate,
 					null_ls.builtins.diagnostics.yamllint,
 					null_ls.builtins.diagnostics.credo,
 					null_ls.builtins.completion.spell,
