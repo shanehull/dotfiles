@@ -55,6 +55,7 @@
           helm-docs
           kustomize
           kubebuilder
+          kind
 
           # asdf
           # we do not install any langs using nix
