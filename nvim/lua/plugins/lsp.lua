@@ -149,6 +149,7 @@ return {
 				}),
 				sources = cmp.config.sources({
 					{ name = "nvim_lsp" },
+					{ name = "nvim_lua" },
 					{ name = "path" },
 					{ name = "buffer" },
 					{ name = "cody" },
