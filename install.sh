@@ -26,6 +26,5 @@ fi
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
 ## Install asdf plugins and tools ##
-cut -d' ' -f1 .tool-versions-${1}|xargs -I{} asdf plugin add {}
-asdf install
 cp ./.tool-versions-${1} ~/.tool-versions
+(cd ~; cut -d' ' -f1 .tool-versions |xargs -I{} asdf plugin add {} && asdf install)

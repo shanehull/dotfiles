@@ -30,11 +30,6 @@
           enable = true;
         };
       };
-      services = {
-        nix-daemon = {
-          enable = true;
-        };
-      };
       users = {
         users."shane.hull".home = "/Users/shane.hull";
       };
