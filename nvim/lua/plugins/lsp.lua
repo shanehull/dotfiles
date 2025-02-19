@@ -101,6 +101,7 @@ return {
 					},
 				},
 			})
+
 			lspconfig.lexical.setup({
 				cmd = { "lexical" },
 				root_dir = function(fname)
@@ -110,6 +111,8 @@ return {
 				-- optional settings
 				settings = {},
 			})
+
+			lspconfig.ocamllsp.setup({})
 		end,
 	},
 

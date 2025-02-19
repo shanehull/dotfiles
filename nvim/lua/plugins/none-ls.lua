@@ -26,6 +26,8 @@ return {
 					null_ls.builtins.formatting.terraform_fmt,
 					null_ls.builtins.formatting.terragrunt_fmt,
 					null_ls.builtins.formatting.yamlfmt,
+					null_ls.builtins.formatting.mix,
+					null_ls.builtins.formatting.ocamlformat,
 					null_ls.builtins.formatting.prettierd.with({
 						filetypes = {
 							"javascript",
@@ -64,7 +66,6 @@ return {
 						end),
 					}),
 					eslint_d_diag,
-					null_ls.builtins.formatting.mix,
 					null_ls.builtins.diagnostics.golangci_lint,
 					null_ls.builtins.diagnostics.statix,
 					null_ls.builtins.diagnostics.terraform_validate,

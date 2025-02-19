@@ -80,6 +80,11 @@
           yamllint
           lua-language-server
           lexical
+          dune_3 # ocaml build system
+          ocamlPackages.utop
+          ocamlPackages.odoc
+          ocamlPackages.ocaml-lsp
+          ocamlPackages.ocamlformat
 
           # other
           gnupg

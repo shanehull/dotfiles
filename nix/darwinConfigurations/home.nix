@@ -33,8 +33,9 @@
       users = {
         users.shane.home = "/Users/shane";
       };
+      ids.gids.nixbld = 30000;
       system = {
-        stateVersion = 4;
+        stateVersion = 6;
         defaults = {
           dock = {
             autohide = true;
