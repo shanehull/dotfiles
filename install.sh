@@ -3,7 +3,7 @@
 set -e
 
 ## Install nix ##
-if ! type /run/current-system/sw/bin/nix &> /dev/null; then
+if ! type /nix/var/nix/profiles/default/bin/nix &> /dev/null; then
   curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
 fi
 
@@ -16,7 +16,7 @@ fi
 
 ## Build the flake ##
 if [ ! -d ./nix/result ]; then
-  /run/current-system/sw/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.${1}.system --extra-experimental-features 'nix-command flakes'
+  /nix/var/nix/profiles/default/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.${1}.system --extra-experimental-features 'nix-command flakes'
 fi
 
 ## Install the flake system wide ##
