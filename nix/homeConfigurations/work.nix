@@ -1,6 +1,8 @@
 {inputs, ...} @ flakeContext: let
-  system = "aarch64-darwin"; # Use "x86_64-darwin" if you are on an Intel Mac
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
+  system = "aarch64-darwin";
+  pkgs = import inputs.nixpkgs {
+    inherit system;
+  };
 
   homeModule = {
     config,
@@ -15,7 +17,7 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
-        stateVersion = "23.11";
+        stateVersion = "24.11";
         packages = with pkgs; [
           # fonts
           fontconfig

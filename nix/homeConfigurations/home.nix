@@ -1,6 +1,8 @@
 {inputs, ...} @ flakeContext: let
-  system = "aarch64-darwin"; # Use "x86_64-darwin" if you are on an Intel Mac
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
+  system = "aarch64-darwin";
+  pkgs = import inputs.nixpkgs {
+    inherit system;
+  };
 
   mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
 
@@ -17,7 +19,7 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
-        stateVersion = "23.11";
+        stateVersion = "24.11";
         packages = with pkgs; [
           # fonts
           fontconfig
@@ -80,11 +82,11 @@
           yamllint
           lua-language-server
           lexical
-          dune_3 # ocaml build system
-          ocamlPackages.utop
-          ocamlPackages.odoc
-          ocamlPackages.ocaml-lsp
-          ocamlPackages.ocamlformat
+          ocaml-ng.ocamlPackages_5_3.dune_3
+          ocaml-ng.ocamlPackages_5_3.utop
+          ocaml-ng.ocamlPackages_5_3.odoc
+          ocaml-ng.ocamlPackages_5_3.ocaml-lsp
+          ocaml-ng.ocamlPackages_5_3.ocamlformat
 
           # other
           gnupg
