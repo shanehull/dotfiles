@@ -10,6 +10,11 @@ return {
 	font_size = 12.0,
 	font = wezterm.font("Hack Nerd Font"),
 
+	set_environment_variables = {
+		TERMINFO_DIRS = "/etc/profiles/per-user/$USER/share/terminfo",
+		WSLENV = "TERMINFO_DIRS",
+	},
+
 	term = "wezterm",
 
 	window_decorations = "RESIZE",
