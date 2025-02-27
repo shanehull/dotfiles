@@ -1,14 +1,16 @@
 local wezterm = require("wezterm")
 
 return {
-	leader = { key = "s", mods = "CTRL", timeout_milliseconds = 1000 },
+	leader = { key = "s", mods = "CTRL", timeout_milliseconds = 2000 },
 	front_end = "WebGpu",
 
 	color_scheme = "Gruvbox dark, medium (base16)",
 	enable_tab_bar = false,
-	window_background_opacity = 0.85,
+	window_background_opacity = 0.90,
 	font_size = 12.0,
 	font = wezterm.font("Hack Nerd Font"),
+
+	term = "wezterm",
 
 	window_decorations = "RESIZE",
 
