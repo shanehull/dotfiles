@@ -90,7 +90,7 @@
         ];
       };
       # this doesn't work with tmux
-      security.pam.enableSudoTouchIdAuth = true;
+      security.pam.services.sudo_local.touchIdAuth = true;
       # use pam_reattach in addition to pam_tid so it works  with tmux
       # pam_reattach is installed via ../homeConfigurations/packages/default.nix
       # see: https://github.com/LnL7/nix-darwin/issues/985
