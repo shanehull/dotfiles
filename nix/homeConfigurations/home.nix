@@ -265,6 +265,10 @@
             };
           };
         };
+        mise = {
+          enable = true;
+          enableZshIntegration = true;
+        };
       };
     };
   };
