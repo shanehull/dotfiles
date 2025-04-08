@@ -84,11 +84,6 @@
         taps = [
           "nikitabobko/tap"
         ];
-        brews = [
-          # kerl (for asdf erlang installs) requires an overly specific openssl install
-          # TODO: eliminate openssl brew
-          "openssl"
-        ];
       };
       # this doesn't work with tmux
       security.pam.services.sudo_local.touchIdAuth = true;

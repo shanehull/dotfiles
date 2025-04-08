@@ -25,6 +25,6 @@ fi
 ## Source nix packages for this shell ##
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
-## Install asdf plugins and tools ##
+## Install mise plugins and tools ##
 cp ./.tool-versions-${1} ~/.tool-versions
-(cd ~; cut -d' ' -f1 .tool-versions |xargs -I{} asdf plugin add {} && asdf install)
+mise plugin install --all && mise install

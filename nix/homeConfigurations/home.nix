@@ -59,10 +59,10 @@
           kustomize
           kubebuilder
 
-          # asdf
+          # mise
           # we do not install any langs using nix
-          # asdf manages tooling versions via ./.tool-versions
-          asdf-vm
+          # mise manages tooling versions via ./.tool-versions
+          mise
 
           # language tools
           terraform-ls
@@ -143,10 +143,6 @@
             # autocomplete color
             ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=246'
 
-            # asdf init
-            ASDF_DIR="${pkgs.asdf-vm}"/share/asdf-vm
-            . ${pkgs.asdf-vm}/share/asdf-vm/asdf.sh
-
             # homebrew path
             eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -179,9 +175,6 @@
             export LZ4_CFLAGS='-I${pkgs.lz4.dev}/include'
             export LZ4_LIBS='-L${pkgs.lz4.lib}/lib'
             export POSTGRES_EXTRA_CONFIGURE_OPTIONS='--with-lz4 --with-uuid=e2fs'
-
-            # kerl config options (asdf erlang installs)
-            export KERL_CONFIGURE_OPTIONS='--disable-hipe --without-javac'
           '';
           oh-my-zsh = {
             enable = true;
@@ -190,7 +183,7 @@
               "git"
               "thefuck"
               "kubectl"
-              "asdf"
+              "mise"
               "dotenv"
               "terraform"
             ];
