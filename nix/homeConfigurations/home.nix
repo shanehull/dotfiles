@@ -63,6 +63,7 @@
           # we do not install any langs using nix
           # mise manages tooling versions via ./.tool-versions
           mise
+          usage # required for mise autocomplete
 
           # language tools
           terraform-ls
