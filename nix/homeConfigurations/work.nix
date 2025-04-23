@@ -111,7 +111,7 @@
         };
         zsh = {
           enable = true;
-          initExtra = ''
+          initContent = ''
             # starship prompt
             eval "$(starship init zsh)"
 
