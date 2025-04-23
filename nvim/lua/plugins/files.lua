@@ -22,6 +22,7 @@ return {
 							"build/",
 							"target/",
 							"package%-lock%.json",
+							".terraform_cache/",
 						},
 					},
 				},
