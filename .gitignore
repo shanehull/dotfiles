@@ -2,7 +2,7 @@
 
 !.gitignore
 !install.sh
-!.tool-versions-*
+!mise-config-*.toml
 !k9s
 !yamllint
 !yamlfmt

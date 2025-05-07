@@ -26,5 +26,5 @@ fi
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
 ## Install mise plugins and tools ##
-cp ./.tool-versions-${1} ~/.tool-versions
+cp ./mise-config-${1}.toml ./mise/config.toml
 mise plugin install --all && mise install

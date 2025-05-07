@@ -61,7 +61,7 @@
 
           # mise
           # we do not install any langs using nix
-          # mise manages tooling versions via ./.tool-versions
+          # mise manages tooling versions via ~/.config/mise/config.toml
           mise
           usage # required for mise autocomplete
 
