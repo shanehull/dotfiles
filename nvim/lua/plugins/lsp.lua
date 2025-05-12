@@ -95,6 +95,7 @@ return {
 					gopls = {
 						analyses = {
 							unusedparams = true,
+							shadow = true,
 						},
 						staticcheck = true,
 						gofumpt = true,
@@ -125,6 +126,7 @@ return {
 			{ "hrsh7th/cmp-path" },
 			{ "hrsh7th/cmp-cmdline" },
 			{ "hrsh7th/cmp-emoji" },
+			{ "hrsh7th/cmp-calc" },
 			{ "saadparwaiz1/cmp_luasnip" },
 			{ "hrsh7th/cmp-nvim-lsp" },
 			{ "hrsh7th/cmp-nvim-lua" },
@@ -156,6 +158,7 @@ return {
 					{ name = "path" },
 					{ name = "buffer" },
 					{ name = "cody" },
+					{ name = "calc" },
 				}),
 				formatting = {
 					format = require("lspkind").cmp_format({
