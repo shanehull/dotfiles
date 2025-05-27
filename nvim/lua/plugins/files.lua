@@ -23,6 +23,8 @@ return {
 							"target/",
 							"package%-lock%.json",
 							".terraform_cache/",
+							".terraform/",
+							".terraform.lock.hcl",
 						},
 					},
 				},
