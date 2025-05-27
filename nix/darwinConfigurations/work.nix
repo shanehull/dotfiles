@@ -40,6 +40,7 @@
       };
       system = {
         stateVersion = 6;
+        primaryUser = "shane.hull";
         defaults = {
           dock = {
             autohide = true;
@@ -64,7 +65,7 @@
             ShowSeconds = true;
           };
           CustomUserPreferences = {
-            "~/Library/Preferences/com.apple.screencapture.plist" = {
+            "com.apple.screencapture.plist" = {
               target = "clipboard";
             };
           };
@@ -82,11 +83,6 @@
         ];
         taps = [
           "nikitabobko/tap"
-        ];
-        brews = [
-          # kerl (for asdf erlang installs) requires an overly specific openssl install
-          # TODO: eliminate openssl brew
-          "openssl"
         ];
       };
       # this doesn't work with tmux

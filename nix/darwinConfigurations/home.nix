@@ -41,6 +41,7 @@
       };
       system = {
         stateVersion = 6;
+        primaryUser = "shane";
         defaults = {
           dock = {
             autohide = true;
@@ -65,7 +66,7 @@
             ShowSeconds = true;
           };
           CustomUserPreferences = {
-            "~/Library/Preferences/com.apple.screencapture.plist" = {
+            "com.apple.screencapture.plist" = {
               target = "clipboard";
             };
           };
