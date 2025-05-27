@@ -232,7 +232,7 @@
         git = {
           enable = true;
           userName = "shanehull";
-          userEmail = "hello@shanehull.com";
+          userEmail = "shane.hull@remote.com";
           signing = {
             signByDefault = true;
             key = "954E6CE09F184BF5";
