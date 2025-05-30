@@ -1,25 +1,17 @@
 return {
 	{
 		"VonHeikemen/lsp-zero.nvim",
-		branch = "v3.x",
+		branch = "v4.x",
 		lazy = true,
 		config = function()
 			vim.g.lsp_zero_extend_cmp = 0
 			vim.g.lsp_zero_extend_lspconfig = 0
 		end,
 	},
-
-	-- Auto configure
+	{ "williamboman/mason.nvim" },
 	{
-		"neovim/nvim-lspconfig",
-		cmd = { "LspInfo", "LspInstall", "LspStart" },
-		event = { "BufReadPre", "BufNewFile" },
-		dependencies = {
-			-- LSP Support
-			{ "williamboman/mason.nvim" },
-			{ "williamboman/mason-lspconfig.nvim", tag = "v1.26.0" },
-			{ "neovim/nvim-lspconfig" },
-		},
+		"mason-org/mason-lspconfig.nvim",
+		dependencies = { "neovim/nvim-lspconfig" },
 		config = function()
 			local lsp_zero = require("lsp-zero")
 			local lspconfig = require("lspconfig")
@@ -116,8 +108,6 @@ return {
 			lspconfig.ocamllsp.setup({})
 		end,
 	},
-
-	-- Completions with cmp
 	{
 		"hrsh7th/nvim-cmp",
 		dependencies = {
