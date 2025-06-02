@@ -39,7 +39,6 @@
           fzf
           fd
           gawk
-          thefuck
           ripgrep
           jq
           yq
@@ -167,7 +166,6 @@
             plugins = [
               "macos"
               "git"
-              "thefuck"
               "kubectl"
               "mise"
               "dotenv"
