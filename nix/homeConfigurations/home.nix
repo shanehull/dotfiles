@@ -93,6 +93,8 @@
           openssl
           lz4
           ollama
+          electrum
+          obsidian
 
           # custom packages from my public git repos
           (mkGithubReleasePkg
