@@ -25,6 +25,7 @@ return {
 							".terraform_cache/",
 							".terraform/",
 							".terraform.lock.hcl",
+							".terragrunt-cache/*",
 						},
 					},
 				},
