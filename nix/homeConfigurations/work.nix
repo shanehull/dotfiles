@@ -88,7 +88,6 @@
           openssl
           lz4
           aerospace
-          multipass
         ];
         activation = {
           # alias nix applications

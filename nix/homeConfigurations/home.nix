@@ -93,7 +93,6 @@
           openssl
           lz4
           aerospace
-          multipass
           ollama
           electrum
           obsidian
