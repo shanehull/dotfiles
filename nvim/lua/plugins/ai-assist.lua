@@ -3,8 +3,6 @@ local function safe_require(module)
 	local ok, result = pcall(require, module)
 	if ok and type(result) == "table" then
 		return result
-	else
-		return { ENABLE_COPILOT = false }
 	end
 end
 
