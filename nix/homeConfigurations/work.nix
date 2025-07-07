@@ -87,6 +87,8 @@
           gnupg
           openssl
           lz4
+          aerospace
+          multipass
         ];
         activation = {
           # alias nix applications
@@ -116,9 +118,6 @@
 
             # autocomplete color
             ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=246'
-
-            # homebrew path
-            eval "$(/opt/homebrew/bin/brew shellenv)"
 
             # go path
             export PATH=$PATH:$(go env GOPATH)/bin

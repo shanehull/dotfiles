@@ -75,16 +75,6 @@
         shells = [pkgs.bash pkgs.zsh];
         systemPackages = [pkgs.coreutils];
       };
-      homebrew = {
-        enable = true;
-        casks = [
-          "multipass"
-          "aerospace"
-        ];
-        taps = [
-          "nikitabobko/tap"
-        ];
-      };
       # this doesn't work with tmux
       security.pam.services.sudo_local.touchIdAuth = true;
       # use pam_reattach in addition to pam_tid so it works  with tmux
