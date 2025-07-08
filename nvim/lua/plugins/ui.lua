@@ -76,6 +76,12 @@ return {
 					background_colour = "#000000",
 				},
 			},
+			{
+				"folke/snacks.nvim",
+				opts = {
+					input = {},
+				},
+			},
 		},
 		opts = {
 			lsp = {
