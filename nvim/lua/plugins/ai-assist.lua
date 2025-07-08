@@ -24,12 +24,22 @@ return {
 		dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
 	},
 	{
-		"github/copilot.vim",
+		"zbirenbaum/copilot.lua",
+		cmd = "Copilot",
+		event = "InsertEnter",
 		config = function()
-			if not vim.tbl_contains({ "markdown" }, vim.bo.ft) and env.ENABLE_COPILOT then
-				vim.g.copilot_enabled = true
-			else
-				vim.g.copilot_enabled = false
+			if env.ENABLE_COPILOT then
+				require("copilot").setup({
+					suggestion = {
+						enabled = false,
+					},
+					panel = {
+						enabled = false,
+					},
+					filetypes = {
+						yaml = true,
+					},
+				})
 			end
 		end,
 	},
