@@ -17,6 +17,7 @@ return {
 			},
 			"rafamadriz/friendly-snippets",
 			"fang2hou/blink-copilot",
+			"moyiz/blink-emoji.nvim",
 		},
 		version = "1.*",
 		opts = {
@@ -38,13 +39,39 @@ return {
 			snippets = { preset = "luasnip" },
 
 			sources = {
-				default = { "lsp", "buffer", "snippets", "path", "copilot" },
+				default = {
+					"lsp",
+					"buffer",
+					"snippets",
+					"path",
+					"copilot",
+					"emoji",
+				},
+				per_filetype = {
+					sql = { "snippets", "dadbod", "buffer" },
+				},
 				providers = {
 					copilot = {
 						name = "copilot",
 						module = "blink-copilot",
 						score_offset = 100,
 						async = true,
+					},
+					dadbod = {
+						name = "dadbod",
+						module = "vim_dadbod_completion.blink",
+					},
+					emoji = {
+						module = "blink-emoji",
+						name = "emoji",
+						score_offset = 15,
+						opts = {
+							insert = true,
+							---@type string|table|fun():table
+							trigger = function()
+								return { ":" }
+							end,
+						},
 					},
 				},
 			},
