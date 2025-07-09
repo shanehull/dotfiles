@@ -167,14 +167,8 @@
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
 
-            # compile flags for openssl
-            export LDFLAGS='-L${pkgs.openssl.out}/lib'
-            export CPPFLAGS='-I${pkgs.openssl.dev}/include'
-
-            # postgres extra config options
-            export LZ4_CFLAGS='-I${pkgs.lz4.dev}/include'
-            export LZ4_LIBS='-L${pkgs.lz4.lib}/lib'
-            export POSTGRES_EXTRA_CONFIGURE_OPTIONS='--with-lz4 --with-uuid=e2fs'
+            # use cody
+            export ENABLE_CODY=true
           '';
           oh-my-zsh = {
             enable = true;
