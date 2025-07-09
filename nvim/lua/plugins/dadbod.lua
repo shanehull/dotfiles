@@ -46,7 +46,13 @@ return {
 				vim.env.DBUI_URL = db_url_full
 				vim.env.DBUI_NAME = db_name
 
-				vim.notify("Using DB_NAME: " .. db_name .. ", DBUI_URL: " .. db_url_display, vim.log.levels.INFO)
+				local notification_message = string.format(
+					"DB connection set with PostgreSQL variables:\n\n" .. "- Name: %s\n" .. "- URL:  %s",
+					db_name,
+					db_url_display
+				)
+
+				vim.notify(notification_message, vim.log.levels.INFO)
 			end
 		end,
 	},
