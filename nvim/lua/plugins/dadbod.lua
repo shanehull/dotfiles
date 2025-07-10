@@ -37,11 +37,6 @@ return {
 				db_url_full = db_url_full .. "@" .. pg_host .. ":" .. pg_port .. "/" .. pg_database
 				db_url_display = db_url_display .. "@" .. pg_host .. ":" .. pg_port .. "/" .. pg_database
 
-				-- If this is prod, name the connection accordingly
-				if string.find(string.lower(pg_host), "prod", 1, true) then
-					db_name = db_name .. " (prod)"
-				end
-
 				-- Set the vars that dadbod uses
 				vim.env.DBUI_URL = db_url_full
 				vim.env.DBUI_NAME = db_name
