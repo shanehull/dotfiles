@@ -36,6 +36,7 @@ return {
 				dashboard.button("ff", "󰈞  > Find File", ":Telescope find_files<CR>"),
 				dashboard.button("ft", "t  > Find Text", ":Telescope live_grep<CR>"),
 				dashboard.button("r ", "☛  > Recent Files", ":Telescope oldfiles<CR>"),
+				dashboard.button("d ", "⛃  > Open Dadbod UI", ":lua vim.cmd('DBUI') vim.cmd(':bd #')<CR>"),
 				dashboard.button("u ", "⬆  > Update Plugins", ":Lazy update<CR>"),
 				dashboard.button("<Esc> ", "⎋  > Quit", ":qa<CR>"),
 			}
