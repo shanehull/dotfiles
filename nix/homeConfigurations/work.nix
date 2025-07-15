@@ -149,7 +149,7 @@
             export AWS_PROFILE=sts
 
             # use terraform for terragrunt
-            export TERRAGRUNT_TFPATH=$(which terraform)
+            export TG_TF_PATH=$(which terraform)
 
             # use copilot
             export ENABLE_COPILOT=true
