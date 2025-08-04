@@ -44,7 +44,7 @@ return {
 	{
 		"nvim-tree/nvim-tree.lua",
 		event = "VeryLazy",
-		tag = "v0.99",
+		tag = "v1.13.0",
 		config = function()
 			require("nvim-tree").setup({
 				sort = {
