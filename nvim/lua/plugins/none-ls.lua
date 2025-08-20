@@ -69,7 +69,13 @@ return {
 					null_ls.builtins.diagnostics.golangci_lint,
 					null_ls.builtins.diagnostics.statix,
 					null_ls.builtins.diagnostics.terraform_validate,
-					null_ls.builtins.diagnostics.terragrunt_validate,
+					null_ls.builtins.diagnostics.terragrunt_validate.with({
+						args = {
+							"hcl",
+							"validate",
+							"--json",
+						},
+					}),
 					null_ls.builtins.diagnostics.yamllint,
 					null_ls.builtins.diagnostics.credo,
 					null_ls.builtins.completion.spell,
