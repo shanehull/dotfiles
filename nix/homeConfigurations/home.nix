@@ -51,6 +51,7 @@
           vhs
           btop
           awscli2
+          claude-code
 
           # k8s tools
           k9s
