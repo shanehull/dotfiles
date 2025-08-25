@@ -50,6 +50,7 @@
           btop
           awscli2
           _1password-cli
+          claude-code
 
           # k8s tools
           k9s
