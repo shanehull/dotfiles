@@ -174,7 +174,7 @@ run = ['layout floating']
 
 [[on-window-detected]]
 if.app-id = 'app.zen-browser.zen'
-if.window-title-regex-substring = '^(General|(Tab|Password|Website|Extension)s|AutoFill|Se(arch|curity)|Privacy|Advance|[Bb]itwarden|PiP)$'
+if.window-title-regex-substring = '^(General|(Tab|Password|Website|Extension)s|AutoFill|Se(arch|curity)|Privacy|Advance|[Bb]itwarden|PiP|Picture-in-Picture)$'
 run = ['layout floating']
 
 [[on-window-detected]]
