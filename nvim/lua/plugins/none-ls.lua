@@ -74,6 +74,7 @@ return {
 							"hcl",
 							"validate",
 							"--json",
+							"--log-disable",
 						},
 					}),
 					null_ls.builtins.diagnostics.yamllint,
