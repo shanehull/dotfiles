@@ -53,7 +53,7 @@
           awscli2
           claude-code
           gemini-cli
-          copilot-cli
+          github-copilot-cli
 
           # k8s tools
           k9s
