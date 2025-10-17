@@ -50,12 +50,26 @@ return {
 			options = {
 				theme = "gruvbox_dark",
 			},
+			extensions = { "lazy" },
 			sections = {
-				lualine_x = {
+				lualine_c = {
+					"filename",
 					{
-						require("lazy.status").updates,
-						cond = require("lazy.status").has_updates,
-						color = { fg = "#ff9e64" },
+						function()
+							return " "
+						end,
+						color = function()
+							local status = require("sidekick.status").get()
+							if status then
+								return status.kind == "Error" and "DiagnosticError"
+									or status.busy and "DiagnosticWarn"
+									or "Special"
+							end
+						end,
+						cond = function()
+							local status = require("sidekick.status")
+							return status.get() ~= nil
+						end,
 					},
 				},
 			},
