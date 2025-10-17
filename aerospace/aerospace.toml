@@ -173,12 +173,12 @@ if.app-id = 'com.1password.1password'
 run = ['layout floating']
 
 [[on-window-detected]]
-if.app-id = 'app.zen-browser.zen'
+if.app-id = 'com.brave.Browser'
 if.window-title-regex-substring = '^(General|(Tab|Password|Website|Extension)s|AutoFill|Se(arch|curity)|Privacy|Advance|[Bb]itwarden|PiP|Picture-in-Picture)$'
 run = ['layout floating']
 
 [[on-window-detected]]
-if.app-id = 'app.zen-browser.zen'
+if.app-id = 'com.brave.Browser'
 if.window-title-regex-substring = '^Google Meet$'
 run = ['move-node-to-workspace 2']
 
