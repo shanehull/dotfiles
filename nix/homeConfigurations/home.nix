@@ -52,6 +52,8 @@
           btop
           awscli2
           claude-code
+          gemini-cli
+          copilot-cli
 
           # k8s tools
           k9s
