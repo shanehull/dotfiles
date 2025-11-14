@@ -230,19 +230,17 @@
           enable = true;
           settings = {
             user = {
-              name = "shanehull";
-              email = "hello@shanehull.com";
+              name = "shane.hull";
+              email = "shane.hull@remote.com";
             };
-            extraConfig = {
-              init = {
-                defaultBranch = "main";
-              };
-              push = {
-                autoSetupRemote = true;
-              };
-              pull = {
-                rebase = true;
-              };
+            init = {
+              defaultBranch = "main";
+            };
+            push = {
+              autoSetupRemote = true;
+            };
+            pull = {
+              rebase = true;
             };
           };
           signing = {

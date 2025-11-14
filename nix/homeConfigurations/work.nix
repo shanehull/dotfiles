@@ -215,16 +215,14 @@
               name = "shane.hull";
               email = "shane.hull@remote.com";
             };
-            extraConfig = {
-              init = {
-                defaultBranch = "main";
-              };
-              push = {
-                autoSetupRemote = true;
-              };
-              pull = {
-                rebase = true;
-              };
+            init = {
+              defaultBranch = "main";
+            };
+            push = {
+              autoSetupRemote = true;
+            };
+            pull = {
+              rebase = true;
             };
           };
           signing = {
