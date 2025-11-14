@@ -155,8 +155,8 @@
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
 
-            # use cody
-            export ENABLE_CODY=true
+            # use copilot with nvim
+            export ENABLE_COPILOT=true
           '';
           oh-my-zsh = {
             enable = true;
