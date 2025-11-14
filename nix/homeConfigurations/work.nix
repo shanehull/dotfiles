@@ -17,7 +17,7 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
-        stateVersion = "24.11";
+        stateVersion = "25.11";
         packages = with pkgs; [
           # fonts
           fontconfig
@@ -93,21 +93,6 @@
           lz4
           aerospace
         ];
-        activation = {
-          # alias nix applications
-          # see: https://github.com/nix-community/home-manager/issues/1341
-          aliasApplications = lib.hm.dag.entryAfter ["writeBoundary"] ''
-            app_folder=$(echo ~/Applications);
-            for app in $(find "$newGenPath/home-path/Applications" -type l); do
-              run rm -f $app_folder/$(basename $app)
-              run /usr/bin/osascript \
-                -e "tell app \"Finder\"" \
-                -e "make new alias file to POSIX file \"$(readlink $app)\" at POSIX file \"$app_folder\"" \
-                -e "set name of result to \"$(basename $app)\"" \
-                -e "end tell"
-            done
-          '';
-        };
       };
       programs = {
         home-manager = {
@@ -225,22 +210,26 @@
         };
         git = {
           enable = true;
-          userName = "shanehull";
-          userEmail = "shane.hull@remote.com";
+          settings = {
+            user = {
+              name = "shane.hull";
+              email = "shane.hull@remote.com";
+            };
+            extraConfig = {
+              init = {
+                defaultBranch = "main";
+              };
+              push = {
+                autoSetupRemote = true;
+              };
+              pull = {
+                rebase = true;
+              };
+            };
+          };
           signing = {
             signByDefault = true;
             key = "954E6CE09F184BF5";
-          };
-          extraConfig = {
-            init = {
-              defaultBranch = "main";
-            };
-            push = {
-              autoSetupRemote = true;
-            };
-            pull = {
-              rebase = true;
-            };
           };
         };
         mise = {

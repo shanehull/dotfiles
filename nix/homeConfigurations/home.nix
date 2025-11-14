@@ -19,7 +19,7 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
-        stateVersion = "24.11";
+        stateVersion = "25.11";
         packages = with pkgs; [
           # fonts
           fontconfig
@@ -97,7 +97,7 @@
           lz4
           aerospace
           ollama
-          electrum
+          # electrum
           obsidian
 
           # custom packages from my public git repos
@@ -120,21 +120,6 @@
               sha256 = "sha256-Pxtz5kFfZt24PG6Z19N9obm2mCXwB8z/qdptPqmkZ1o=";
             })
         ];
-        activation = {
-          # alias nix applications
-          # see: https://github.com/nix-community/home-manager/issues/1341
-          aliasApplications = lib.hm.dag.entryAfter ["writeBoundary"] ''
-            app_folder=$(echo ~/Applications);
-            for app in $(find "$newGenPath/home-path/Applications" -type l); do
-              run rm -f $app_folder/$(basename $app)
-              run /usr/bin/osascript \
-                -e "tell app \"Finder\"" \
-                -e "make new alias file to POSIX file \"$(readlink $app)\" at POSIX file \"$app_folder\"" \
-                -e "set name of result to \"$(basename $app)\"" \
-                -e "end tell"
-            done
-          '';
-        };
       };
       programs = {
         home-manager = {
@@ -243,22 +228,26 @@
         };
         git = {
           enable = true;
-          userName = "shanehull";
-          userEmail = "hello@shanehull.com";
+          settings = {
+            user = {
+              name = "shanehull";
+              email = "hello@shanehull.com";
+            };
+            extraConfig = {
+              init = {
+                defaultBranch = "main";
+              };
+              push = {
+                autoSetupRemote = true;
+              };
+              pull = {
+                rebase = true;
+              };
+            };
+          };
           signing = {
             signByDefault = true;
             key = "954E6CE09F184BF5";
-          };
-          extraConfig = {
-            init = {
-              defaultBranch = "main";
-            };
-            push = {
-              autoSetupRemote = true;
-            };
-            pull = {
-              rebase = true;
-            };
           };
         };
         mise = {
