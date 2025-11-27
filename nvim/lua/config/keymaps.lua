@@ -8,3 +8,6 @@ vim.keymap.set("n", "<leader>yy", '"+yy', { desc = "Copy until end of line to sy
 vim.keymap.set("n", "<leader>dd", '"+dd', { desc = "Delete (cut) until end of line to system clipboard" })
 
 vim.keymap.set("n", "<leader>ge", "iif err != nil {\n// TODO: handle me\n}", { desc = "Paste a Go error != nil block" })
+
+vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", { noremap = true, silent = true })
