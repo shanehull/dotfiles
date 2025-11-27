@@ -9,5 +9,10 @@ vim.keymap.set("n", "<leader>dd", '"+dd', { desc = "Delete (cut) until end of li
 
 vim.keymap.set("n", "<leader>ge", "iif err != nil {\n// TODO: handle me\n}", { desc = "Paste a Go error != nil block" })
 
-vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { noremap = true, silent = true })
-vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { desc = "LSP: Go to Definition" })
+vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { desc = "LSP: Go to Type Definition" })
+vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", { desc = "LSP: Go to Implementation" })
+vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", { desc = "LSP: Show Documentation" })
+vim.keymap.set("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", { desc = "LSP: Find References" })
+vim.keymap.set("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", { desc = "LSP: Code Action" })
+vim.keymap.set("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "LSP: Rename Symbol" })

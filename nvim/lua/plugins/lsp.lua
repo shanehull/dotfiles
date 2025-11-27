@@ -41,7 +41,6 @@ return {
 					return vim.lsp.config.util.root_pattern("mix.exs", ".git")(fname) or vim.loop.cwd()
 				end,
 				filetypes = { "elixir", "eelixir", "heex" },
-				-- optional settings
 				settings = {},
 			})
 
