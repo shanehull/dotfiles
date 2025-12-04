@@ -54,6 +54,7 @@
           claude-code
           gemini-cli
           github-copilot-cli
+          amp-cli
 
           # k8s tools
           k9s
