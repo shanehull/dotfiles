@@ -141,9 +141,6 @@
 
             # use copilot
             export ENABLE_COPILOT=true
-
-            # key signing fix
-            export GPG_TTY=$(tty)
           '';
           oh-my-zsh = {
             enable = true;
