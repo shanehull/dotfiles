@@ -17,6 +17,8 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
+        username = "shane.hull";
+        homeDirectory = "/Users/shane.hull";
         stateVersion = "25.11";
         packages = with pkgs; [
           # fonts
@@ -53,6 +55,7 @@
           claude-code
           gemini-cli
           github-copilot-cli
+          cursor-cli
 
           # k8s tools
           k9s
