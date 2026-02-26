@@ -58,6 +58,7 @@
           github-copilot-cli
           amp-cli
           cursor-cli
+          slides
 
           # k8s tools
           k9s
@@ -89,11 +90,11 @@
           yamllint
           lua-language-server
           lexical
-          ocaml-ng.ocamlPackages_5_3.dune_3
-          ocaml-ng.ocamlPackages_5_3.utop
-          ocaml-ng.ocamlPackages_5_3.odoc
-          ocaml-ng.ocamlPackages_5_3.ocaml-lsp
-          ocaml-ng.ocamlPackages_5_3.ocamlformat
+          ocaml-ng.ocamlPackages_5_4.dune_3
+          ocaml-ng.ocamlPackages_5_4.utop
+          ocaml-ng.ocamlPackages_5_4.odoc
+          ocaml-ng.ocamlPackages_5_4.ocaml-lsp
+          ocaml-ng.ocamlPackages_5_4.ocamlformat
 
           # other
           gnupg
