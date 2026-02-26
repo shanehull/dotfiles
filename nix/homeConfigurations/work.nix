@@ -30,6 +30,7 @@
           wezterm
           tmux
           pam-reattach # for tmux touch id support
+          pinentry_mac # for gpg singing
           starship
           neovim
 
@@ -96,6 +97,16 @@
           lz4
           aerospace
         ];
+      };
+      services = {
+        gpg-agent = {
+          enable = true;
+          defaultCacheTtl = 600;
+          maxCacheTtl = 7200;
+          pinentry = {
+            package = pkgs.pinentry_mac;
+          };
+        };
       };
       programs = {
         home-manager = {
@@ -231,6 +242,12 @@
           signing = {
             signByDefault = true;
             key = "954E6CE09F184BF5";
+          };
+        };
+        gpg = {
+          enable = true;
+          settings = {
+            use-agent = true;
           };
         };
         mise = {
