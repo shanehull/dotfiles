@@ -25,7 +25,7 @@
   },
   "context": {
     "fileName": ["AGENTS.md"],
-    "includeDirectories": ["$HOME/.config/"],
+    "includeDirectories": ["$HOME/.config/", "$SECOND_BRAIN/0-inbox"],
     "loadMemoryFromIncludeDirectories": true
   }
 }

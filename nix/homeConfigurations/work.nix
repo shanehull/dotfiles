@@ -110,6 +110,7 @@
           openssl
           lz4
           aerospace
+          obsidian
         ];
       };
       services = {
