@@ -18,6 +18,8 @@
     }
   },
   "context": {
-    "fileName": ["AGENTS.md"]
+    "fileName": ["AGENTS.md"],
+    "includeDirectories": ["$HOME/.config/"],
+    "loadMemoryFromIncludeDirectories": true
   }
 }
