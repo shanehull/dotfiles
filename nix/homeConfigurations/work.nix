@@ -26,6 +26,12 @@
           ".gemini/skills" = {
             source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
           };
+          ".cursor/skills" = {
+            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
+          };
+          ".cursor/mcp.json" = {
+            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
+          };
         };
         packages = with pkgs; [
           # fonts
