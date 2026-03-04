@@ -66,6 +66,7 @@ return {
 						end),
 					}),
 					eslint_d_diag,
+					null_ls.builtins.diagnostics.credo,
 					null_ls.builtins.diagnostics.golangci_lint,
 					null_ls.builtins.diagnostics.statix,
 					null_ls.builtins.diagnostics.terraform_validate,

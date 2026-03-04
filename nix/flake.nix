@@ -2,6 +2,7 @@
   description = "Shane's MacOS developer environment.";
   inputs = {
     nixpkgs.url = "flake:nixpkgs/nixpkgs-unstable";
+    qmd.url = "github:tobi/qmd";
     nix-darwin.url = "flake:nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "flake:home-manager";

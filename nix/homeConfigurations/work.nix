@@ -4,6 +4,8 @@
     inherit system;
   };
 
+  qmd-pkg = inputs.qmd.packages.${system}.default;
+
   homeModule = {
     config,
     lib,
@@ -53,6 +55,7 @@
           btop
           awscli2
           _1password-cli
+          qmd-pkg
           claude-code
           gemini-cli
           github-copilot-cli
@@ -88,7 +91,7 @@
           yamlfmt
           yamllint
           lua-language-server
-          lexical
+          beam27Packages.expert
           postgresql_17
 
           # other

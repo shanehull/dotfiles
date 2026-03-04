@@ -4,6 +4,8 @@
     inherit system;
   };
 
+  qmd-pkg = inputs.qmd.packages.${system}.default;
+
   mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
 
   homeModule = {
@@ -54,6 +56,7 @@
           vhs
           btop
           awscli2
+          qmd-pkg
           claude-code
           gemini-cli
           github-copilot-cli
@@ -90,7 +93,7 @@
           yamlfmt
           yamllint
           lua-language-server
-          lexical
+          beam27Packages.expert
           ocaml-ng.ocamlPackages_5_4.dune_3
           ocaml-ng.ocamlPackages_5_4.utop
           ocaml-ng.ocamlPackages_5_4.odoc

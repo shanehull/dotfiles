@@ -1,0 +1,4 @@
+collections:
+  Second Brain:
+    path: $SECOND_BRAIN
+    pattern: "**/*.md"

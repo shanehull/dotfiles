@@ -34,13 +34,11 @@ return {
 				},
 			})
 
-			vim.lsp.config("lexical", {
+			vim.lsp.config("expert", {
 				capabilities = capabilities,
-				cmd = { "lexical" },
-				root_dir = function(fname)
-					return vim.lsp.config.util.root_pattern("mix.exs", ".git")(fname) or vim.loop.cwd()
-				end,
+				cmd = { "expert", "--stdio" },
 				filetypes = { "elixir", "eelixir", "heex" },
+				root_markers = { "mix.exs", ".git" },
 				settings = {},
 			})
 
@@ -49,7 +47,7 @@ return {
 			})
 
 			vim.lsp.enable("gopls")
-			vim.lsp.enable("lexical")
+			vim.lsp.enable("expert")
 			vim.lsp.enable("ocamllsp")
 			vim.lsp.enable("lua_ls")
 		end,
