@@ -16,5 +16,8 @@
       "command": "qmd",
       "args": ["mcp"]
     }
+  },
+  "context": {
+    "fileName": ["AGENTS.md"]
   }
 }

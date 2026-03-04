@@ -1,6 +1,7 @@
 /*
 
 !.gitignore
+!AGENTS.md
 !install.sh
 !mise-config-*.toml
 !k9s
