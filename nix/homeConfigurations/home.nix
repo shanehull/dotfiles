@@ -176,6 +176,9 @@
 
             # use copilot with nvim
             export ENABLE_COPILOT=true
+
+            # use gemini settings from git
+            export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.config/gemini/settings.json"
           '';
           oh-my-zsh = {
             enable = true;
