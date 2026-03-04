@@ -37,19 +37,63 @@ To maintain high velocity and low technical debt, all agents (human or AI) must 
   - **Interface:** Describe the _intent_ and _results_, not the implementation.
   - **Implementation:** Explain _what_ the code is doing and _why_, specifically for complex logic.
 
+## 7. Avoid Overabstraction and Complexity
+
+- **Complexity Management:** The primary job of a developer is to keep complexity at bay. Say "no" to new features and unnecessary abstractions that don't provide immediate, clear value.
+- **Delay Factoring:** Don't factor code prematurely. Wait for the system's shape to emerge through actual use. Early abstractions are often wrong and create "watery" code that is hard to grasp.
+- **The Pitfalls of DRY:** Don't follow DRY (Don't Repeat Yourself) at the cost of simplicity. Simple, repeated code is often better than a complex DRY solution involving callbacks, closures, or elaborate models. Prioritize **Readability over Compression**.
+- **Locality of Behavior (LoB):** Prefer to "put code on the thing that does the thing." Avoid jumping between many files to understand a single behavior.
+- **Admit Complexity:** Seniority is the ability to recognize and call out when a solution is becoming too complex. Admitting when code is too complicated prevents "big brain" over-engineering from being merged.
+- **Simplicity Above All:** As simple as possible, but no simpler. A senior's value is in their ability to _not_ abstract everything they can.
+
+## 8. Prefer Declarative over Imperative
+
+- **Focus on the "What":** Prefer declarative (the desired end state) over imperative (the steps to get there). Declarative code is easier to reason about because it describes _intent_ rather than _execution_.
+- **Remove Unnecessary Abstraction:** If a system already understands a declarative format (e.g., YAML, SQL, CSS), provide it directly. Don't wrap it in imperative logic or complex toggles unless you are building a discrete, versioned product for wide distribution.
+- **Avoid the Black Box:** Imperative wrappers create uncertainty. Declarative code provides a "What You See Is What You Get" (WYSIWYG) experience, where the configuration in source control matches the state in the system exactly.
+- **Predictability & Idempotency:** Declarative state is inherently idempotent and easier to audit. Troubleshooting is simplified because you don't need to trace execution logic or chase down facts about the environment to determine the final result.
+
+## 9. Security & Secret Protection
+
+- **Git Awareness:** Always check for the existence of a `.git` directory or other version control indicators before implementing or suggesting any code that handles secrets (API keys, tokens, passwords).
+- **No Secrets in Code:** Never hardcode secrets. Always recommend using environment variables, `.env` files (ensure they are in `.gitignore`), or dedicated secret managers.
+- **Proactive Prevention:** If a git repository is detected, explicitly warn the user about the risks of committing secrets and proactively check that sensitive files are excluded from version control.
+
+## 10. Context, Consistency, and Explicit Logic
+
+- **Consistency is King:** Always adhere to the existing style, naming conventions, and architectural patterns of the workspace. A project is better off being consistently "wrong" than having five different versions of "right."
+- **Explicit over Implicit:** Avoid "magic," hidden side effects, and global state. Code should be explicit about its dependencies and data flow. A function should do what its name says and nothing else.
+- **Dependency Minimalism:** Do not add a library for a task that can be solved with a few lines of standard, idiomatic code. Every dependency is a liability and a potential source of complexity.
+- **Understand the "Why":** Never copy-paste code or apply a pattern (including these principles) blindly. If you can't explain why a piece of code exists and how it works, you shouldn't commit it.
+- **Read First, Write Second:** Spend more time reading the surrounding code than writing new code. Ensure your changes fit into the existing "territory" seamlessly.
+
+## 11. High-Leverage Laziness
+
+- **Work Like a Lion:** Avoid "grazing" or steady, low-impact busywork. Work in intense, focused bursts to solve high-leverage problems, then step back to recalibrate and rest.
+- **Leverage is Everything:** Code is the ultimate form of permissionless leverage. Focus on building systems that work for you, rather than performing tasks manually. If a task must be done more than twice, automate it or design it out of existence.
+- **The 80/20 Rule:** 80% of the value comes from 20% of the effort. Identify the critical path and ignore the marginal details that add complexity without proportional value.
+- **Smart vs. Busy:** Being "busy" is often a mask for a lack of priority. A "smart lazy" developer finds the path of least resistance to the most impact. They don't write more code; they find the smallest amount of code that solves the problem.
+- **Strategic Patience:** Don't rush into implementation. Spend time thinking, researching, and simplifying. The most successful "lazy" developers are those who wait until the right, most efficient path is clear before acting.
+
 ---
 
 ## Design Red Flags
 
 Check for these during code reviews and generation:
 
-| Red Flag                 | Description                                                                   |
-| :----------------------- | :---------------------------------------------------------------------------- |
-| **Information Leakage**  | A change in one place requires coordinated changes elsewhere.                 |
-| **Temporal Coupling**    | Methods must be called in a specific order that isn't enforced by the API.    |
-| **Pass-Through Methods** | A method does nothing but call another method with a similar signature.       |
-| **Cognitive Load**       | The amount of "mental state" a dev must hold to understand a single function. |
-| **Shallow Module**       | The interface is nearly as complex as the logic it hides.                     |
+| Red Flag                  | Description                                                                   |
+| :------------------------ | :---------------------------------------------------------------------------- |
+| **Information Leakage**   | A change in one place requires coordinated changes elsewhere.                 |
+| **Temporal Coupling**     | Methods must be called in a specific order that isn't enforced by the API.    |
+| **Pass-Through Methods**  | A method does nothing but call another method with a similar signature.       |
+| **Cognitive Load**        | The amount of "mental state" a dev must hold to understand a single function. |
+| **Shallow Module**        | The interface is nearly as complex as the logic it hides.                     |
+| **Premature Abstraction** | Factoring code before the "shape" of the system is clear.                     |
+| **Watery Code**           | Code so abstracted that it is hard for the brain to hold onto.                |
+| **Hardcoded Secret**      | Storing API keys, tokens, or credentials directly in the source code.         |
+| **Clever Code**           | Logic that is technically impressive but impossible for others to read.       |
+| **Dependency Bloat**      | Pulling in external libraries for simple tasks or utilities.                  |
+| **Implicit Side Effects** | Functions that modify state in ways not obvious from their name or signature. |
 
 ## Core Mental Models for Engineering
 
@@ -96,6 +140,7 @@ Check for these during code reviews and generation:
 
 All Go code must pass `golangci-lint run ./...` without warnings. Key requirements:
 
+- **Favor Standard Library:** Strongly prefer the Go standard library over external dependencies. Only introduce a library if it provides significant, non-trivial value that is not easily achievable with the stdlib.
 - **Error handling**: Check all error return values. Use blank identifiers `_` to explicitly ignore errors when appropriate:
   ```go
   _, _ = w.Write(buf.Bytes())  // Ignore write errors in error handlers
