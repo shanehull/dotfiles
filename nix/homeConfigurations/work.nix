@@ -19,9 +19,14 @@
       manual.manpages.enable = false;
       fonts.fontconfig.enable = true;
       home = {
+        stateVersion = "25.11";
         username = "shane.hull";
         homeDirectory = "/Users/shane.hull";
-        stateVersion = "25.11";
+        file = {
+          ".gemini/skills" = {
+            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
+          };
+        };
         packages = with pkgs; [
           # fonts
           fontconfig
