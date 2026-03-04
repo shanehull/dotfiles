@@ -89,7 +89,7 @@
           yamllint
           lua-language-server
           lexical
-          postgresql_14
+          postgresql_17
 
           # other
           gnupg
