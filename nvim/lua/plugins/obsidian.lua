@@ -1,17 +1,16 @@
 return {
-	"epwalsh/obsidian.nvim",
-	version = "*", -- use latest release instead of latest commit
+	"obsidian-nvim/obsidian.nvim",
+	version = "3",
 	lazy = true,
 	event = {
-		"BufReadPre " .. vim.fn.expand("~") .. "/secondbrain/**/**.md",
-		"BufNewFile " .. vim.fn.expand("~") .. "/secondbrain/**/**.md",
-		--"BufReadPre " .. vim.fn.expand("$SECOND_BRAIN") .. "/**/**.md",
-		--"BufNewFile " .. vim.fn.expand("$SECOND_BRAIN") .. "/**/**.md",
+		"BufReadPre " .. vim.fn.expand("$SECOND_BRAIN") .. "/**/**.md",
+		"BufNewFile " .. vim.fn.expand("$SECOND_BRAIN") .. "/**/**.md",
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},
 	opts = {
+		legacy_commands = false,
 		workspaces = {
 			{
 				name = "secondbrain",
@@ -19,7 +18,7 @@ return {
 			},
 		},
 		attachments = {
-			img_folder = "assets/imgs",
+			folder = "assets/imgs",
 		},
 	},
 	cmd = function()
