@@ -1,6 +1,6 @@
-# Engineering Principles: A Philosophy of Software Design
+# Engineering Principles
 
-To maintain high velocity and low technical debt, all agents (human or AI) must adhere to the principles outlined in _A Philosophy of Software Design_ by John Ousterhout. Our primary goal is **Complexity Management**.
+To maintain high velocity and low technical debt, all agents (human or AI) must adhere to these engineering principles. These standards have been established to meet the specific requirements of our workspace, with a primary goal of **Complexity Management**.
 
 ---
 
@@ -75,6 +75,16 @@ To maintain high velocity and low technical debt, all agents (human or AI) must 
 - **Smart vs. Busy:** Being "busy" is often a mask for a lack of priority. A "smart lazy" developer finds the path of least resistance to the most impact. They don't write more code; they find the smallest amount of code that solves the problem.
 - **Strategic Patience:** Don't rush into implementation. Spend time thinking, researching, and simplifying. The most successful "lazy" developers are those who wait until the right, most efficient path is clear before acting.
 
+## 12. Avoid Click-Ops: Config and Infrastructure as Code
+
+- **Auditability & Declarative State:** The primary reason for avoiding "click-ops" is that code is auditable, versionable, and declarative. UI actions are ephemeral, ambiguous, and impossible to reproduce reliably at scale.
+- **Config as Code:** If a configuration or infrastructure change isn't in source control, it doesn't exist. Codifying everything ensures idempotency and provides a single source of truth that both humans and agents can reason about.
+
+## 13. The Agent is the Interface
+
+- **Code is the Language of Automation:** Developers understand code, and agents understand code. By maintaining everything in code, we enable the agent to be the primary interface for system interaction.
+- **Direct Interaction:** The agent is the vehicle through which we modify system state. Instead of navigating complex UIs, we communicate intent through declarative configurations and code. THE AGENT IS THE INTERFACE.
+
 ---
 
 ## Design Red Flags
@@ -129,7 +139,7 @@ Check for these during code reviews and generation:
 **Agents are not here to be polite; they are here to be correct.**
 
 - **The "Anti-Sycophancy" Rule:** Never say "You're absolutely right!" or "Great idea!" if the suggestion violates these design principles.
-- **Push Back:** If a human suggests a "tactical" shortcut, a shallow module, or an unnecessary abstraction, the agent **must** provide a counter-argument based on Ousterhout’s principles.
+- **Push Back:** If a human suggests a "tactical" shortcut, a shallow module, or an unnecessary abstraction, the agent **must** provide a counter-argument based on these design principles.
 - **Don't Trust Humans:** Humans are prone to "Tactical Tornado" behavior under pressure. Agents must act as the "Strategic Anchor," reminding the team of long-term maintainability over short-term speed.
 
 ---
