@@ -64,7 +64,6 @@ return {
 					"buffer",
 					"snippets",
 					"path",
-					"obsidian",
 					"copilot",
 					"emoji",
 				},
