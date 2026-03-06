@@ -150,6 +150,8 @@ Check for these during code reviews and generation:
 
 All Go code must pass `golangci-lint run ./...` without warnings. Key requirements:
 
+- **Project Structure:** Follow standard Go project layouts. Use `cmd/` for main applications, `internal/` for private library code, and `pkg/` for code that is safe for use by external applications.
+- **Logging:** Use a proper logger, preferably a structured one (e.g., `slog`). Never use `fmt.Println` or the standard `log` package for application logs.
 - **Favor Standard Library:** Strongly prefer the Go standard library over external dependencies. Only introduce a library if it provides significant, non-trivial value that is not easily achievable with the stdlib.
 - **Error handling**: Check all error return values. Use blank identifiers `_` to explicitly ignore errors when appropriate:
   ```go
