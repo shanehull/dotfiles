@@ -7,6 +7,7 @@ return {
 			mux = {
 				backend = "tmux",
 				enabled = true,
+				create = "split",
 			},
 			tools = {
 				amp = {
