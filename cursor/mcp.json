@@ -9,6 +9,9 @@
     },
     "gitlab": {
       "url": "https://gitlab.com/api/v4/mcp"
+    },
+    "obsidian-remote": {
+      "url": "https://obsidian.shanehull.com/mcp"
     }
   }
 }

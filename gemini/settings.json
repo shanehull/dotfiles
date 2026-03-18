@@ -22,6 +22,13 @@
     },
     "gitlab": {
       "url": "https://gitlab.com/api/v4/mcp"
+    },
+    "obsidian-remote": {
+      "httpUrl": "https://obsidian.shanehull.com/mcp",
+      "oauth": {
+        "clientId": "732346191627-u651rf1emjc2tmb3mpe5751g8qla4cgm.apps.googleusercontent.com",
+        "scopes": ["openid", "email", "profile"]
+      }
     }
   },
   "context": {
