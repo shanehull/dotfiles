@@ -220,6 +220,13 @@
             bind-key -T copy-mode-vi 'v' send -X begin-selection
             bind-key -T copy-mode-vi 'C-v' send -X rectangle-toggle
             bind-key -T copy-mode-vi 'y' send -X copy-selection
+
+            # Amp CLI compatibility settings
+            set -g allow-passthrough all
+            set -ga terminal-features ",*:hyperlinks"
+            set -s set-clipboard on
+            set -s extended-keys on
+            bind -n S-Enter send-keys -l "\x1b[13;2u"
           '';
         };
         starship = {
