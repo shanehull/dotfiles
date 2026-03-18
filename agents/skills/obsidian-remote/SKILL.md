@@ -26,6 +26,7 @@ The server is configured via environment variables. See `.env.example` for the f
 
 - `read_note`: Retrieve note content and metadata.
 - `update_note`: Create or overwrite notes.
+- `append_note`: Append content to the end of an existing note.
 - `delete_note`: Permanently delete a note.
 - `list_notes`: List files and folders.
 
@@ -38,6 +39,26 @@ The server is configured via environment variables. See `.env.example` for the f
 
 - `manage_frontmatter`: Atomic YAML key management.
 - `manage_tags`: Add or remove tags.
+
+## Behavioral Rules
+
+### Show diffs for `search_replace`
+
+When using `search_replace`, **always** display the old and new text in the response so the user can review what changed. Use this format:
+
+**Before:**
+
+```markdown
+(old text here)
+```
+
+**After:**
+
+```markdown
+(new text here)
+```
+
+Show only the relevant section being changed, not the entire note. If the replacement is large (>30 lines), summarise the key changes in a bullet list instead.
 
 ## Usage
 

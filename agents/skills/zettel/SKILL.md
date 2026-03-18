@@ -2,7 +2,7 @@
 name: zettel
 description: Create and manage Zettelkasten notes in your secondbrain inbox. Use when you need to capture a new idea or document a project.
 compatibility: Requires either local write access to $SECOND_BRAIN/0-inbox/ or the obsidian-remote MCP server.
-allowed-tools: mcp__obsidian-remote__update_note, mcp__obsidian-remote__list_notes
+allowed-tools: mcp__obsidian-remote__update_note, mcp__obsidian-remote__append_note, mcp__obsidian-remote__list_notes
 ---
 
 # Zettelkasten Workflow
@@ -49,7 +49,7 @@ When asked to create a new note, follow this structure strictly:
 Before writing, check whether `$SECOND_BRAIN/0-inbox/` exists on the local filesystem.
 
 - **Local vault exists** (`$SECOND_BRAIN/0-inbox/` is a directory): Use the native `write_file` tool to create the note at `$SECOND_BRAIN/0-inbox/<filename>.md`.
-- **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body).
+- **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body). To add content to an existing note, use `append_note` instead.
 
 For searching existing notes:
 
