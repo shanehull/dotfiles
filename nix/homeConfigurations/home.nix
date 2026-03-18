@@ -186,7 +186,7 @@
             bindkey "^[[1;4C" end-of-line
 
             # use copilot with nvim
-            export ENABLE_COPILOT=true
+            export ENABLE_COPILOT=false
 
             # use gemini settings from git
             export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.config/gemini/settings.json"
