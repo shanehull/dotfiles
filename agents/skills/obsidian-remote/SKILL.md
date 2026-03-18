@@ -40,25 +40,27 @@ The server is configured via environment variables. See `.env.example` for the f
 - `manage_frontmatter`: Atomic YAML key management.
 - `manage_tags`: Add or remove tags.
 
-## Behavioral Rules
+## CRITICAL: Behavioral Rules
 
 ### Show diffs for `search_replace`
 
-When using `search_replace`, **always** display the old and new text in the response so the user can review what changed. Use this format:
+You MUST display the old and new text **in your response text before invoking** `search_replace`. The user needs to see the change before approving the tool call.
+
+Format:
 
 **Before:**
 
 ```markdown
-(old text here)
+(exact old text)
 ```
 
 **After:**
 
 ```markdown
-(new text here)
+(exact new text)
 ```
 
-Show only the relevant section being changed, not the entire note. If the replacement is large (>30 lines), summarise the key changes in a bullet list instead.
+If the replacement is large (>30 lines), summarise the key changes in a bullet list instead. Never skip the diff — the user will reject the call without it.
 
 ## Usage
 
