@@ -1,12 +1,13 @@
 ---
 name: zettel
 description: Create and manage Zettelkasten notes in your secondbrain inbox. Use when you need to capture a new idea or document a project.
-compatibility: Requires write access to $SECOND_BRAIN/0-inbox/
+compatibility: Requires either local write access to $SECOND_BRAIN/0-inbox/ or the obsidian-remote MCP server.
+allowed-tools: mcp__obsidian-remote__update_note, mcp__obsidian-remote__list_notes
 ---
 
 # Zettelkasten Workflow
 
-This skill provides a structured way to create new Zettelkasten notes directly in your inbox at `$SECOND_BRAIN/0-inbox/`.
+This skill provides a structured way to create new Zettelkasten notes directly in your inbox at `0-inbox/`.
 
 ## Writing a New Zettel
 
@@ -41,8 +42,16 @@ When asked to create a new note, follow this structure strictly:
 
 4.  **Filename:** The filename MUST be the note's title, converted to lowercase and hyphenated (e.g., "My New Idea" becomes `my-new-idea.md`).
 
-5.  **Storage:** Always save to `$SECOND_BRAIN/0-inbox/`.
+5.  **Storage:** Always save to the `0-inbox/` directory.
 
 ## Tools
 
-Use the native `write_file` tool to create the note. Note that you only have write access to the inbox; use `qmd` for searching existing notes across the entire vault.
+Before writing, check whether `$SECOND_BRAIN/0-inbox/` exists on the local filesystem.
+
+- **Local vault exists** (`$SECOND_BRAIN/0-inbox/` is a directory): Use the native `write_file` tool to create the note at `$SECOND_BRAIN/0-inbox/<filename>.md`.
+- **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body).
+
+For searching existing notes:
+
+- **Local vault exists**: Use `qmd` (supports semantic and keyword search across the full vault).
+- **No local vault**: Use the `obsidian-remote` MCP tool `list_notes`.
