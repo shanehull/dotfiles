@@ -48,7 +48,7 @@ When asked to create a new note, follow this structure strictly:
 
 Before writing, check whether `$SECOND_BRAIN/0-inbox/` exists on the local filesystem.
 
-- **Local vault exists** (`$SECOND_BRAIN/0-inbox/` is a directory): Use the native `write_file` tool to create the note at `$SECOND_BRAIN/0-inbox/<filename>.md`.
+- **Local vault exists** (`$SECOND_BRAIN/0-inbox/` is a directory): Use the native `create_file` (or `write_file`) tool to create the note at `$SECOND_BRAIN/0-inbox/<filename>.md`. Always resolve the absolute path using the `$SECOND_BRAIN` environment variable, never use the skill's base directory.
 - **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body). To add content to an existing note, use `append_note` instead.
 
 For searching existing notes:
