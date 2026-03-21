@@ -282,6 +282,9 @@
             pull = {
               rebase = true;
             };
+            gpg = {
+              program = "${pkgs.gnupg}/bin/gpg";
+            };
           };
           signing = {
             signByDefault = true;
