@@ -42,14 +42,14 @@ When asked to create a new note, follow this structure strictly:
 
 4.  **Filename:** The filename MUST be the note's title, converted to lowercase and hyphenated (e.g., "My New Idea" becomes `my-new-idea.md`).
 
-5.  **Storage:** Always save to the `0-inbox/` directory.
+5.  **Storage:** Always save to the `0-inbox/` directory. NEVER write to `inbox/`, `Inbox/`, or any other variation. The correct MCP path is `0-inbox/<filename>.md`. If unsure, call `list_notes` first to verify the directory structure.
 
 ## Tools
 
 Before writing, check whether `$SECOND_BRAIN/0-inbox/` exists on the local filesystem.
 
 - **Local vault exists** (`$SECOND_BRAIN/0-inbox/` is a directory): Use the native `create_file` (or `write_file`) tool to create the note at `$SECOND_BRAIN/0-inbox/<filename>.md`. Always resolve the absolute path using the `$SECOND_BRAIN` environment variable, never use the skill's base directory.
-- **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body). To add content to an existing note, use `append_note` instead.
+- **No local vault** (directory does not exist): Use the `obsidian-remote` MCP tool `update_note` with `path` set to `0-inbox/<filename>.md` and `content` set to the full note content (front matter + body). The path MUST start with `0-inbox/` — never use bare `inbox/` or any other directory. To add content to an existing note, use `append_note` instead.
 
 For searching existing notes:
 
