@@ -9,11 +9,11 @@ fi
 
 ## Build the flake ##
 if [ ! -d ./nix/result ]; then
-  /nix/var/nix/profiles/default/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.${1}.system --extra-experimental-features 'nix-command flakes'
+  /nix/var/nix/profiles/default/bin/nix build -o ./nix/result ./nix/.#darwinConfigurations.${1}.system --extra-experimental-features 'nix-command flakes' "${@:2}"
 fi
 
 ## Install the flake system wide ##
-./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}"
+./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}" "${@:2}"
 
 ## Source nix packages for this shell ##
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
