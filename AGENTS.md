@@ -32,10 +32,16 @@ To maintain high velocity and low technical debt, all agents (human or AI) must 
 
 ## 6. Comments and Documentation
 
-- **Describe what is NOT obvious:** Comments should capture information that was in the mind of the designer but isn't clear from the code itself.
+Comments exist to explain design decisions and context that cannot be inferred from code alone. They are NOT a dumping ground for conversation artifacts, debugging notes, or code descriptions.
+
+- **Describe Intent, Not Behavior:** Comments should capture the _why_ behind design decisions, not describe what the code does. The code itself should be clear enough that a reader understands the mechanics without explanation. Comments explain the reasoning, constraints, or trade-offs that informed the code's structure.
+- **No Conversation Artifacts:** Never include context from the development process, debugging sessions, or previous attempts. Comments should be useful to a reader encountering the code fresh, not to someone who was part of its creation. Strip away all metanarrative.
+- **No Metadata or Breadcrumbs:** Do not use brackets, references to previous discussions, or context-setting information in comments. The reader does not care how the code was built; they only care how to use or maintain it.
 - **Different Levels:**
-  - **Interface:** Describe the _intent_ and _results_, not the implementation.
-  - **Implementation:** Explain _what_ the code is doing and _why_, specifically for complex logic.
+  - **Interface:** Explain the _intent_ and non-obvious constraints, not the implementation mechanics.
+  - **Implementation:** Justify complex logic, explain trade-offs, and clarify assumptions. Focus on "why this way" rather than "what this does."
+- **Keep It Brief:** Every comment word should earn its place. If a comment is longer than the code it describes, either simplify the code or simplify the comment.
+- **TODO Comments Exception:** `TODO:` comments are permitted when marking intentional work to be completed later. These should be actionable and removed when the work is done.
 
 ## 7. Avoid Overabstraction and Complexity
 
@@ -186,6 +192,7 @@ Maintain a professional, senior-level engineering tone. Avoid common AI writing 
 - **Preserve User Intent:** When asked to save or document a thought, preserve the user's original language and structure exactly. Do not rewrite, summarize, or "improve" the text unless explicitly requested to "refactor" or "clean up".
 - **Tone & Brevity:** Be concise and direct. Avoid conversational filler, generic transitions, or "syrupy" politeness. Focus on technical accuracy and clarity.
 - **No Weasel Words:** Avoid vague, non-committal language (e.g., "it seems," "appears to be," "generally," "often," "many people say"). Be precise and take a definitive stance based on evidence or research.
+- **No Conversation Context:** Never embed research notes, reasoning steps, or debugging history into final writing. Brackets, meta-references, and behind-the-scenes context belong nowhere in the output. The reader encounters finished work, not the journey to create it. Ruthlessly strip away all evidence of the development process. The final product must stand on its own.
 
 ## Writing Principles
 
