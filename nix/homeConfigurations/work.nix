@@ -67,10 +67,9 @@
           awscli2
           _1password-cli
           qmd-pkg
-          claude-code
           gemini-cli
-          github-copilot-cli
           cursor-cli
+          opencode
 
           # k8s tools
           k9s
@@ -167,9 +166,6 @@
 
             # use terraform for terragrunt
             export TG_TF_PATH=$(which terraform)
-
-            # use copilot
-            export ENABLE_COPILOT=true
 
             # use gemini settings from git
             export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.config/gemini/settings.json"

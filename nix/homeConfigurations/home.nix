@@ -68,11 +68,9 @@
           btop
           awscli2
           qmd-pkg
-          claude-code
           gemini-cli
-          github-copilot-cli
           amp-cli
-          cursor-cli
+          opencode
           slides
 
           # k8s tools

@@ -15,3 +15,9 @@
 !agents
 !gemini
 !cursor
+!opencode/
+opencode/*
+!opencode/opencode.jsonc
+!opencode/tui.json
+!opencode/AGENTS.md
+!opencode/skills

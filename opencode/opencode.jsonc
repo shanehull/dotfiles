@@ -1,0 +1,50 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "qmd": {
+      "type": "local",
+      "command": ["qmd", "mcp"],
+      "enabled": true,
+    },
+    "notion": {
+      "type": "remote",
+      "url": "https://mcp.notion.com/mcp",
+      "enabled": true,
+    },
+    "gitlab": {
+      "type": "remote",
+      "url": "https://gitlab.com/api/v4/mcp",
+      "enabled": true,
+    },
+    "obsidian-remote": {
+      "type": "remote",
+      "url": "https://obsidian.shanehull.com/mcp",
+      "enabled": true,
+    },
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+    },
+    "edit": "ask",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": {
+      "*": "ask",
+      "pwd": "allow",
+      "find": "allow",
+      "cat": "allow",
+      "grep": "allow",
+      "rg": "allow",
+      "which": "allow",
+      "git status": "allow",
+      "git diff": "allow",
+      "go test": "allow",
+      "golangci-linti run": "allow",
+    },
+  },
+}
