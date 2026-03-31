@@ -203,6 +203,7 @@
           shellAliases = {
             "v" = "nvim";
             "vim" = "nvim";
+            "oc" = "opencode";
             "cat" = "bat";
             "ccat" = "bat --plain";
             "brain" = "cd $SECOND_BRAIN";

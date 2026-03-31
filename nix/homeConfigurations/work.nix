@@ -138,9 +138,6 @@
             # go path
             export PATH=$PATH:$(go env GOPATH)/bin
 
-            # second brain dir
-            export SECOND_BRAIN=$HOME/secondbrain
-
             # editors
             export EDITOR='nvim -u ~/.config/nvim/init.lua'
             export KUBE_EDITOR='nvim -u ~/.config/nvim/init.lua'
@@ -184,9 +181,9 @@
           shellAliases = {
             "v" = "nvim";
             "vim" = "nvim";
+            "oc" = "opencode";
             "cat" = "bat";
             "ccat" = "bat --plain";
-            "brain" = "cd $SECOND_BRAIN";
             ":q" = "exit";
           };
           autosuggestion = {
