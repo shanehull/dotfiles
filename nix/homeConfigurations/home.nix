@@ -67,7 +67,7 @@
           vhs
           btop
           awscli2
-          qmd-pkg
+          # qmd-pkg # TODO: upstream qmd has broken bun.lock
           gemini-cli
           amp-cli
           opencode
