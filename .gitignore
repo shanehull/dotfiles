@@ -17,7 +17,7 @@
 !cursor
 !opencode/
 opencode/*
-!opencode/opencode.jsonc
+!opencode/opencode.json
 !opencode/tui.json
 !opencode/AGENTS.md
 !opencode/skills
