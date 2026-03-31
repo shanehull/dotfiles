@@ -4,7 +4,9 @@
     inherit system;
   };
 
-  qmd-pkg = inputs.qmd.packages.${system}.default;
+  qmd-pkg = inputs.qmd.packages.${system}.default.overrideAttrs (oldAttrs: {
+    buildPhase = pkgs.lib.replaceStrings ["--frozen-lockfile"] [""] oldAttrs.buildPhase;
+  });
 
   mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
 
@@ -67,7 +69,7 @@
           vhs
           btop
           awscli2
-          # qmd-pkg # TODO: upstream qmd has broken bun.lock
+          qmd-pkg
           gemini-cli
           amp-cli
           opencode

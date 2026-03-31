@@ -4,7 +4,6 @@
     inherit system;
   };
 
-  qmd-pkg = inputs.qmd.packages.${system}.default;
 
   homeModule = {
     config,
@@ -66,7 +65,6 @@
           btop
           awscli2
           _1password-cli
-          qmd-pkg
           gemini-cli
           cursor-cli
           opencode
