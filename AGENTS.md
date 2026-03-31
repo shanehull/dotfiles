@@ -189,7 +189,7 @@ Maintain a professional, senior-level engineering tone. Avoid common AI writing 
 - **Formatting Standards:** Adhere to Prettier and Obsidian conventions:
   - **Prettier:** Use single quotes for front matter strings. Ensure a blank line before and after headers. Use consistent list markers (`-`).
   - **Obsidian:** Support WikiLinks (`[[Link]]`) when referencing other notes. Use standard YAML front matter.
-- **Preserve User Intent:** When asked to save or document a thought, preserve the user's original language and structure exactly. Do not rewrite, summarize, or "improve" the text unless explicitly requested to "refactor" or "clean up".
+- **Preserve User Intent:** When asked to save or document a thought, preserve the user's original language and structure exactly. Do not rewrite, summarize, or "improve" the text unless explicitly requested to "refactor" or "clean up". **Crucially, if a file has been modified during a session, always read the latest version before applying new changes to avoid reverting manual user fixes.**
 - **Tone & Brevity:** Be concise and direct. Avoid conversational filler, generic transitions, or "syrupy" politeness. Focus on technical accuracy and clarity.
 - **No Weasel Words:** Avoid vague, non-committal language (e.g., "it seems," "appears to be," "generally," "often," "many people say"). Be precise and take a definitive stance based on evidence or research.
 - **No Conversation Context:** Never embed research notes, reasoning steps, or debugging history into final writing. Brackets, meta-references, and behind-the-scenes context belong nowhere in the output. The reader encounters finished work, not the journey to create it. Ruthlessly strip away all evidence of the development process. The final product must stand on its own.
@@ -201,6 +201,7 @@ Clarity of thinking is the prerequisite for clarity of writing.
 - **Strip the Clutter:** Every word that serves no function must go. Avoid long words where short ones work. Strip every sentence to its cleanest components.
 - **Short Sentences:** Prefer short, declarative sentences. They are clearer, more powerful, and harder to hide weak logic in.
 - **Active Verbs:** Use strong, active verbs. Avoid the passive voice. Eliminate unnecessary adverbs and adjectives; the right verb or noun doesn't need a modifier.
+- **No Pseudo-Profound Dualities:** Avoid the "not just X, but Y" or "it is not A, it is B" construction to create artificial weight or drama. This is a common AI hallmark that prioritizes rhythm over original thought. State the truth directly.
 - **Eliminate Static:** Avoid starting sentences with "There are," "It is," or "The reason is." Start with the subject and the action.
 - **No Forced Transitions:** Trust the logic of your thoughts. If the sequence is sound, you don't need "therefore," "however," or "thus." A good sentence should lead naturally to the next.
 - **Think Before You Write:** Do not write until you have a discrete thought to express. One thought per sentence.
