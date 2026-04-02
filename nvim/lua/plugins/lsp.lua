@@ -50,6 +50,7 @@ return {
 			vim.lsp.enable("expert")
 			vim.lsp.enable("ocamllsp")
 			vim.lsp.enable("lua_ls")
+			vim.lsp.enable("eslint")
 		end,
 	},
 }
