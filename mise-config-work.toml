@@ -1,6 +1,6 @@
 [tools]
 golang = "1.25.4"
-nodejs = "22.10.0"
+nodejs = "24.14.1"
 yarn = "1.22.10"
 bun = "1.0.26"
 lua = "5.4.6"
@@ -17,3 +17,4 @@ erlang = "27.2.2"
 elixir = "1.18.3-otp-27"
 redis = "6.2.14"
 remotectl = "latest"
+duckdb = "1.4.4"
