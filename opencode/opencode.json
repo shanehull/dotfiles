@@ -51,6 +51,7 @@
       "git diff *": "allow",
       "git log *": "allow",
       "go test *": "allow",
+      "go fmt *": "allow",
       "golangci-lint run *": "allow"
     }
   }
