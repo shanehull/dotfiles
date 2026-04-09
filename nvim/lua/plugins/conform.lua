@@ -14,13 +14,20 @@ return {
 			},
 		},
 		opts = {
+			formatters = {
+				terragrunt_hclfmt = {
+					command = "terragrunt",
+					args = { "hclfmt", "--terragrunt-hclfmt-file", "$FILENAME" },
+					stdin = false,
+				},
+			},
 			formatters_by_ft = {
 				lua = { "stylua" },
 				go = { "goimports", "gofmt" },
 				nix = { "alejandra" },
 				terraform = { "terraform_fmt" },
 				terragrunt = { "terragrunt_hclfmt" },
-				hcl = { "terragrunt_fmt" },
+				hcl = { "terragrunt_hclfmt" },
 				yaml = { "yamlfmt" },
 				elixir = { "mix" },
 				ocaml = { "ocamlformat" },

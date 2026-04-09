@@ -27,9 +27,7 @@ return {
 			indent = { enable = true },
 		},
 		config = function(_, opts)
-			-- The 'main' branch of nvim-treesitter is a complete rewrite.
-			-- It no longer uses nvim-treesitter.configs.
-			-- If you need to manually install things, use :TSUpdate
+			require("nvim-treesitter").setup(opts)
 		end,
 	},
 }
