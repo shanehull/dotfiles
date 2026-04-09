@@ -206,3 +206,11 @@ Clarity of thinking is the prerequisite for clarity of writing.
 - **No Forced Transitions:** Trust the logic of your thoughts. If the sequence is sound, you don't need "therefore," "however," or "thus." A good sentence should lead naturally to the next.
 - **Think Before You Write:** Do not write until you have a discrete thought to express. One thought per sentence.
 - **The Reader is Not as Smart as You Think:** They lack your context, your state of mind, and your specific knowledge. If a sentence can be misunderstood, it will be. Clarity is an act of respect.
+
+---
+
+## Obsidian Vault: Second Brain
+
+When working with the secondbrain vault, use the obsidian-remote skill to access notes. For vault-specific guidelines (journals, note format, tone), consult the AGENTS note in the vault. Links within the vault should use `[[id]]` format, not file paths.
+
+For quick notes and ideas, use the zettel skill to capture thoughts in the inbox for later organization.
