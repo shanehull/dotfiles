@@ -1,37 +1,35 @@
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
 		build = ":TSUpdate",
-		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"bash",
-					"javascript",
-					"typescript",
-					"c",
-					"lua",
-					"go",
-					"terraform",
-					"vimdoc",
-					"yaml",
-					"make",
-					"nix",
-					"gitcommit",
-					"css",
-					"regex",
-					"markdown",
-					"markdown_inline",
-				},
-
-				sync_install = false,
-
-				auto_install = true,
-
-				highlight = {
-					enable = true,
-					additional_vim_regex_highlighting = true,
-				},
-			})
+		opts = {
+			ensure_installed = {
+				"bash",
+				"javascript",
+				"typescript",
+				"c",
+				"lua",
+				"go",
+				"terraform",
+				"vim",
+				"vimdoc",
+				"yaml",
+				"make",
+				"nix",
+				"gitcommit",
+				"css",
+				"regex",
+				"markdown",
+				"markdown_inline",
+			},
+			highlight = { enable = true },
+			indent = { enable = true },
+		},
+		config = function(_, opts)
+			-- The 'main' branch of nvim-treesitter is a complete rewrite.
+			-- It no longer uses nvim-treesitter.configs.
+			-- If you need to manually install things, use :TSUpdate
 		end,
 	},
 }

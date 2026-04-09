@@ -8,13 +8,7 @@ return {
 	{
 		"saghen/blink.cmp",
 		dependencies = {
-			{
-				{
-					"L3MON4D3/LuaSnip",
-					version = "v2.*",
-					{ "L3MON4D3/LuaSnip", version = "v2.*" },
-				},
-			},
+			"L3MON4D3/LuaSnip",
 			"rafamadriz/friendly-snippets",
 			"fang2hou/blink-copilot",
 			"moyiz/blink-emoji.nvim",
@@ -25,7 +19,7 @@ return {
 				preset = "default",
 				["<Tab>"] = {
 					function(cmp)
-						if vim.b[vim.api.nvim_get_current_buf()].nes_state then
+						if vim.b.nes_state then
 							cmp.hide()
 							return (
 								require("copilot-lsp.nes").apply_pending_nes()

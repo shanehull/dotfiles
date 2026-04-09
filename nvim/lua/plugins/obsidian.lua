@@ -21,7 +21,7 @@ return {
 			folder = "assets/imgs",
 		},
 	},
-	cmd = function()
-		vim.opt.conceallevel = 2
+	init = function()
+		vim.opt_local.conceallevel = 2
 	end,
 }
