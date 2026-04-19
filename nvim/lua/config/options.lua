@@ -33,3 +33,4 @@ vim.opt.colorcolumn = "80"
 vim.g.mapleader = " "
 
 vim.opt.spelllang = "en_au"
+vim.opt.spellfile = vim.fn.expand("~/.config/nvim/spell/en.utf-8.add")
