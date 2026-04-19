@@ -90,7 +90,6 @@
           # language tools
           terraform-ls
           tflint
-          gopls
           gotools
           golines
           golangci-lint
