@@ -12,6 +12,9 @@
     },
     "obsidian-remote": {
       "url": "https://obsidian.shanehull.com/mcp"
+    },
+    "linear": {
+      "url": "https://mcp.linear.app/mcp"
     }
   }
 }

@@ -25,6 +25,9 @@
     },
     "obsidian-remote": {
       "httpUrl": "https://obsidian.shanehull.com/mcp"
+    },
+    "linear": {
+      "httpUrl": "https://mcp.linear.app/mcp"
     }
   },
   "context": {
