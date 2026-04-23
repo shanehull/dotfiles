@@ -21,6 +21,19 @@
         stateVersion = "25.11";
         username = "shane.hull";
         homeDirectory = "/Users/shane.hull";
+        sessionVariables = {
+          XDG_CONFIG_HOME = "${config.home.homeDirectory}/.config";
+          XDG_DATA_HOME = "${config.home.homeDirectory}/.local/share";
+          XDG_STATE_HOME = "${config.home.homeDirectory}/.local/state";
+          XDG_CACHE_HOME = "${config.home.homeDirectory}/.cache";
+
+          EDITOR = "nvim -u ${config.home.homeDirectory}/.config/nvim/init.lua";
+          KUBE_EDITOR = "nvim -u ${config.home.homeDirectory}/.config/nvim/init.lua";
+
+          AWS_PROFILE = "sts";
+          K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
+          GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
+        };
         file = {
           ".gemini/skills" = {
             source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
@@ -30,6 +43,22 @@
           };
           ".cursor/mcp.json" = {
             source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
+          };
+          ".config/claude/settings.json" = {
+            text = builtins.toJSON {
+              "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+              extraKnownMarketplaces = {
+                shane-mcps = {
+                  source = {
+                    source = "directory";
+                    path = "${config.home.homeDirectory}/.config/claude/marketplace";
+                  };
+                };
+              };
+              enabledPlugins = {
+                "mcps@shane-mcps" = true;
+              };
+            };
           };
         };
         packages = with pkgs; [
@@ -68,6 +97,7 @@
           gemini-cli
           cursor-cli
           opencode
+          claude-code
 
           # k8s tools
           k9s
@@ -135,13 +165,6 @@
             # go path
             export PATH=$PATH:$(go env GOPATH)/bin
 
-            # editors
-            export EDITOR='nvim -u ~/.config/nvim/init.lua'
-            export KUBE_EDITOR='nvim -u ~/.config/nvim/init.lua'
-
-            # k9s config dir
-            export K9S_CONFIG_DIR=$HOME/.config/k9s
-
             # jump words with opt+arrow
             bindkey "^[[1;3C" forward-word
             bindkey "^[[1;3D" backward-word
@@ -155,14 +178,8 @@
             compdef _remotectl remotectl
             source <(remotectl completion zsh)
 
-            # set aws profile to sts
-            export AWS_PROFILE=sts
-
             # use terraform for terragrunt
             export TG_TF_PATH=$(which terraform)
-
-            # use gemini settings from git
-            export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.config/gemini/settings.json"
           '';
           oh-my-zsh = {
             enable = true;

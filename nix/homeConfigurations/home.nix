@@ -26,6 +26,20 @@
         stateVersion = "25.11";
         username = "shane";
         homeDirectory = "/Users/shane";
+        sessionVariables = {
+          XDG_CONFIG_HOME = "${config.home.homeDirectory}/.config";
+          XDG_DATA_HOME = "${config.home.homeDirectory}/.local/share";
+          XDG_STATE_HOME = "${config.home.homeDirectory}/.local/state";
+          XDG_CACHE_HOME = "${config.home.homeDirectory}/.cache";
+
+          EDITOR = "nvim -u ${config.home.homeDirectory}/.config/nvim/init.lua";
+          KUBE_EDITOR = "nvim -u ${config.home.homeDirectory}/.config/nvim/init.lua";
+
+          SECOND_BRAIN = "${config.home.homeDirectory}/secondbrain";
+          K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
+          GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
+          ENABLE_COPILOT = "false";
+        };
         file = {
           ".gemini/skills" = {
             source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
@@ -166,16 +180,6 @@
             # go path
             export PATH=$PATH:$(go env GOPATH)/bin
 
-            # second brain dir
-            export SECOND_BRAIN=$HOME/secondbrain
-
-            # editors
-            export EDITOR='nvim -u ~/.config/nvim/init.lua'
-            export KUBE_EDITOR='nvim -u ~/.config/nvim/init.lua'
-
-            # k9s config dir
-            export K9S_CONFIG_DIR=$HOME/.config/k9s
-
             # jump words with opt+arrow
             bindkey "^[[1;3C" forward-word
             bindkey "^[[1;3D" backward-word
@@ -183,12 +187,6 @@
             # jump beginning/end with opt+shift+arrow
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
-
-            # use copilot with nvim
-            export ENABLE_COPILOT=false
-
-            # use gemini settings from git
-            export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.config/gemini/settings.json"
           '';
           oh-my-zsh = {
             enable = true;

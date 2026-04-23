@@ -1,0 +1,16 @@
+{
+  "name": "shane-mcps",
+  "owner": {
+    "name": "shane.hull"
+  },
+  "metadata": {
+    "description": "Personal MCP server registry"
+  },
+  "plugins": [
+    {
+      "name": "mcps",
+      "source": "./plugins/mcps",
+      "description": "MCP servers provisioned declaratively"
+    }
+  ]
+}

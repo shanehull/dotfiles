@@ -1,0 +1,8 @@
+{
+  "name": "mcps",
+  "version": "0.1.0",
+  "description": "MCP servers provisioned declaratively",
+  "author": {
+    "name": "shane.hull"
+  }
+}
