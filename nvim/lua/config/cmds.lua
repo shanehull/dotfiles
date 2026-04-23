@@ -71,7 +71,7 @@ vim.api.nvim_create_user_command("Decision", function()
 	local template = [[
 **Mental/physical state:**
 
-- [ ] Energized
+- [ ] Energised
 - [ ] Focused
 - [ ] Relaxed
 - [ ] Confident
