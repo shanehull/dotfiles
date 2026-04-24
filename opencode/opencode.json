@@ -21,6 +21,10 @@
       "type": "remote",
       "url": "https://obsidian.shanehull.com/mcp",
       "enabled": true
+    },
+    "yfinance": {
+      "type": "local",
+      "command": ["uvx", "yfmcp@latest"]
     }
   },
   "permission": {

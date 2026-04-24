@@ -1,0 +1,6 @@
+{
+  "yfmcp": {
+    "command": "uvx",
+    "args": ["yfmcp@latest"]
+  }
+}
