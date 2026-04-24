@@ -4,7 +4,6 @@
     inherit system;
   };
 
-
   homeModule = {
     config,
     lib,
@@ -43,22 +42,6 @@
           };
           ".cursor/mcp.json" = {
             source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
-          };
-          ".config/claude/settings.json" = {
-            text = builtins.toJSON {
-              "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-              extraKnownMarketplaces = {
-                shane-mcps = {
-                  source = {
-                    source = "directory";
-                    path = "${config.home.homeDirectory}/.config/claude/marketplace";
-                  };
-                };
-              };
-              enabledPlugins = {
-                "mcps@shane-mcps" = true;
-              };
-            };
           };
         };
         packages = with pkgs; [

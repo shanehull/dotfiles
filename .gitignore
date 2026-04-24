@@ -16,7 +16,6 @@
 !gemini
 !cursor
 !claude
-claude/settings.json
 !opencode/
 opencode/*
 !opencode/opencode.json
