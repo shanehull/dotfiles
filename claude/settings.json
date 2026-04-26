@@ -1,5 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "mcps@shane-mcps": true,
+    "linear@claude-plugins-official": true,
+    "notion@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "gitlab@claude-plugins-official": true
+  },
   "extraKnownMarketplaces": {
     "shane-mcps": {
       "source": {
@@ -7,8 +14,5 @@
         "path": "~/.config/claude/marketplace"
       }
     }
-  },
-  "enabledPlugins": {
-    "mcps@shane-mcps": true
   }
 }
