@@ -39,19 +39,18 @@ Access real-time and historical stock data, company information, and financial n
 
 Use these formulas with data from `yfinance_get_ticker_info` or `yfinance_get_financials`:
 
-
-| Metric | Formula |
-|--------|---------|
-| P/B | `priceToBook` or `currentPrice / bookValue` |
-| P/TB | `currentPrice / (tangibleBookValue / sharesOutstanding)` |
-| Dividend Yield | `dividendYield` |
-| FCF Yield | `freeCashflow / marketCap` |
-| EV/EBITDA | `enterpriseValue / ebitda` |
-| EV/FCF | `enterpriseValue / freeCashflow` |
-| Earnings Yield | `1 / trailingPE` |
-| Net Debt | `totalDebt - totalCash` |
-| Debt/Equity | `debtToEquity` |
-| ROIC | `(EBIT × (1 - Tax Rate)) / Invested Capital` where Tax Rate = `Tax Provision / Pretax Income` |
+| Metric         | Formula                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| P/B            | `priceToBook` or `currentPrice / bookValue`                                                   |
+| P/TB           | `currentPrice / (tangibleBookValue / sharesOutstanding)`                                      |
+| Dividend Yield | `dividendYield`                                                                               |
+| FCF Yield      | `freeCashflow / marketCap`                                                                    |
+| EV/EBITDA      | `enterpriseValue / ebitda`                                                                    |
+| EV/FCF         | `enterpriseValue / freeCashflow`                                                              |
+| Earnings Yield | `1 / trailingPE`                                                                              |
+| Net Debt       | `totalDebt - totalCash`                                                                       |
+| Debt/Equity    | `debtToEquity`                                                                                |
+| ROIC           | `(EBIT × (1 - Tax Rate)) / Invested Capital` where Tax Rate = `Tax Provision / Pretax Income` |
 
 ### Get Financials
 
@@ -106,5 +105,88 @@ Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits (as markd
 **Example**: `yfinance_get_top(sector="Technology", top_type="top_companies", top_n=10)`
 
 Valid sectors: Basic Materials, Communication Services, Consumer Cyclical, Consumer Defensive, Energy, Financial Services, Healthcare, Industrials, Real Estate, Technology, Utilities
+
+### Get Option Dates
+
+`yfinance_get_option_dates` - Available expiration dates for a stock's options.
+
+**Example**: `yfinance_get_option_dates(symbol="AAPL")`
+
+Returns: Array of expiration dates in YYYY-MM-DD format.
+
+### Get Option Chain
+
+`yfinance_get_option_chain` - Full option chain with strikes and pricing:
+
+- symbol: Stock ticker (e.g., "AAPL", "GOOGL", "MSFT")
+- expiration_date: YYYY-MM-DD (optional, fetches all if omitted)
+- option_type: "calls", "puts", or "all" (default: "all")
+
+**Returns for each expiration date**:
+
+- contractSymbol: Option contract identifier
+- strike: Strike price
+- lastPrice: Last traded price
+- bid/ask: Bid and ask prices
+- volume: Trading volume
+- openInterest: Open interest
+- impliedVolatility: IV
+- inTheMoney: Whether option is ITM
+- contractSize: Contract size (REGULAR)
+- currency: Currency (USD)
+
+**Example**: `yfinance_get_option_chain(symbol="AAPL", expiration_date="2025-05-16", option_type="calls")`
+
+**Workflow**: Use `yfinance_get_option_dates` first to find valid dates, then `yfinance_get_option_chain` for the full chain.
+
+## Options Formulas
+
+Use data from `yfinance_get_option_chain` to calculate fair value and Greeks.
+
+### Black-Scholes Fair Value
+
+```
+d1 = (ln(S/K) + (r + σ²/2)T) / (σ√T)
+d2 = d1 - σ√T
+
+Call = S·N(d1) - K·e^(-rT)·N(d2)
+Put = K·e^(-rT)·N(-d2) - S·N(-d1)
+```
+
+Where:
+
+- S = current stock price (from `yfinance_get_ticker_info`.currentPrice)
+- K = strike price (from option chain)
+- T = time to expiration in years (days/365)
+- r = risk-free rate (use ~5% for US Treasury)
+- σ = implied volatility (from option chain, converted to decimal)
+- N() = standard normal CDF
+
+### The Greeks
+
+```
+Delta = N(d1) (call) or N(d1) - 1 (put)
+Gamma = N'(d1) / (S·σ·√T)
+Theta = -[S·N'(d1)·σ / (2√T)] - r·K·e^(-rT)·N(d2) (call)
+       or -[S·N'(d1)·σ / (2√T)] + r·K·e^(-rT)·N(-d2) (put)
+Vega  = S·√T·N'(d1)
+Rho   = K·T·e^(-rT)·N(d2) (call) or -K·T·e^(-rT)·N(-d2) (put)
+```
+
+### Put-Call Parity
+
+```
+Call - Put = S - K·e^(-rT)
+```
+
+### Quick Estimates
+
+| From                   | Formula                   |
+| ---------------------- | ------------------------- |
+| Break-even (call)      | strike + premium paid     |
+| Break-even (put)       | strike - premium paid     |
+| Intrinsic value (call) | max(0, S - K)             |
+| Intrinsic value (put)  | max(0, K - S)             |
+| Time value             | premium - intrinsic value |
 
 See `references/ticker-suffixes.md` for complete ticker suffix reference by exchange.
