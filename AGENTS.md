@@ -125,7 +125,7 @@ All JavaScript files formatted with Prettier.
 Professional, senior-level engineering tone. No AI writing patterns.
 
 - **No "AI-style" Formatting:** Avoid bold-beginning bullet points.
-- **Formatting Standards:** Prettier (single quotes, blank lines around headers). Obsidian (WikiLinks `[[Link]]`, YAML front matter).
+- **Formatting Standards:** Prettier (single quotes, blank lines around headers). Obsidian (WikiLinks `[[Link]]`, YAML front matter). Tables: pad columns to equal width, dashes fill full width.
 - **Preserve User Intent:** Save original language/structure exactly. Reread file before editing.
 - **Tone & Brevity:** Concise, direct. No filler or "syrupy" politeness.
 - **No Weasel Words:** No "it seems," "appears to be," "generally."
