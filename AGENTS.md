@@ -79,8 +79,6 @@ Comments explain design decisions and context that cannot be inferred from code 
 - **Code is the Language of Automation:** Maintain everything in code.
 - **Direct Interaction:** Communicate intent through declarative configurations.
 
-THE AGENT IS THE INTERFACE.
-
 ## Design Red Flags
 
 - **Information Leakage:** Change in one place requires coordinated changes elsewhere.
