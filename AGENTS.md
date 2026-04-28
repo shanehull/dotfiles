@@ -79,6 +79,10 @@ Comments explain design decisions and context that cannot be inferred from code 
 - **Code is the Language of Automation:** Maintain everything in code.
 - **Direct Interaction:** Communicate intent through declarative configurations.
 
+## 14. Clean Output
+
+Never embed conversation context, meta-discussion, or session-specific framing into any output — code, docs, notes, or commits.
+
 ## Design Red Flags
 
 - **Information Leakage:** Change in one place requires coordinated changes elsewhere.
