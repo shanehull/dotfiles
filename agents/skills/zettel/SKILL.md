@@ -28,7 +28,7 @@ When asked to create a new note, follow this structure strictly:
     tags:
       - tag1
       - tag2
-    date: "2026-03-05"
+    date: 2026-03-05
     ---
 
     # Note Title
