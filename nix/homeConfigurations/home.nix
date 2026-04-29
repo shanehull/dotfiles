@@ -4,9 +4,8 @@
     inherit system;
   };
 
-  qmd-pkg = inputs.qmd.packages.${system}.default.overrideAttrs (oldAttrs: {
-    buildPhase = pkgs.lib.replaceStrings ["--frozen-lockfile"] [""] oldAttrs.buildPhase;
-  });
+  opencode-pkg = inputs.opencode.packages.${system}.default;
+  qmd-pkg = inputs.qmd.packages.${system}.default;
 
   mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
 
@@ -86,7 +85,7 @@
           qmd-pkg
           gemini-cli
           amp-cli
-          opencode
+          opencode-pkg
           slides
 
           # k8s tools

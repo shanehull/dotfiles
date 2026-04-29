@@ -4,6 +4,8 @@
     inherit system;
   };
 
+  opencode-pkg = inputs.opencode.packages.${system}.default;
+
   homeModule = {
     config,
     lib,
@@ -80,7 +82,7 @@
           glab
           gemini-cli
           cursor-cli
-          opencode
+          opencode-pkg
           claude-code
 
           # k8s tools
