@@ -141,9 +141,7 @@ Returns: Array of expiration dates in YYYY-MM-DD format.
 
 ## Options Formulas
 
-Use data from `yfinance_get_option_chain` to calculate fair value and Greeks.
-
-### Black-Scholes Fair Value
+Use data from `yfinance_get_option_chain`. Both formulas share the same algebra; they differ in derivation and robustness.
 
 ```
 d1 = (ln(S/K) + (r + σ²/2)T) / (σ√T)
@@ -153,14 +151,26 @@ Call = S·N(d1) - K·e^(-rT)·N(d2)
 Put = K·e^(-rT)·N(-d2) - S·N(-d1)
 ```
 
-Where:
+Where: S = stock price, K = strike, T = years to expiry, r = risk-free rate (~5%), σ = IV from option chain (decimal), N() = std normal CDF.
 
-- S = current stock price (from `yfinance_get_ticker_info`.currentPrice)
-- K = strike price (from option chain)
-- T = time to expiration in years (days/365)
-- r = risk-free rate (use ~5% for US Treasury)
-- σ = implied volatility (from option chain, converted to decimal)
-- N() = standard normal CDF
+### Black-Scholes-Merton
+
+Derived via continuous dynamic hedging in a Gaussian world. Assumes one constant σ for all strikes. The hedge argument removes drift; all moments must be finite. Fragile to fat tails. Historically never used by traders as intended (Haug & Taleb, 2008).
+
+### Bachelier-Thorp (per Taleb/Haug: strike-specific IV, realized vol)
+
+**Same formula, same math, same computation.** Do not substitute a different formula. Do not use the Bachelier (1900) arithmetic Brownian motion model — that is a different thing entirely.
+
+The only change: use σ at each strike from the option chain (the "volatility smile") rather than a single σ for all strikes. Removes drift via put-call parity, no distributional assumption, no dynamic hedging required. σ is a quoting convention, not an estimate. Works under fat tails, jumps, any distribution.
+
+Realized volatility from `yfinance_get_price_history`:
+
+```
+log_returns = ln(close_t / close_{t-1})
+σ_realized = std(log_returns) * sqrt(252)
+```
+
+Substitute σ_realized for market-implied σ to get a model-free price from historical data. Annualize with `sqrt(periods)` for other sampling frequencies.
 
 ### The Greeks
 
