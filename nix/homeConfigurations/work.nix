@@ -77,6 +77,7 @@
           btop
           awscli2
           _1password-cli
+          glab
           gemini-cli
           cursor-cli
           opencode
