@@ -11,7 +11,26 @@
     lib,
     pkgs,
     ...
-  }: {
+  }: let
+    agentSkills = [
+      "gitlab"
+      "notion"
+      "obsidian-remote"
+      "zettel"
+    ];
+    agentSkillsDirs = [
+      ".claude/skills"
+      ".gemini/skills"
+      ".cursor/skills"
+    ];
+    agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
+      map (n:
+        lib.nameValuePair "${dir}/${n}" {
+          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills/${n}";
+        })
+      agentSkills)
+    agentSkillsDirs);
+  in {
     imports = [
       # ...
     ];
@@ -35,17 +54,13 @@
           K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
           GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
         };
-        file = {
-          ".gemini/skills" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
-          };
-          ".cursor/skills" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
-          };
-          ".cursor/mcp.json" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
-          };
-        };
+        file =
+          {
+            ".cursor/mcp.json" = {
+              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
+            };
+          }
+          // agentSkillLinks;
         packages = with pkgs; [
           # fonts
           fontconfig

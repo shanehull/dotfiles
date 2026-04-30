@@ -14,7 +14,26 @@
     lib,
     pkgs,
     ...
-  }: {
+  }: let
+    agentSkills = [
+      "github"
+      "obsidian-remote"
+      "qmd"
+      "yfinance"
+      "zettel"
+    ];
+    agentSkillsDirs = [
+      ".claude/skills"
+      ".gemini/skills"
+    ];
+    agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
+      map (n:
+        lib.nameValuePair "${dir}/${n}" {
+          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills/${n}";
+        })
+      agentSkills)
+    agentSkillsDirs);
+  in {
     imports = [
       # ...
     ];
@@ -39,17 +58,7 @@
           GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
           ENABLE_COPILOT = "false";
         };
-        file = {
-          ".gemini/skills" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
-          };
-          ".cursor/skills" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills";
-          };
-          ".cursor/mcp.json" = {
-            source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
-          };
-        };
+        file = agentSkillLinks;
         packages = with pkgs; [
           # fonts
           fontconfig
@@ -82,6 +91,7 @@
           vhs
           btop
           awscli2
+          gh
           qmd-pkg
           gemini-cli
           amp-cli
