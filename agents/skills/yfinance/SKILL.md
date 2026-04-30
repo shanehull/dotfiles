@@ -76,7 +76,7 @@ Returns income statement, balance sheet, and cash flow data across periods.
 
 Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits (as markdown table or chart image)
 
-**Requires**: `tabulate` Python package. Returns only OHLCV data (no fundamentals).
+**Individual option contracts**: Pass the full contract symbol from `yfinance_get_option_chain` (e.g., `WEAT270115C00035000`) to get the price history for a particular contract — useful for computing its lifetime range and typical trading range at different underlying levels.
 
 ### Get Ticker News
 
