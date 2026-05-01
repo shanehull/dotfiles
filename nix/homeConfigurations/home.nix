@@ -277,8 +277,8 @@
           enable = true;
           settings = {
             user = {
-              name = "shane.hull";
-              email = "shane.hull@remote.com";
+              name = "shanehull";
+              email = "hello@shanehull.com";
             };
             init = {
               defaultBranch = "main";
