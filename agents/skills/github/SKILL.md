@@ -81,3 +81,11 @@ grep -i "name" .github/CODEOWNERS
 **Hotfix:** `gh pr create --fill --assignee @me --reviewer lead --label hotfix` → `gh pr checks --watch` → `gh pr merge --squash --delete-branch`.
 
 **Review:** `gh pr list --search "review-requested:@me"` → `gh pr view 123 --comments` → `gh pr review 123 --approve`.
+
+## Rules
+
+**Conventional Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) for all commit messages and PR titles.
+
+**Simple branch names:** Use `feat/`, `fix/`, or `chore/` prefixes followed by a short slug (e.g. `feat/oauth-retry`). No ticket IDs, team names, or usernames.
+
+**Concise PR descriptions:** Lead with the purpose of the change, then add only what a reviewer needs — links to related PRs/issues, code snippets highlighting key points, before/after notes. Skip checklists unless they track work inside this PR.
