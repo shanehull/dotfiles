@@ -14,6 +14,7 @@
   }: let
     agentSkills = [
       "gitlab"
+      "github"
       "notion"
       "obsidian-remote"
       "zettel"
@@ -93,6 +94,7 @@
           vhs
           btop
           awscli2
+          gh
           _1password-cli
           glab
           gemini-cli
