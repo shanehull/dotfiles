@@ -93,6 +93,8 @@ grep -i "name" .gitlab/CODEOWNERS
 
 **Conventional Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) for all commit messages and MR titles.
 
-**Simple branch names:** Use `feat/`, `fix/`, or `chore/` prefixes followed by a short slug (e.g. `feat/oauth-retry`). No ticket IDs, team names, or usernames.
+**Simple branch names:** Use `feat/`, `fix/`, `docs/`, `ci/`, or `chore/` prefixes followed by a short slug (e.g. `feat/oauth-retry`). No ticket IDs, team names, or usernames.
+
+**Never commit to main:** Always branch, commit, push, and create an MR. The only exception is `glab mr merge`. No direct pushes to `main` or `master`.
 
 **Concise MR descriptions:** Lead with the purpose of the change, then add only what a reviewer needs — links to related MRs/issues, code snippets highlighting key points, before/after notes. Skip checklists unless they track work inside this MR.
