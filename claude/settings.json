@@ -1,5 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "opus[1m]",
   "enabledPlugins": {
     "mcps@shane-mcps": true,
     "linear@claude-plugins-official": true,
@@ -15,5 +16,5 @@
       }
     }
   },
-  "model": "opus[1m]"
+  "theme": "dark-ansi"
 }
