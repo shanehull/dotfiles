@@ -14,7 +14,7 @@
 !starship.toml
 !agents
 !gemini
-!cursor
+!cursor/mcp.json
 !claude
 !opencode/
 opencode/*
