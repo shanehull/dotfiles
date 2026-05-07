@@ -92,6 +92,23 @@ Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits (as markd
 
 **Example**: `yfinance_search(query="Nvidia", search_type="quotes")`
 
+### Get Holders
+
+`yfinance_get_holders` - Ownership data including institutional investors, mutual funds, and insider activity.
+
+**Example**: `yfinance_get_holders(symbol="AAPL")`
+
+Returns six sections:
+
+- **`major_holders`**: Each row has an `index` label (`insidersPercentHeld`, `institutionsPercentHeld`, `institutionsFloatPercentHeld`, `institutionsCount`) and a `Value`.
+- **`institutional_holders`**: Top institutional investors with `Holder`, `Shares`, `Value`, `pctChange`, `pctHeld`, `Date Reported`.
+- **`mutualfund_holders`**: Same fields as institutional holders.
+- **`insider_transactions`**: Recent insider trades with `Insider`, `Transaction`, `Shares`, `Value`, `Start Date`, `Ownership`, `Position`.
+- **`insider_purchases`**: Six-month summary where each row is a category (`Purchases`, `Sales`, `Net Shares Purchased (Sold)`, `Total Insider Shares Held`) with `Insider Purchases Last 6m`, `Shares`, `Trans`.
+- **`insider_roster`**: Known insiders with `Name`, `Position`, `Shares Owned Directly`, `Most Recent Transaction`, `Latest Transaction Date`.
+
+**Use for**: Insider ownership %, institutional concentration, insider trading patterns, ownership analysis.
+
 ### Get Top (Sector Data)
 
 `yfinance_get_top` - Top-ranked entities within a sector:
