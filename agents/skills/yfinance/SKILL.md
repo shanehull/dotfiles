@@ -1,6 +1,6 @@
 ---
 name: yfinance
-description: Get stock data, financial information, price history, and market news via Yahoo Finance. Use when user asks for stock quotes, company financials, ticker info, or market data.
+description: Fetch stock data and financial information — quotes, price history, company financials, option chains, market sectors, institutional holders, insider transactions, and news. Use this skill when the user asks about stocks, company financials, options, or market analysis, even if they don't mention a ticker symbol or Yahoo Finance.
 compatibility: Requires yfinance MCP server connection.
 allowed-tools: yfinance_*
 ---
@@ -9,31 +9,22 @@ allowed-tools: yfinance_*
 
 Access real-time and historical stock data, company information, and financial news.
 
+## Gotchas
+
+- **Interval/period compatibility** — minute intervals (`1m`, `5m`, `15m`, `30m`) only work with short periods (`1d`, `5d`). Using `1m` with `1y` returns an error.
+- **Option expiration dates** — call `yfinance_get_option_dates` first to get valid dates. Passing an invalid or expired date to `yfinance_get_option_chain` silently returns empty data.
+- **Missing fields** — `yfinance_get_ticker_info` field availability varies by security type. ETFs lack some fields (e.g., `pegRatio`). Check for `null` before using.
+- **Sector names are exact** — `yfinance_get_top` requires exact sector names from the list below. `"Tech"` or `"finance"` won't match — use `"Technology"`, `"Financial Services"`.
+
 ## Tools
 
 ### Get Ticker Info
 
-`yfinance_get_ticker_info(symbol="AAPL")` - Comprehensive stock data.
+`yfinance_get_ticker_info(symbol="AAPL")` — Comprehensive company and trading data.
 
-**Company**: symbol, longName, shortName, sector, industry, country, city, website, fullTimeEmployees, longBusinessSummary
+Key fields: `currentPrice`, `marketCap`, `trailingPE`, `forwardPE`, `dividendYield`, `earningsGrowth`, `profitMargins`, `sector`, `industry`, `fiftyTwoWeekHigh`, `fiftyTwoWeekLow`, `beta`, `targetMeanPrice`, `recommendationKey`.
 
-**Price**: currentPrice, previousClose, open, dayLow, dayHigh, fiftyTwoWeekLow, fiftyTwoWeekHigh, fiftyDayAverage, twoHundredDayAverage, regularMarketChange, regularMarketChangePercent
-
-**Valuation**: marketCap, enterpriseValue, trailingPE, forwardPE, priceToBook, priceToSalesTrailing12Months, pegRatio
-
-**Trading**: volume, averageVolume, averageVolume10days, bid, ask, exchange, tradeable
-
-**Dividends**: dividendRate, dividendYield, exDividendDate, payoutRatio, fiveYearAvgDividendYield, lastDividendValue, lastDividendDate
-
-**Financials**: totalRevenue, revenuePerShare, revenueGrowth, grossProfits, grossMargins, ebitda, ebitdaMargins, operatingMargins, profitMargins, netIncomeToCommon, earningsGrowth
-
-**Returns**: returnOnAssets, returnOnEquity
-
-**Per Share**: bookValue, totalCashPerShare, trailingEps, forwardEps, epsTrailingTwelveMonths, epsForward
-
-**Balance Sheet**: totalCash, totalDebt, quickRatio, currentRatio, debtToEquity
-
-**Analyst**: targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, averageAnalystRating
+Full output covers company profile, price, valuation, trading, dividends, financials, returns, balance sheet, and analyst ratings. See the tool's JSON response for all available fields.
 
 ## Calculated Metrics
 
@@ -54,29 +45,19 @@ Use these formulas with data from `yfinance_get_ticker_info` or `yfinance_get_fi
 
 ### Get Financials
 
-`yfinance_get_financials` - Historical financial statements:
+`yfinance_get_financials(symbol="AAPL", frequency="annual")` — Historical income statement, balance sheet, and cash flow data. Frequency: `annual`, `quarterly`, or `ttm`.
 
-- frequency: "annual" (yearly), "quarterly" (quarterly), or "ttm" (trailing twelve months)
-
-Returns income statement, balance sheet, and cash flow data across periods.
-
-**Income Statement**: EBIT, Net Income, Tax Provision, Pretax Income, Total Revenue, Operating Income, EBITDA
-**Balance Sheet**: Stockholders Equity, Total Debt, Cash, Invested Capital, Net Debt, Total Assets
-**Cash Flow**: Operating Cash Flow, Free Cash Flow, Capital Expenditure
-
-**Use annual data**: Calculate CAGRs or averages for any field across years.
+Use annual data to calculate CAGRs and multi-year averages. The tool returns `ebit`, `netIncome`, `totalRevenue`, `operatingIncome`, `ebitda`, `totalDebt`, `totalCash`, `freeCashFlow`, `capitalExpenditure`, and more.
 
 ### Get Price History
 
-`yfinance_get_price_history` - Historical price data with optional charts:
+`yfinance_get_price_history(symbol="AAPL", period="1mo", interval="1d", chart_type="price_volume")` — Historical prices with optional charts.
 
-- Period: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max
-- Interval: 1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo (minute intervals require 1d/5d period)
-- Chart types: price_volume, vwap, volume_profile
+Period: `1d`–`max`. Interval: `1m`–`1mo` (minute intervals require short periods). Chart types: `price_volume`, `vwap`, `volume_profile`.
 
-Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits (as markdown table or chart image)
+Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits.
 
-**Individual option contracts**: Pass the full contract symbol from `yfinance_get_option_chain` (e.g., `WEAT270115C00035000`) to get the price history for a particular contract — useful for computing its lifetime range and typical trading range at different underlying levels.
+To get price history for an individual option contract, pass the full contract symbol from `yfinance_get_option_chain` (e.g., `WEAT270115C00035000`).
 
 ### Get Ticker News
 
@@ -94,20 +75,11 @@ Returns: Date, Open, High, Low, Close, Volume, Dividends, Stock Splits (as markd
 
 ### Get Holders
 
-`yfinance_get_holders` - Ownership data including institutional investors, mutual funds, and insider activity.
+`yfinance_get_holders(symbol="AAPL", max_rows=10)` — Ownership and insider data.
 
-**Example**: `yfinance_get_holders(symbol="AAPL")`
+Returns: `major_holders` (insider/institutional %), `institutional_holders` (top investors by shares), `mutualfund_holders`, `insider_transactions` (recent trades), `insider_purchases` (6-month summary), `insider_roster` (known insiders by position).
 
-Returns six sections:
-
-- **`major_holders`**: Each row has an `index` label (`insidersPercentHeld`, `institutionsPercentHeld`, `institutionsFloatPercentHeld`, `institutionsCount`) and a `Value`.
-- **`institutional_holders`**: Top institutional investors with `Holder`, `Shares`, `Value`, `pctChange`, `pctHeld`, `Date Reported`.
-- **`mutualfund_holders`**: Same fields as institutional holders.
-- **`insider_transactions`**: Recent insider trades with `Insider`, `Transaction`, `Shares`, `Value`, `Start Date`, `Ownership`, `Position`.
-- **`insider_purchases`**: Six-month summary where each row is a category (`Purchases`, `Sales`, `Net Shares Purchased (Sold)`, `Total Insider Shares Held`) with `Insider Purchases Last 6m`, `Shares`, `Trans`.
-- **`insider_roster`**: Known insiders with `Name`, `Position`, `Shares Owned Directly`, `Most Recent Transaction`, `Latest Transaction Date`.
-
-**Use for**: Insider ownership %, institutional concentration, insider trading patterns, ownership analysis.
+Use for: insider ownership %, institutional concentration, insider trading patterns.
 
 ### Get Top (Sector Data)
 
@@ -133,26 +105,9 @@ Returns: Array of expiration dates in YYYY-MM-DD format.
 
 ### Get Option Chain
 
-`yfinance_get_option_chain` - Full option chain with strikes and pricing:
+`yfinance_get_option_chain(symbol="AAPL", expiration_date="2025-05-16", option_type="calls")` — Calls and puts with strikes and pricing.
 
-- symbol: Stock ticker (e.g., "AAPL", "GOOGL", "MSFT")
-- expiration_date: YYYY-MM-DD (optional, fetches all if omitted)
-- option_type: "calls", "puts", or "all" (default: "all")
-
-**Returns for each expiration date**:
-
-- contractSymbol: Option contract identifier
-- strike: Strike price
-- lastPrice: Last traded price
-- bid/ask: Bid and ask prices
-- volume: Trading volume
-- openInterest: Open interest
-- impliedVolatility: IV
-- inTheMoney: Whether option is ITM
-- contractSize: Contract size (REGULAR)
-- currency: Currency (USD)
-
-**Example**: `yfinance_get_option_chain(symbol="AAPL", expiration_date="2025-05-16", option_type="calls")`
+Returns per contract: `strike`, `lastPrice`, `bid`, `ask`, `volume`, `openInterest`, `impliedVolatility`, `inTheMoney`.
 
 **Workflow**: Use `yfinance_get_option_dates` first to find valid dates, then `yfinance_get_option_chain` for the full chain.
 

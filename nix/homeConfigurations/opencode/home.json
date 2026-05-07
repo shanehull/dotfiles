@@ -19,7 +19,18 @@
     },
     "yfinance": {
       "type": "local",
-      "command": ["uvx", "yfmcp@latest"]
+      "command": ["uvx", "yfmcp@latest"],
+      "enabled": true
+    },
+    "ibkr": {
+      "type": "local",
+      "command": ["npx", "-y", "interactive-brokers-mcp"],
+      "enabled": true
+    },
+    "fred": {
+      "type": "local",
+      "command": ["fred-mcp"],
+      "enabled": true
     }
   },
   "permission": {

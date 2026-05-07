@@ -1,6 +1,6 @@
 ---
 name: notion
-description: Access, search, and manage Notion pages and databases. Use when the user asks to read content from Notion, update notes, or query Notion databases.
+description: Manage Notion workspaces — read, search, create, and update pages, databases, and content blocks. Use this skill when the user wants to find or edit information in Notion, even if they don't say Notion.
 compatibility: Requires Notion MCP server connection.
 allowed-tools: mcp__notion__*
 ---
@@ -9,38 +9,39 @@ allowed-tools: mcp__notion__*
 
 Direct access to your Notion workspace for reading, searching, and managing content.
 
-## Search
+## Gotchas
 
-Use `search` to find pages or databases across the entire workspace.
+- **Two-step page read** — `get_page` returns metadata only (properties, title). To read actual content, follow up with `get_block_children` on the page's `id`. Missing this second step is the most common mistake.
+- **Large pages need pagination** — `get_block_children` returns blocks in pages. Use `start_cursor` to walk through all blocks on long pages.
+- **Database filters are property-specific** — the filter structure depends on the property type (text, select, date, number, etc.). Check the database schema with `get_database` first to see which properties are available and their types.
+- **`update_page` changes properties, not content** — use `append_block_children` to add body content to a page. `update_page` only sets database properties or changes archive status.
+
+## Search
 
 ```json
 { "query": "Project Roadmap" }
 ```
 
+Use `search` to find pages or databases across the entire workspace. Returns page/database IDs needed for subsequent calls.
+
 ## Reading Content
 
-To read a page, you typically need to:
+1. `get_page({ "page_id": "<id>" })` — retrieve metadata
+2. `get_block_children({ "block_id": "<id>" })` — list content blocks
 
-1. `get_page`: Retrieve metadata and ensure the page exists.
-2. `get_block_children`: List the blocks within the page to read the actual content.
-
-```json
-{ "block_id": "page-id-here" }
-```
-
-Note: Large pages may require paginating through blocks.
+If `get_block_children` returns `has_more: true`, pass `start_cursor` with the returned cursor to get the next chunk.
 
 ## Databases
 
-- `get_database`: Check the schema and properties.
-- `query_database`: Search for specific entries using filters or sorts.
+1. `get_database({ "database_id": "<id>" })` — inspect schema and properties
+2. `query_database({ "database_id": "<id>", "filter": {...}, "sorts": [...] })` — filtered/sorted rows
 
 ## Creating & Updating
 
-- `create_page`: Add new pages to a parent page or database.
-- `update_page`: Change properties or archive status.
-- `append_block_children`: Add content (text, lists, etc.) to an existing page or block.
+- `create_page({ "parent": {"page_id"|"database_id": "<id>"}, "properties": {...} })` — new page in a parent or database
+- `update_page({ "page_id": "<id>", "properties": {...} })` — change database properties or archive
+- `append_block_children({ "block_id": "<id>", "children": [...] })` — add content blocks
 
 ## Authentication
 
-This skill uses the official Notion MCP server which requires OAuth authentication. If prompted, follow the login flow to grant access to your workspace.
+Uses the official Notion MCP server with OAuth. Follow the login flow if prompted.

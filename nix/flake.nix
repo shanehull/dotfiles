@@ -4,6 +4,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     opencode.url = "github:anomalyco/opencode";
     qmd.url = "github:tobi/qmd";
+    fred-mcp.url = "github:shanehull/fred-mcp";
     nix-darwin.url = "flake:nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "flake:home-manager";

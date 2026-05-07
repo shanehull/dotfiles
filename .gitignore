@@ -18,7 +18,5 @@
 !claude
 !opencode/
 opencode/*
-!opencode/opencode.json
 !opencode/tui.json
 !opencode/AGENTS.md
-!opencode/skills

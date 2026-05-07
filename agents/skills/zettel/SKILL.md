@@ -1,6 +1,6 @@
 ---
 name: zettel
-description: Create and manage Zettelkasten notes in your secondbrain inbox. Use when you need to capture a new idea or document a project.
+description: Create and manage Zettelkasten notes in the second brain inbox — capture ideas, document projects, and write structured notes with frontmatter metadata. Use this skill when the user wants to take notes, save ideas, or write to their Obsidian vault, even if they don't say note or zettel.
 compatibility: Requires either local write access to $SECOND_BRAIN/0-inbox/ or the obsidian-remote MCP server.
 allowed-tools: mcp__obsidian-remote__update_note, mcp__obsidian-remote__append_note, mcp__obsidian-remote__list_notes
 ---
@@ -43,6 +43,13 @@ When asked to create a new note, follow this structure strictly:
 4.  **Filename:** The filename MUST be the note's title, converted to lowercase and hyphenated (e.g., "My New Idea" becomes `my-new-idea.md`).
 
 5.  **Storage:** Always save to the `0-inbox/` directory. NEVER write to `inbox/`, `Inbox/`, or any other variation. The correct MCP path is `0-inbox/<filename>.md`. If unsure, call `list_notes` first to verify the directory structure.
+
+## Gotchas
+
+- **Directory is `0-inbox/`, not `inbox/`** — the path must start with `0-inbox/`. The MCP will 404 on `inbox/`, `Inbox/`, or any other variation.
+- **Tags exclude the `#` prefix** — `[idea, research]` not `[#idea, #research]`. The `#` is prepended by the rendering layer.
+- **Filename = lowercase hyphenated title** — "My New Idea" → `my-new-idea.md`. If you use spaces or different casing, links from other notes won't resolve.
+- **Preserve user text exactly** — don't rewrite or "improve" content the user provides unless they explicitly ask for refactoring.
 
 ## Tools
 

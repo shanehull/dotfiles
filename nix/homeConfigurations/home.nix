@@ -6,6 +6,7 @@
 
   opencode-pkg = inputs.opencode.packages.${system}.default;
   qmd-pkg = inputs.qmd.packages.${system}.default;
+  fred-mcp-pkg = inputs.fred-mcp.packages.${system}.default;
 
   mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
 
@@ -16,7 +17,9 @@
     ...
   }: let
     agentSkills = [
+      "fred"
       "github"
+      "ibkr"
       "obsidian-remote"
       "qmd"
       "yfinance"
@@ -25,6 +28,7 @@
     agentSkillsDirs = [
       ".claude/skills"
       ".gemini/skills"
+      ".config/opencode/skills"
     ];
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
       map (n:
@@ -58,7 +62,11 @@
           GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
           ENABLE_COPILOT = "false";
         };
-        file = agentSkillLinks;
+        file =
+          agentSkillLinks
+          // {
+            ".config/opencode/opencode.json".source = ./opencode/home.json;
+          };
         packages = with pkgs; [
           # fonts
           fontconfig
@@ -96,6 +104,7 @@
           gemini-cli
           amp-cli
           opencode-pkg
+          fred-mcp-pkg
           slides
 
           # k8s tools

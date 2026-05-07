@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Access, search, and manage GitLab repos, MRs, issues, and pipelines via the GitLab MCP server and `glab` CLI.
+description: Manage GitLab repositories — create and review merge requests, check CI pipeline status, search code, manage issues, and approve or merge changes. Use this skill for any GitLab project workflow including code review, releases, and hotfixes, even if the user doesn't explicitly say GitLab or MR.
 compatibility: Requires GitLab MCP server and/or `glab` CLI.
 allowed-tools: mcp__gitlab__*, Bash(git:*), Bash(glab:*), Bash(cat:*), Read
 ---

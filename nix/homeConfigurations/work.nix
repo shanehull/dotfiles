@@ -13,8 +13,8 @@
     ...
   }: let
     agentSkills = [
-      "gitlab"
       "github"
+      "gitlab"
       "notion"
       "obsidian-remote"
       "zettel"
@@ -23,6 +23,7 @@
       ".claude/skills"
       ".gemini/skills"
       ".cursor/skills"
+      ".config/opencode/skills"
     ];
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
       map (n:
@@ -61,7 +62,9 @@
               source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
             };
           }
-          // agentSkillLinks;
+          // agentSkillLinks // {
+            ".config/opencode/opencode.json".source = ./opencode/work.json;
+          };
         packages = with pkgs; [
           # fonts
           fontconfig

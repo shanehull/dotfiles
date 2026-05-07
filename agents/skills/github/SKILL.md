@@ -1,6 +1,6 @@
 ---
 name: github
-description: Access, search, and manage GitHub repos, PRs, issues, and Actions via the `gh` CLI.
+description: Manage GitHub repositories — create and review pull requests, check CI/actions status, search code, manage issues, and approve or merge changes. Use this skill for any GitHub project workflow including code review, releases, and hotfixes, even if the user doesn't explicitly say GitHub or PR.
 compatibility: Requires `gh` CLI.
 allowed-tools: Bash(git:*), Bash(gh:*), Bash(cat:*), Read
 ---
