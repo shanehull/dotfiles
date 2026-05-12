@@ -28,8 +28,8 @@
       "enabled": true
     },
     "fred": {
-      "type": "local",
-      "command": ["fred-mcp"],
+      "type": "remote",
+      "url": "https://fred.shanehull.com/mcp",
       "enabled": true
     }
   },
