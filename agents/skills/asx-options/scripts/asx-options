@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="https://asx.api.markitdigital.com/asx-research/1.0"
+
+usage() {
+  cat <<EOF
+Usage: asx-options SYMBOL [-e DATE]... [--calls|--puts] [--american|--european] [--oi-only] [--lepo]
+
+Examples:
+  asx-options CBA                    # nearest expiry + underlying
+  asx-options CBA -e 2026-05-21      # specific expiry
+  asx-options CBA -e 2026-05-21 -e 2026-06-18  # multiple expiries
+  asx-options BHP --puts --oi-only -e 2026-05-21
+EOF
+  exit 1
+}
+
+SYMBOL=""
+EXPIRIES=()
+CALLS_PUTS="all"
+STYLES="all"
+OI_ONLY="false"
+
+LEPO="false"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -e|--expiry) EXPIRIES+=("$2"); shift 2 ;;
+    --calls) CALLS_PUTS="calls"; shift ;;
+    --puts)  CALLS_PUTS="puts";  shift ;;
+    --american) STYLES="american"; shift ;;
+    --european) STYLES="european"; shift ;;
+    --oi-only)  OI_ONLY="true";  shift ;;
+    --lepo) LEPO="true"; shift ;;
+    -h|--help) usage ;;
+    -*)
+      echo "error: unknown option $1" >&2
+      usage
+      ;;
+    *)
+      [[ -z "$SYMBOL" ]] || { echo "error: unexpected argument $1" >&2; usage; }
+      SYMBOL="$1"
+      shift
+      ;;
+  esac
+done
+
+[[ -z "$SYMBOL" ]] && { echo "error: SYMBOL is required" >&2; usage; }
+
+# build query string
+params="callsPuts=$CALLS_PUTS&showOpenInterestOnly=$OI_ONLY&styles=$STYLES&includeLepoToressOptions=$LEPO"
+for d in "${EXPIRIES[@]}"; do
+  params="$params&expiryDates[]=$d"
+done
+
+if [[ ${#EXPIRIES[@]} -gt 0 ]]; then
+  path="/derivatives/equity/${SYMBOL}/options/expiry-groups"
+else
+  path="/derivatives/equity/${SYMBOL}/options"
+fi
+
+curl -sf "$BASE$path?$params" || {
+  echo "error: HTTP request failed" >&2
+  exit 1
+}

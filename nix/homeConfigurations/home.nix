@@ -17,6 +17,10 @@
     ...
   }: let
     agentSkills = [
+      "asx-options"
+      "book-to-skill"
+      "buffett-financials"
+      "business-overview"
       "fred"
       "github"
       "ibkr"
