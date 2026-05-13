@@ -1,6 +1,6 @@
 ---
 name: book-to-skill
-description: Convert an ebook into an agent skill — locate the file on disk, extract its core framework or mental model, and write it as a loadable skill at ~/.config/agents/skills/<name>/SKILL.md. Use this when you need to encode domain knowledge from a book into the agent's toolchain.
+description: Convert an ebook into an agent skill — locate the file on disk, extract its core framework or mental model, and write it as a loadable skill at ~/.config/skills/<name>/SKILL.md. Use this when encoding domain knowledge from a book into a skill, even if the user just says "turn this book into a skill" or "extract the framework from this book."
 compatibility: Requires a text extraction tool (pandoc, pdftotext, or similar).
 ---
 
@@ -8,36 +8,46 @@ compatibility: Requires a text extraction tool (pandoc, pdftotext, or similar).
 
 ## 1. Find the file
 
-Ask the user where the ebook is stored. Common locations:
+Check these locations in order:
 
+**Calibre Library** (most common for organised collections):
+```
+ls "$HOME/Calibre Library/"
+```
+Books are stored as `$HOME/Calibre Library/<Author Name>/<Title> (<id>)/<Title> - <Author Name>.epub`. Search by author or title:
+```
+find "$HOME/Calibre Library" -iname "*search-term*" 2>/dev/null
+```
+
+**Apple Books (iBooks):**
+
+The database is at `BKLibrary/BKLibrary-1-091020131601.sqlite` inside the Apple Books container. Query by title or author:
+```
+sqlite3 ~/Library/Containers/com.apple.iBooksX/Data/Documents/BKLibrary/BKLibrary-1-091020131601.sqlite \
+  "SELECT ZTITLE, ZAUTHOR, ZPATH FROM ZBKLIBRARYASSET WHERE ZTITLE LIKE '%search-term%';"
+```
+
+Epub files are stored as UUID-named files in:
+```
+ls ~/Library/Containers/com.apple.iBooksX/Data/Documents/iBooks/Books/*.epub
+```
+The `ZPATH` column in the database gives the full path to the epub file (typically under `BKAgentService/Data/Documents/iBooks/Books/`).
+
+**Generic search** (slow, use as fallback):
 ```
 find ~ -name "*.epub" -o -name "*.pdf" 2>/dev/null
-```
-
-If the user mentions Apple Books, check:
-
-```
-ls ~/Library/Containers/com.apple.iBooksX/Data/Documents/
 ```
 
 ## 2. Convert to text
 
 Prefer `pandoc` if available:
-
 ```
 pandoc /path/to/book.epub -t plain --wrap=preserve -o /tmp/book-text.txt
 ```
 
 Otherwise try `pdftotext` (from poppler) for PDFs:
-
 ```
 pdftotext /path/to/book.pdf /tmp/book-text.txt
-```
-
-If neither is installed, check what is:
-
-```
-which pandoc pdftotext ebook-convert
 ```
 
 Fallback: ask the user to install pandoc (`brew install pandoc` or `apt install pandoc`).
@@ -45,7 +55,6 @@ Fallback: ask the user to install pandoc (`brew install pandoc` or `apt install 
 ## 3. Extract the framework
 
 Get the table of contents first:
-
 ```
 grep -n "CHAPTER \|Chapter \|Part \|Section \|^# " /tmp/book-text.txt | head -40
 ```
@@ -58,31 +67,46 @@ Read key chapters in batches (~300-500 lines at a time). Extract selectively:
 - Step-by-step methodologies or workflows
 - Quotes that encapsulate the key idea
 
-You don't need every detail — just the framework the agent needs to reason in that domain. Skip introductions, stories, acknowledgments.
+Skip introductions, stories, acknowledgments. Extract only what the agent needs to reason in that domain.
+
+### Handling images and diagrams
+
+If the framework or worksheet is in images (e.g. scanned forms, diagrams), check whether the epub has image files:
+```
+unzip -l /path/to/book.epub | grep -i "jpg\|png\|svg"
+```
+
+Use tesseract OCR on images:
+```
+cd /tmp && tesseract extracted-image.jpg output-prefix && cat output-prefix.txt
+```
+
+Some epub images use paths like `ops/images/<name>.jpg`. Unzip to the correct directory first:
+```
+unzip -o /path/to/book.epub "ops/images/*" -d /tmp/book-images/
+```
 
 ## 4. Write the skill
 
-**Location:** `~/.config/agents/skills/<name>/SKILL.md`
+**Location:** `~/.config/skills/<name>/SKILL.md`
 
 Frontmatter:
-
 ```yaml
 ---
 name: <hyphenated-name>
 description: Action-verb opener describing what the skill does, its domain, and when the agent should use it.
-compatibility: Optional. Only if the skill needs specific system packages, environment setup, or external services to function. Not for tools — the agent already knows its tools.
 ---
 ```
 
-Write the body as a concise reference — the agent will read this at load time. Use:
+Keep the body concise — the agent loads this on activation. Use:
 
 - **Bold** for rules and principles
 - Tables for structured comparisons or thresholds
 - Bullet lists for criteria and checklists
-- Code blocks for formulas
+- Code blocks for formulas or commands
 - `---` section breaks for major divisions
 
-Structure:
+### Structure
 
 ```
 # Framework Name
@@ -91,15 +115,27 @@ Framework from *Title* by Author.
 
 ## Core Concept
 
-One paragraph: the central idea. What does this framework do?
+One paragraph: the central idea.
 
 ## [Major Section]
 
-[Key concepts, rules, and principles extracted from the book.]
+Key concepts, rules, and principles extracted from the book.
+
+## Gotchas
+
+Non-obvious pitfalls, environment-specific facts, or edge cases.
 
 ## Quick-Reference
 
-[Compact summary — what the agent checks first.]
+Compact summary — what the agent checks first.
 ```
 
-Do not add content that isn't in the book. Represent the author's framework faithfully.
+Do not add content that isn't in the book. Represent the author's framework faithfully. Include gotchas you discovered during extraction (OCR quirks, Calibre path conventions, etc.).
+
+## Gotchas
+
+- **Calibre path**: Calibre stores books at `$HOME/Calibre Library/<Author Name>/<Title> (<numeric-id>)/<Title> - <Author Name>.epub`. The numeric ID in parentheses after the title is the Calibre internal ID.
+- **Apple Books database**: The actual SQLite file is `BKLibrary/BKLibrary-1-091020131601.sqlite` inside the container. The `BKLibrary/` directory itself is not a database file.
+- **Epub images**: Some books use `ops/` as a prefix in their zip paths. Always check the full archive path with `unzip -l`.
+- **OCR quality**: Tesseract on scanned form images may produce garbled output. Run it from `/tmp/` (not from subdirectories) to avoid path issues with Leptonica.
+- **Description optimisation**: The skill's `description` field is the only thing that triggers the skill. Write it with imperative phrasing ("Use this when..."), focus on user intent, and list contexts where it applies "even if the user doesn't mention [domain] explicitly."
