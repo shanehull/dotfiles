@@ -1,6 +1,7 @@
 ---
 name: asx-options
 description: Fetch ASX equity option data — expiry dates, option chains (calls/puts), bid/ask/last prices, open interest, volume, theoretical prices, and underlying quotes for Australian equities like CBA, BHP, WBC, and XJO.
+compatibility: Requires bash and curl. Scripts are bash — invoke directly (e.g. `scripts/asx-options CBA`), not with python.
 allowed-tools: bash
 ---
 
