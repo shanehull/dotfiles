@@ -21,7 +21,7 @@ Before diving into each heading, briefly state what you're looking for and why g
 
 Before moving on from any heading, ask the user if they want to explore further. Only tick the heading when the user signals they're satisfied. Never assume a heading is done without explicit user confirmation.
 
-- [ ] **The Business** — What does the company do? Moat? Revenue model? Capital cycle?
+- [ ] **The Business** — What does the company do? Moat? Revenue model? Economic environment? Capital cycle?
 - [ ] **The Management** — Track record, insider ownership, incentives, skin in the game.
 - [ ] **The Numbers** — Key metrics tailored to the business type. Always probe for stable cash flows.
 - [ ] **Valuation** — Conservative assumptions. Upside and expected return. If it cannot be valued on the back of a napkin, move on.
