@@ -106,6 +106,14 @@ Keep the body concise — the agent loads this on activation. Use:
 - Code blocks for formulas or commands
 - `---` section breaks for major divisions
 
+### Naming
+
+Use concept-based names, not book titles or chapter names. The skill must stand alone.
+
+- Skill `name`: the methodology, not the book title. `magic-formula-investing`, not `little-book-value`.
+- Section headings: generic concepts, not "Chapter 4: Where to Find the Numbers."
+- Credit the book in the opening paragraph only.
+
 ### Structure
 
 ```

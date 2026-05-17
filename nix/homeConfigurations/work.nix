@@ -28,7 +28,7 @@
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
       map (n:
         lib.nameValuePair "${dir}/${n}" {
-          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills/${n}";
+          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/skills/${n}";
         })
       agentSkills)
     agentSkillsDirs);
@@ -62,7 +62,8 @@
               source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
             };
           }
-          // agentSkillLinks // {
+          // agentSkillLinks
+          // {
             ".config/opencode/opencode.json".source = ./opencode/work.json;
           };
         packages = with pkgs; [

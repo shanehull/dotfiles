@@ -24,6 +24,7 @@
       "fred"
       "github"
       "ibkr"
+      "netnet-worksheet"
       "obsidian-remote"
       "qmd"
       "yfinance"
@@ -37,7 +38,7 @@
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
       map (n:
         lib.nameValuePair "${dir}/${n}" {
-          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/agents/skills/${n}";
+          source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/skills/${n}";
         })
       agentSkills)
     agentSkillsDirs);
