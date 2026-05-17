@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL="https://ourworldindata.org/api/search"
+
+usage() {
+  cat <<'EOF'
+owid-search — search Our World in Data charts and pages via the OWID Search API.
+
+Usage:
+  owid-search <query> [options]
+
+Options:
+  --type charts|pages    Content type (default: charts)
+  --page N               Page number, 0-indexed (default: 0)
+  --hits N               Results per page, 1–100 (default: 20)
+  --countries uS~CHN     Countries separated by ~ (charts only)
+  --topics TOPIC         Filter by topic name (charts only)
+  --require-all          Only charts that include ALL specified countries
+  -j, --json             Output raw JSON (default: pretty-print with jq)
+
+Examples:
+  owid-search "gdp per capita"
+  owid-search "climate change" --type pages
+  owid-search "life expectancy" --countries "United States~China"
+  owid-search "co2 emissions" --topics "Energy" --hits 5
+EOF
+  exit 0
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+main() {
+  local type="charts" page="0" hits="20" countries="" topics="" require_all="false" json_out="false"
+  local query=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage ;;
+      --type) type="$2"; shift 2 ;;
+      --page) page="$2"; shift 2 ;;
+      --hits) hits="$2"; shift 2 ;;
+      --countries) countries="${2//,/~}"; shift 2 ;;
+      --topics) topics="$2"; shift 2 ;;
+      --require-all) require_all="true"; shift ;;
+      -j|--json) json_out="true"; shift ;;
+      --type=*) type="${1#*=}"; shift ;;
+      --page=*) page="${1#*=}"; shift ;;
+      --hits=*) hits="${1#*=}"; shift ;;
+      --countries=*) countries="${1#*=}"; countries="${countries//,/~}"; shift ;;
+      --topics=*) topics="${1#*=}"; shift ;;
+      *) [[ -z "$query" ]] && { query="$1"; shift; } || die "unexpected argument: $1" ;;
+    esac
+  done
+
+  [[ -z "$query" ]] && die "query is required. Use -h for help."
+
+  local params=()
+  params+=(--data-urlencode "q=$query")
+  params+=(--data-urlencode "type=$type")
+  params+=(--data-urlencode "page=$page")
+  params+=(--data-urlencode "hitsPerPage=$hits")
+  [[ -n "$countries" ]] && params+=(--data-urlencode "countries=$countries")
+  [[ -n "$topics" ]] && params+=(--data-urlencode "topics=$topics")
+  [[ "$require_all" == "true" ]] && params+=(--data-urlencode "requireAllCountries=true")
+
+  local response
+  response=$(curl -sS --get "$BASE_URL" "${params[@]}" 2>&1)
+
+  if command -v jq &>/dev/null && [[ "$json_out" != "true" ]]; then
+    echo "$response" | jq -r '
+      def result_line:
+        if .type == "chart" then
+          "  [\(.type)] \(.title) — \(.variantName // "default")"
+        else
+          "  [\(.type)] \(.title)"
+        end
+        + "\n    slug: \(.slug)\n    url: \(.url)";
+
+      "Query: \"\(.query)\" | Type: \(if .offset != null then "pages" else "charts" end) | Hits: \(.nbHits) | Page: \(.page // .offset) of \(.nbPages // "?")",
+      (if (.results | length) == 0 then
+        "No results."
+      else
+        (.results[] | result_line)
+      end)
+    '
+  else
+    echo "$response"
+  fi
+}
+
+main "$@"

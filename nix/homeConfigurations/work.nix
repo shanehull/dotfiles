@@ -17,6 +17,7 @@
       "gitlab"
       "notion"
       "obsidian-remote"
+      "skill-creator"
       "zettel"
     ];
     agentSkillsDirs = [

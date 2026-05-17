@@ -26,7 +26,9 @@
       "ibkr"
       "netnet-worksheet"
       "obsidian-remote"
+      "owid"
       "qmd"
+      "skill-creator"
       "yfinance"
       "zettel"
     ];

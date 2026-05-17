@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL="https://ourworldindata.org/grapher"
+
+usage() {
+  cat <<'EOF'
+owid-data — fetch chart data, metadata, and images from Our World in Data's Grapher API.
+
+Usage:
+  owid-data <slug> [options]
+  owid-data <slug>.<format> [options]
+
+Formats (via extension or -f):
+  csv          Chart data as CSV (default)
+  metadata     Chart metadata JSON (title, units, citations, column info)
+  config       Raw grapher configuration JSON
+  readme       README markdown for the dataset
+  zip          ZIP archive containing csv + metadata + readme
+  values       Data values JSON filtered by entity/time
+  png          Chart as PNG image
+  svg          Chart as SVG image
+
+Options:
+  -f, --format FMT         Output format (default: csv)
+  -o, --out PATH           Save output to file (required for png/svg)
+  --csv-type full|filtered  full = all data, filtered = visible chart subset (default: full)
+  --country ENTITY          Filter by entity (repeatable). ~OWID_WRL for World.
+  --time RANGE              Time range: year (2020), range (2000..2020), latest, earliest
+  --tab TAB                 Active tab: table, map, chart, line, scatter, stacked-area,
+                            discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko
+  --short-names             Use short column names without whitespace (CSV only)
+  --raw                     Output raw response (no header/preview info)
+
+Image options (--format png|svg only):
+  --im-type TYPE            Preset: twitter, og, thumbnail, square, uncaptioned
+  --im-width N              Width in pixels
+  --im-height N             Height in pixels
+  --im-minimal              Minimal mode (no title/source line)
+  --im-font-size N          Font size
+  --im-square-size N        Size for square images
+
+Examples:
+  owid-data life-expectancy
+  owid-data life-expectancy.csv
+  owid-data co2-emissions -f metadata
+  owid-data gdp-per-capita-worldbank --country USA --time 2000..2020
+  owid-data life-expectancy -f png --country France --time 2020 -o france-le.png
+  owid-data life-expectancy -f svg --tab map --time latest -o world-map.svg
+EOF
+  exit 0
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+main() {
+  local slug="" format="csv" csv_type="full" countries=() time="" tab=""
+  local short_names="false" raw="false" out=""
+  local im_type="" im_width="" im_height="" im_minimal="false" im_font_size="" im_square_size=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage ;;
+      -f|--format) format="$2"; shift 2 ;;
+      -f=*|--format=*) format="${1#*=}"; shift ;;
+      -o|--out) out="$2"; shift 2 ;;
+      -o=*|--out=*) out="${1#*=}"; shift ;;
+      --csv-type) csv_type="$2"; shift 2 ;;
+      --csv-type=*) csv_type="${1#*=}"; shift ;;
+      --country) countries+=("$2"); shift 2 ;;
+      --country=*) countries+=("${1#*=}"); shift ;;
+      --time) time="$2"; shift 2 ;;
+      --time=*) time="${1#*=}"; shift ;;
+      --tab) tab="$2"; shift 2 ;;
+      --tab=*) tab="${1#*=}"; shift ;;
+      --short-names) short_names="true"; shift ;;
+      --raw) raw="true"; shift ;;
+      --im-type) im_type="$2"; shift 2 ;;
+      --im-type=*) im_type="${1#*=}"; shift ;;
+      --im-width) im_width="$2"; shift 2 ;;
+      --im-width=*) im_width="${1#*=}"; shift ;;
+      --im-height) im_height="$2"; shift 2 ;;
+      --im-height=*) im_height="${1#*=}"; shift ;;
+      --im-minimal) im_minimal="true"; shift ;;
+      --im-font-size) im_font_size="$2"; shift 2 ;;
+      --im-font-size=*) im_font_size="${1#*=}"; shift ;;
+      --im-square-size) im_square_size="$2"; shift 2 ;;
+      --im-square-size=*) im_square_size="${1#*=}"; shift ;;
+      -*=*) die "unknown option: ${1%%=*}" ;;
+      -*)
+        if [[ -z "$slug" ]]; then slug="$1"; shift
+        else die "unknown option: $1"; fi
+        ;;
+      *)
+        if [[ -z "$slug" ]]; then slug="$1"; shift
+        else die "unexpected argument: $1"; fi
+        ;;
+    esac
+  done
+
+  [[ -z "$slug" ]] && die "slug is required. Use -h for help."
+
+  # If slug ends with .format, extract format from slug
+  for ext in csv metadata config readme zip values png svg; do
+    if [[ "$slug" == *".$ext" ]]; then
+      format="$ext"
+      slug="${slug%.$ext}"
+      break
+    fi
+  done
+
+  [[ "$format" =~ ^(png|svg)$ && -z "$out" ]] && die "--out PATH is required for png/svg output."
+
+  local url_prefix="$BASE_URL/$slug"
+  local url=""
+
+  # Build query parameter string
+  local qparams=()
+  [[ "$format" == "csv" && -n "$csv_type" ]] && qparams+=("csvType=$csv_type")
+  for c in "${countries[@]}"; do
+    qparams+=("country=$c")
+  done
+  [[ -n "$time" ]] && qparams+=("time=$time")
+  [[ -n "$tab" ]] && qparams+=("tab=$tab")
+  [[ "$short_names" == "true" ]] && qparams+=("useColumnShortNames=true")
+  # Image-specific params
+  [[ -n "$im_type" ]] && qparams+=("imType=$im_type")
+  [[ -n "$im_width" ]] && qparams+=("imWidth=$im_width")
+  [[ -n "$im_height" ]] && qparams+=("imHeight=$im_height")
+  [[ "$im_minimal" == "true" ]] && qparams+=("imMinimal=1")
+  [[ -n "$im_font_size" ]] && qparams+=("imFontSize=$im_font_size")
+  [[ -n "$im_square_size" ]] && qparams+=("imSquareSize=$im_square_size")
+
+  local qs=""
+  if [[ ${#qparams[@]} -gt 0 ]]; then
+    qs=$(printf '&%s' "${qparams[@]}")
+    qs="?${qs:1}"
+  fi
+
+  case "$format" in
+    csv)        url="$url_prefix.csv$qs" ;;
+    metadata)   url="$url_prefix.metadata.json$qs" ;;
+    config)     url="$url_prefix.config.json$qs" ;;
+    readme)     url="$url_prefix.readme.md$qs" ;;
+    zip)        url="$url_prefix.zip$qs" ;;
+    values)     url="$url_prefix.values.json$qs" ;;
+    png)        url="$url_prefix.png$qs" ;;
+    svg)        url="$url_prefix.svg$qs" ;;
+    *) die "unknown format: $format. Valid: csv, metadata, config, readme, zip, values, png, svg" ;;
+  esac
+
+  # Binary/image formats: save to file directly
+  if [[ "$format" =~ ^(png|svg|zip)$ ]]; then
+    curl -sS --max-time 30 -o "$out" "$url" 2>&1
+    echo "Saved: $out ($(wc -c < "$out" | tr -d ' ') bytes)"
+    return
+  fi
+
+  local output
+  output=$(curl -sS --max-time 30 "$url" 2>&1)
+
+  # Output to file if --out specified (text formats)
+  if [[ -n "$out" ]]; then
+    echo "$output" > "$out"
+    echo "Saved: $out"
+    return
+  fi
+
+  # For CSV: show header and row count unless --raw
+  if [[ "$format" == "csv" && "$raw" != "true" ]]; then
+    local header rows
+    header=$(echo "$output" | head -1)
+    rows=$(echo "$output" | wc -l | tr -d ' ')
+    rows=$((rows - 1))
+    echo "# $slug.$format — $rows data rows"
+    echo "# Columns: $header"
+    echo "$output"
+  elif [[ "$format" == "metadata" || "$format" == "config" || "$format" == "values" ]]; then
+    if command -v jq &>/dev/null && [[ "$raw" != "true" ]]; then
+      echo "$output" | jq .
+    else
+      echo "$output"
+    fi
+  else
+    echo "$output"
+  fi
+}
+
+main "$@"

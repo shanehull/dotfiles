@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SEARCH_URL="https://search.owid.io/indicators"
+API_URL="https://api.ourworldindata.org/v1/indicators"
+
+usage() {
+  cat <<'EOF'
+owid-indicators — semantic search for OWID indicators and direct data fetching.
+
+Usage:
+  owid-indicators --search "<query>"        Semantic search for indicators
+  owid-indicators <id>                      Show indicator data (TSV: entity, year, value)
+  owid-indicators <id> -f metadata          Show indicator metadata
+  owid-indicators <id> --entity NAME        Filter by entity name
+  owid-indicators <id> --time RANGE         Filter by time (e.g. 2000..2020)
+  owid-indicators <id> --time latest        Show latest value per entity
+  owid-indicators <id> --json               Output raw data.json
+
+Options:
+  --search, -s QUERY    Semantic search for indicators
+  --limit N             Max search results (default: 10)
+  --min-popularity N    Exclude low-popularity indicators (0-1)
+  --entity, -e NAME     Filter by entity name (case-insensitive substring match)
+  --time, -t RANGE      Time filter: year, 2000..2020, latest, earliest
+  -f, --format FMT      Output format: tsv (default), metadata, json
+  -j, --json            Output raw data.json (shorthand for -f json)
+
+Examples:
+  owid-indicators --search "wine consumption"
+  owid-indicators 815383                                # all data as TSV
+  owid-indicators 815383 --entity France --time 2000..2020
+  owid-indicators 815383 --time latest                  # latest value per entity
+  owid-indicators 815383 -f metadata
+EOF
+  exit 0
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+search_indicators() {
+  local query="$1" limit="${2:-10}" min_pop="${3:-}"
+  local params=()
+  params+=(--data-urlencode "q=$query")
+  params+=(--data-urlencode "limit=$limit")
+  [[ -n "$min_pop" ]] && params+=(--data-urlencode "min_popularity=$min_pop")
+
+  local response
+  response=$(curl -sS --get "$SEARCH_URL" "${params[@]}" 2>&1)
+
+  if command -v jq &>/dev/null; then
+    echo "$response" | jq -r '
+      "Query: \"\(.query)\" | Results: \(.total_results)",
+      (.results[] | "  #\(.indicator_id) [\(.score|tostring[:4])] \(.title)\n    snippet: \(.snippet)\n    charts: \(.n_charts) | path: \(.catalog_path)\n")
+    '
+  else
+    echo "$response"
+  fi
+}
+
+get_metadata() {
+  local id="$1"
+  curl -sS --max-time 30 "$API_URL/$id.metadata.json" 2>&1
+}
+
+get_data() {
+  local id="$1"
+  curl -sS --max-time 30 "$API_URL/$id.data.json" 2>&1
+}
+
+# Output TSV from data.json + metadata.json using jq
+# Filters by entity name (substring, case-insensitive) and/or time range
+output_tsv() {
+  local id="$1" entity_filter="${2:-}" time_filter="${3:-}"
+
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap "rm -rf $tmpdir" EXIT
+
+  get_data "$id" > "$tmpdir/data.json"
+  get_metadata "$id" > "$tmpdir/meta.json"
+
+  # Build entity ID->name lookup
+  local entity_lookup
+  entity_lookup=$(jq -c '
+    [.dimensions.entities.values[]
+     | {key: (.id|tostring), value: .name}]
+    | from_entries
+  ' "$tmpdir/meta.json")
+
+  # jq filter to zip and optionally filter
+  local jq_filter
+
+  if [[ -n "$entity_filter" && -n "$time_filter" ]]; then
+    # Both filters
+    local time_start="${time_filter%%.*}"
+    local time_end="${time_filter##*.}"
+
+    # Determine entity IDs matching the filter (as JSON number array)
+    local matching_ids
+    matching_ids=$(jq -c --arg name "$entity_filter" '
+      [.dimensions.entities.values[]
+       | select(.name | test($name; "i"))
+       | .id]
+    ' "$tmpdir/meta.json")
+
+    if [[ "$matching_ids" == "[]" ]]; then
+      echo "# No entities matching '$entity_filter'" >&2
+      return
+    fi
+
+    if [[ "$time_filter" == "latest" ]]; then
+      jq_filter='
+        def entity_names: $lookup;
+        [range(0; .entities | length) as $i
+         | select(.entities[$i] as $e | $entity_ids | index($e))
+         | {e: (.entities[$i]|tostring), y: .years[$i], v: .values[$i]}]
+        | group_by(.e)
+        | map(sort_by(.y) | last)
+        | sort_by(.e)
+        | .[]
+        | "\(entity_names[.e])\t\(.y)\t\(.v)"
+      '
+    else
+      jq_filter='
+        def entity_names: $lookup;
+        range(0; .entities | length) as $i
+        | select(.entities[$i] as $e | $entity_ids | index($e))
+        | select(.years[$i] >= ($time_start | tonumber))
+        | select(.years[$i] <= ($time_end | tonumber))
+        | "\(entity_names[.entities[$i]|tostring])\t\(.years[$i])\t\(.values[$i])"
+      '
+    fi
+
+    echo "# ID: $id | Entity: $entity_filter | Time: $time_filter" >&2
+    echo -e "entity\tyear\tvalue"
+    jq -r \
+      --argjson lookup "$entity_lookup" \
+      --argjson entity_ids "$matching_ids" \
+      --arg time_start "$time_start" \
+      --arg time_end "$time_end" \
+      "$jq_filter" "$tmpdir/data.json"
+
+  elif [[ -n "$entity_filter" ]]; then
+    local matching_ids
+    matching_ids=$(jq -c --arg name "$entity_filter" '
+      [.dimensions.entities.values[]
+       | select(.name | test($name; "i"))
+       | .id]
+    ' "$tmpdir/meta.json")
+
+    if [[ "$matching_ids" == "[]" ]]; then
+      echo "# No entities matching '$entity_filter'" >&2
+      return
+    fi
+
+    jq_filter='
+      def entity_names: $lookup;
+      range(0; .entities | length) as $i
+      | select(.entities[$i] as $e | $entity_ids | index($e))
+      | "\(entity_names[.entities[$i]|tostring])\t\(.years[$i])\t\(.values[$i])"
+    '
+
+    echo "# ID: $id | Entity: $entity_filter" >&2
+    echo -e "entity\tyear\tvalue"
+    jq -r \
+      --argjson lookup "$entity_lookup" \
+      --argjson entity_ids "$matching_ids" \
+      "$jq_filter" "$tmpdir/data.json"
+
+  elif [[ -n "$time_filter" ]]; then
+    if [[ "$time_filter" == "latest" ]]; then
+      jq_filter='
+        def entity_names: $lookup;
+        [range(0; .entities | length) as $i
+         | {e: (.entities[$i]|tostring), y: .years[$i], v: .values[$i]}]
+        | group_by(.e)
+        | map(sort_by(.y) | last)
+        | sort_by(.e)
+        | .[]
+        | "\(entity_names[.e])\t\(.y)\t\(.v)"
+      '
+    else
+      local time_start="${time_filter%%.*}"
+      local time_end="${time_filter##*.}"
+
+      jq_filter='
+        def entity_names: $lookup;
+        range(0; .entities | length) as $i
+        | select(.years[$i] >= ($time_start | tonumber))
+        | select(.years[$i] <= ($time_end | tonumber))
+        | "\(entity_names[.entities[$i]|tostring])\t\(.years[$i])\t\(.values[$i])"
+      '
+    fi
+
+    echo "# ID: $id | Time: $time_filter" >&2
+    echo -e "entity\tyear\tvalue"
+    jq -r \
+      --argjson lookup "$entity_lookup" \
+      --arg time_start "${time_start:-}" \
+      --arg time_end "${time_end:-}" \
+      "$jq_filter" "$tmpdir/data.json"
+
+  else
+    # No filters — output full TSV
+    local count year_min year_max entity_count unit
+    count=$(jq '.values | length' "$tmpdir/data.json")
+    year_min=$(jq '.years | min' "$tmpdir/data.json")
+    year_max=$(jq '.years | max' "$tmpdir/data.json")
+    entity_count=$(jq '.entities | unique | length' "$tmpdir/data.json")
+    unit=$(jq -r '.unit // "N/A"' "$tmpdir/meta.json")
+
+    echo "# ID: $id | $count data points | $entity_count entities | $year_min-$year_max | unit: $unit" >&2
+    echo -e "entity\tyear\tvalue"
+    jq -r --argjson lookup "$entity_lookup" '
+      def entity_names: $lookup;
+      range(0; .entities | length) as $i
+      | "\(entity_names[.entities[$i]|tostring])\t\(.years[$i])\t\(.values[$i])"
+    ' "$tmpdir/data.json"
+  fi
+}
+
+main() {
+  local id="" search="" limit="10" min_pop="" format="tsv" entity="" time=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage ;;
+      --search|-s) search="$2"; shift 2 ;;
+      --search=*) search="${1#*=}"; shift ;;
+      -s*) search="${1#-s}"; shift ;;
+      --limit) limit="$2"; shift 2 ;;
+      --limit=*) limit="${1#*=}"; shift ;;
+      --min-popularity) min_pop="$2"; shift 2 ;;
+      --min-popularity=*) min_pop="${1#*=}"; shift ;;
+      --entity|-e) entity="$2"; shift 2 ;;
+      --entity=*) entity="${1#*=}"; shift ;;
+      -e*) entity="${1#-e}"; shift ;;
+      --time|-t) time="$2"; shift 2 ;;
+      --time=*) time="${1#*=}"; shift ;;
+      -t*) time="${1#-t}"; shift ;;
+      -f|--format) format="$2"; shift 2 ;;
+      -f=*|--format=*) format="${1#*=}"; shift ;;
+      -j|--json) format="json"; shift ;;
+      -*=*) die "unknown option: ${1%%=*}" ;;
+      -*)
+        if [[ -z "$id" ]]; then id="$1"; shift; else die "unknown option: $1"; fi
+        ;;
+      *)
+        if [[ -z "$id" ]]; then id="$1"; shift; else die "unexpected argument: $1"; fi
+        ;;
+    esac
+  done
+
+  if [[ -n "$search" ]]; then
+    search_indicators "$search" "$limit" "$min_pop"
+    return
+  fi
+
+  [[ -z "$id" ]] && die "indicator ID or --search is required. Use -h for help."
+
+  # Validate ID is numeric
+  [[ "$id" =~ ^[0-9]+$ ]] || die "indicator ID must be numeric, got: $id"
+
+  case "$format" in
+    metadata)
+      get_metadata "$id" | jq .
+      ;;
+    json)
+      get_data "$id" | jq .
+      ;;
+    tsv)
+      if ! command -v jq &>/dev/null; then
+        die "jq is required for TSV output. Install jq or use --json for raw data."
+      fi
+      output_tsv "$id" "$entity" "$time"
+      ;;
+    *) die "unknown format: $format. Valid: tsv, metadata, json" ;;
+  esac
+}
+
+main "$@"
