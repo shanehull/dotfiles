@@ -11,10 +11,13 @@ compatibility: Requires a text extraction tool (pandoc, pdftotext, or similar).
 Check these locations in order:
 
 **Calibre Library** (most common for organised collections):
+
 ```
 ls "$HOME/Calibre Library/"
 ```
+
 Books are stored as `$HOME/Calibre Library/<Author Name>/<Title> (<id>)/<Title> - <Author Name>.epub`. Search by author or title:
+
 ```
 find "$HOME/Calibre Library" -iname "*search-term*" 2>/dev/null
 ```
@@ -22,18 +25,22 @@ find "$HOME/Calibre Library" -iname "*search-term*" 2>/dev/null
 **Apple Books (iBooks):**
 
 The database is at `BKLibrary/BKLibrary-1-091020131601.sqlite` inside the Apple Books container. Query by title or author:
+
 ```
 sqlite3 ~/Library/Containers/com.apple.iBooksX/Data/Documents/BKLibrary/BKLibrary-1-091020131601.sqlite \
   "SELECT ZTITLE, ZAUTHOR, ZPATH FROM ZBKLIBRARYASSET WHERE ZTITLE LIKE '%search-term%';"
 ```
 
 Epub files are stored as UUID-named files in:
+
 ```
 ls ~/Library/Containers/com.apple.iBooksX/Data/Documents/iBooks/Books/*.epub
 ```
+
 The `ZPATH` column in the database gives the full path to the epub file (typically under `BKAgentService/Data/Documents/iBooks/Books/`).
 
 **Generic search** (slow, use as fallback):
+
 ```
 find ~ -name "*.epub" -o -name "*.pdf" 2>/dev/null
 ```
@@ -41,11 +48,13 @@ find ~ -name "*.epub" -o -name "*.pdf" 2>/dev/null
 ## 2. Convert to text
 
 Prefer `pandoc` if available:
+
 ```
 pandoc /path/to/book.epub -t plain --wrap=preserve -o /tmp/book-text.txt
 ```
 
 Otherwise try `pdftotext` (from poppler) for PDFs:
+
 ```
 pdftotext /path/to/book.pdf /tmp/book-text.txt
 ```
@@ -55,6 +64,7 @@ Fallback: ask the user to install pandoc (`brew install pandoc` or `apt install 
 ## 3. Extract the framework
 
 Get the table of contents first:
+
 ```
 grep -n "CHAPTER \|Chapter \|Part \|Section \|^# " /tmp/book-text.txt | head -40
 ```
@@ -72,16 +82,19 @@ Skip introductions, stories, acknowledgments. Extract only what the agent needs 
 ### Handling images and diagrams
 
 If the framework or worksheet is in images (e.g. scanned forms, diagrams), check whether the epub has image files:
+
 ```
 unzip -l /path/to/book.epub | grep -i "jpg\|png\|svg"
 ```
 
 Use tesseract OCR on images:
+
 ```
 cd /tmp && tesseract extracted-image.jpg output-prefix && cat output-prefix.txt
 ```
 
 Some epub images use paths like `ops/images/<name>.jpg`. Unzip to the correct directory first:
+
 ```
 unzip -o /path/to/book.epub "ops/images/*" -d /tmp/book-images/
 ```
@@ -90,11 +103,21 @@ unzip -o /path/to/book.epub "ops/images/*" -d /tmp/book-images/
 
 **Location:** `~/.config/skills/<name>/SKILL.md`
 
-Frontmatter:
+Follow the agentskills.io specification and skill-creator conventions for frontmatter and structure. The `name` must use lowercase and hyphens and match the directory name.
+
+Frontmatter (minimal required):
+
 ```yaml
 ---
 name: <hyphenated-name>
-description: Action-verb opener describing what the skill does, its domain, and when the agent should use it.
+description: >-
+  <imperative, 1-1024 chars. What the skill does and when to use it.
+  "Use this skill when..." phrasing. Include contexts where the user
+  doesn't name the domain directly.>
+compatibility:
+  >- # optional. Only when the skill has environment requirements (system packages, network access, intended product).
+  Requires ...
+allowed-tools: ... # optional. Pre-approve domain-specific tools the skill needs.
 ---
 ```
 

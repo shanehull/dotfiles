@@ -1,7 +1,6 @@
 ---
 name: business-overview
-description: Create detailed business overviews for investment research — deep-dive through business model, management, financials, valuation, risks and tracking. Use this skill when the user wants to write up a company analysis, evaluate an investment, or document due diligence on a stock, even if they don't explicitly say "business overview" or mention the template. Also use when the user says "write up notes on [ticker]" or "help me understand this company."
-compatibility: Works alongside buffett-financials and yfinance for financial data.
+description: Create detailed business overviews for investment research — deep-dive through business model, management, financials, valuation, risks and tracking. Use this skill only when the user explicitly asks to do a business overview, deep dive, or formal company write-up.
 allowed-tools: yfinance_*, ibkr_*, fred_*, qmd_*, Read, Bash
 ---
 

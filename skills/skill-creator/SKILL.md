@@ -31,9 +31,9 @@ description: >- # imperative, user-intent focused, under 1024 chars
   "Use this skill when..." not "This skill does..." Include cases
   where the user doesn't name the domain directly: "even if they
   don't explicitly mention X."
-compatibility: >- # required when skill has scripts.
-  Requires bash and curl. Scripts are bash — invoke directly
-  (e.g. `scripts/foo`), not with python.
+compatibility:
+  >- # optional. Only when environment requirements matter: intended product, system packages, network access.
+  Requires git, docker, jq, and access to the internet.
 allowed-tools: bash # or tool pattern like fred_*
 ---
 ```
@@ -62,7 +62,7 @@ Scripts live in `scripts/` relative to `SKILL.md`. The agent invokes them by pat
 - **`--raw` flag** — allow bypassing pretty-print for debugging.
 - **Long options** — `--country`, `--time`; avoid single-dash long flags.
 - **`=` variants** — support both `--key value` and `--key=value` forms.
-- **`compatibility` field** — required in frontmatter. Always state "requires bash" so the agent invokes scripts directly, not with python.
+- **`compatibility` field** — optional. Only include when the skill has environment requirements (system packages, network access, intended product). Describes dependencies, not relationships to other skills.
 
 ## Description writing
 
@@ -72,7 +72,7 @@ The description is the **only** field the agent sees before deciding whether to 
 
 - **Imperative phrasing** — "Use this skill when..." not "This skill does..."
 - **User intent, not implementation** — describe what the user wants to achieve.
-- **Errand on the side of pushy** — list contexts explicitly, including cases where the user doesn't name the domain.
+- **Err on the side of pushy** — list contexts explicitly, including cases where the user doesn't name the domain.
 - **Concise** — 2-4 sentences. Hard limit of 1024 characters.
 
 ### Before and after
