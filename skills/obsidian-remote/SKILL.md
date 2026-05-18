@@ -36,7 +36,7 @@ Destructive Hint Annotation (true = modifies vault, false = read-only):
 ### Search
 
 - `global_search`: Search for text or regex across the vault.
-- `search_replace`: Perform search-and-replace within a note.
+- `search_replace`: Search and replace within a note. Accepts an optional `count` parameter (default: `1`, first occurrence only; set to `-1` to replace all).
 
 ### Metadata
 
