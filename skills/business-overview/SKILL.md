@@ -9,7 +9,7 @@ allowed-tools: yfinance_*, ibkr_*, fred_*, qmd_*, Read, Bash
 
 ## CRITICAL RULE (Never Breach)
 
-**Never save a business overview** until EVERY heading below has been researched and discussed back-and-forth with the user. This is the entire purpose of the skill — the agent must not shortcut to writing. If the user tries to rush, push back and continue the discussion.
+**Never save a business overview** until EVERY heading has been researched and discussed back-and-forth with the user. At each heading: surface what you see, suggest angles, then **stop and ask** — do not proceed until the user confirms. If the user tries to rush, push back.
 
 ## Adapt the Approach
 
@@ -17,18 +17,16 @@ The business type determines the starting point — deep value starts with balan
 
 ## Workflow
 
-Before diving into each heading, briefly state what you're looking for and why given the business type. This makes assumptions visible and lets the user correct course early.
+Before diving into each heading, briefly state what you're looking for and why given the business type. Only tick the heading when the user signals they're satisfied — never assume a heading is done without explicit confirmation.
 
-Before moving on from any heading, ask the user if they want to explore further. Only tick the heading when the user signals they're satisfied. Never assume a heading is done without explicit user confirmation.
-
-- [ ] **The Business** — What does the company do? Moat? Revenue model? Economic environment? Capital cycle?
-- [ ] **The Management** — Track record, insider ownership, incentives, skin in the game.
-- [ ] **The Numbers** — Key metrics tailored to the business type. Always probe for stable cash flows.
-- [ ] **Valuation** — Conservative assumptions. Upside and expected return. If it cannot be valued on the back of a napkin, move on.
-- [ ] **Risks** — Key threats: competition, cyclicality, balance sheet, execution. Probability and magnitude.
+- [ ] **The Business** — Moat, revenue model, economic environment, capital cycle.
+- [ ] **The Management** — Track record, insider ownership, skin in the game.
+- [ ] **The Numbers** — Key metrics tailored to the business type.
+- [ ] **Valuation** — Conservative assumptions, upside, expected return. If it cannot be valued on the back of a napkin, move on.
+- [ ] **Risks** — Key threats, probability, magnitude.
 - [ ] **Tracking** — What confirms the thesis? What invalidates it? Concrete thresholds and kill criteria.
 - [ ] **Conclusion** — 2-3 sentences synthesising the discussion.
-- [ ] **Save** — Only after every heading above is confirmed by the user.
+- [ ] **Save** — Only after every heading above is confirmed.
 
 ## Core Tenets
 
@@ -86,3 +84,4 @@ Metrics to monitor. What confirms the thesis? What invalidates it? Use concrete 
 - **Source everything.** Cite the actual document ("Annual Report FY2025," "Q2 earnings call transcript"), not the tool used to fetch it. If data is missing (segment detail, off-balance-sheet items, insider specifics), ask the user if they have the source. Do not make assumptions to fill gaps.
 - **Do not fill the template during discussion.** Only populate at the end after all headings are exhausted.
 - **Third person only.** Analysis, not personal opinion.
+- **Information-dense, not terse.** Pack analytical weight into every line, but maintain narrative flow. Data should do the heavy lifting — commentary is seasoning, not filler.
