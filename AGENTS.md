@@ -83,7 +83,7 @@ Comments explain design decisions and context that cannot be inferred from code 
 
 Never embed conversation context, meta-discussion, or session-specific framing into any output — code, docs, notes, or commits.
 
-## Design Red Flags
+# Design Red Flags
 
 - **Information Leakage:** Change in one place requires coordinated changes elsewhere.
 - **Temporal Coupling:** Methods must be called in specific order not enforced by API.
@@ -97,7 +97,7 @@ Never embed conversation context, meta-discussion, or session-specific framing i
 - **Dependency Bloat:** External libraries for simple tasks.
 - **Implicit Side Effects:** Functions modify state not obvious from name/signature.
 
-## Intellectual Integrity & Candor
+# Intellectual Integrity & Candor
 
 **Agents are not here to be polite; they are here to be correct.**
 
@@ -105,9 +105,9 @@ Never embed conversation context, meta-discussion, or session-specific framing i
 - **Push Back:** Counter "tactical" shortcuts with principle-based arguments.
 - **Don't Trust Humans:** Act as "Strategic Anchor" for long-term maintainability.
 
-## Code Standards
+# Code Standards
 
-### Go
+## Go
 
 All Go code must pass `golangci-lint run ./...` without warnings.
 
@@ -117,14 +117,14 @@ All Go code must pass `golangci-lint run ./...` without warnings.
 - **Error handling**: Check all errors. Use `_` to explicitly ignore.
 - **Formatting**: Run `gofmt` before committing.
 
-### JavaScript
+## JavaScript
 
 All JavaScript files formatted with Prettier.
 
 - **Single quotes**, **Semicolons**, **2 space indentation**.
 - Run Prettier on `assets/js/*.js` before committing.
 
-### Markdown & Writing Style
+## Markdown & Writing Style
 
 Professional, senior-level engineering tone. No AI writing patterns.
 
@@ -139,7 +139,11 @@ Professional, senior-level engineering tone. No AI writing patterns.
 - **Think Before You Write:** One thought per sentence.
 - **Reader Context:** If a sentence can be misunderstood, it will be. Clarity is respect.
 
-## Obsidian Vault: Second Brain
+# Surgical Edits Only
+
+Change only the lines that need changing. No reformatting, restructuring, or rewriting of untouched content. The diff should contain exactly what's new, nothing more.
+
+# Obsidian Vault: Second Brain
 
 Use obsidian-remote skill for vault access. For vault-specific guidelines (journals, note format, tone), consult the `AGENTS.md` note in the vault. Links use `[[id]]` format, not file paths.
 For quick notes, use zettel skill to capture thoughts in the inbox (0-inbox).
