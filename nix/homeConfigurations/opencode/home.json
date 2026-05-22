@@ -139,7 +139,9 @@
       "yq *": "allow",
       "curl": "ask",
       "curl -X GET*": "allow",
-      "curl --get*": "allow"
+      "curl --get*": "allow",
+      "curl -sS*": "allow",
+      "*/.config/opencode/skills/*/scripts/*": "allow"
     }
   }
 }
