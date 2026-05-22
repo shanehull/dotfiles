@@ -1,7 +1,7 @@
 ---
 name: owid
 description: Fetch data and charts from Our World in Data — search for charts/pages, download CSV datasets, retrieve metadata and chart configurations, and get filtered data by country and time range. Use this skill when the user wants global development data (GDP, CO2, life expectancy, population, etc.) or asks about data-driven topics like climate, health, poverty, energy, or education, even if they don't mention Our World in Data by name.
-compatibility: Requires bash and curl. Scripts are bash — invoke directly (e.g. `scripts/owid-search "gdp"`), not with python. jq required for owid-indicators TSV output.
+compatibility: jq required for owid-indicators TSV output
 allowed-tools: bash
 ---
 
@@ -88,7 +88,7 @@ owid-search <query> [options]
 ```
 
 | Option             | Description                              |
-| ------------------ | ---------------------------------------- |
+| ------------------ | ---------------------------------------- | ------------------------------ |
 | `--type charts     | pages`                                   | Content type (default: charts) |
 | `--page N`         | Page number, 0-indexed (default: 0)      |
 | `--hits N`         | Results per page, 1-100 (default: 20)    |
@@ -117,7 +117,6 @@ owid-data <slug>[.format] [options]
 | `--time RANGE`     | year, `2000..2020`, `latest`, `earliest`                                                                                      |
 | `--tab TAB`        | Active tab: table, map, chart, line, scatter, stacked-area, discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko |
 | `--short-names`    | Compact column names (no spaces)                                                                                              |
-| `--raw`            | Output raw response without header info                                                                                       |
 
 ### Image options (`--format png|svg`)
 

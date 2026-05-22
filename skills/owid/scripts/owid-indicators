@@ -57,8 +57,6 @@ get_data() {
   curl -sS --max-time 30 "$API_URL/$id.data.json" 2>&1
 }
 
-# Output TSV from data.json + metadata.json using jq
-# Filters by entity name (substring, case-insensitive) and/or time range
 output_tsv() {
   local id="$1" entity_filter="${2:-}" time_filter="${3:-}"
 
@@ -69,7 +67,6 @@ output_tsv() {
   get_data "$id" > "$tmpdir/data.json"
   get_metadata "$id" > "$tmpdir/meta.json"
 
-  # Build entity ID->name lookup
   local entity_lookup
   entity_lookup=$(jq -c '
     [.dimensions.entities.values[]
@@ -77,15 +74,12 @@ output_tsv() {
     | from_entries
   ' "$tmpdir/meta.json")
 
-  # jq filter to zip and optionally filter
   local jq_filter
 
   if [[ -n "$entity_filter" && -n "$time_filter" ]]; then
-    # Both filters
     local time_start="${time_filter%%.*}"
     local time_end="${time_filter##*.}"
 
-    # Determine entity IDs matching the filter (as JSON number array)
     local matching_ids
     matching_ids=$(jq -c --arg name "$entity_filter" '
       [.dimensions.entities.values[]
@@ -191,7 +185,6 @@ output_tsv() {
       "$jq_filter" "$tmpdir/data.json"
 
   else
-    # No filters — output full TSV
     local count year_min year_max entity_count unit
     count=$(jq '.values | length' "$tmpdir/data.json")
     year_min=$(jq '.years | min' "$tmpdir/data.json")
@@ -248,7 +241,6 @@ main() {
 
   [[ -z "$id" ]] && die "indicator ID or --search is required. Use -h for help."
 
-  # Validate ID is numeric
   [[ "$id" =~ ^[0-9]+$ ]] || die "indicator ID must be numeric, got: $id"
 
   case "$format" in

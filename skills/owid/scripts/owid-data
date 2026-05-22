@@ -30,7 +30,6 @@ Options:
   --tab TAB                 Active tab: table, map, chart, line, scatter, stacked-area,
                             discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko
   --short-names             Use short column names without whitespace (CSV only)
-  --raw                     Skip CSV header/preview (raw output)
 
 Image options (--format png|svg only):
   --im-type TYPE            Preset: twitter, og, thumbnail, square, uncaptioned
@@ -166,20 +165,7 @@ main() {
     return
   fi
 
-  # For CSV: show header and row count unless --raw
-  if [[ "$format" == "csv" && "$raw" != "true" ]]; then
-    local header rows
-    header=$(echo "$output" | head -1)
-    rows=$(echo "$output" | wc -l | tr -d ' ')
-    rows=$((rows - 1))
-    echo "# $slug.$format — $rows data rows"
-    echo "# Columns: $header"
-    echo "$output"
-  elif [[ "$format" == "metadata" || "$format" == "config" || "$format" == "values" ]]; then
-    echo "$output"
-  else
-    echo "$output"
-  fi
+  echo "$output"
 }
 
 main "$@"
