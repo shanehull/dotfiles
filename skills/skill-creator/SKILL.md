@@ -53,16 +53,19 @@ allowed-tools: bash # or tool pattern like fred_*
 
 Scripts live in `scripts/` relative to `SKILL.md`. The agent invokes them by path (`scripts/owid-search`).
 
-- **Pure bash + curl** — zero external dependencies beyond `jq` (optional for pretty-print).
+- **Pure bash + curl** — zero external dependencies. Scripts output raw data
+  (JSON, CSV, etc.) as-is. Never call `jq` or other formatters — the agent
+  pipes to `jq` itself if it wants pretty output.
 - **`#!/usr/bin/env bash`** — shebang line.
 - **`set -euo pipefail`** — at top of every script.
 - **`usage()` function** — heredoc with examples, triggered by `-h`/`--help`.
 - **`die()` function** — consistent error messages to stderr.
 - **`main()` function** — entry point, called at bottom: `main "$@"`.
-- **`--raw` flag** — allow bypassing pretty-print for debugging.
 - **Long options** — `--country`, `--time`; avoid single-dash long flags.
 - **`=` variants** — support both `--key value` and `--key=value` forms.
-- **`compatibility` field** — optional. Only include when the skill has environment requirements (system packages, network access, intended product). Describes dependencies, not relationships to other skills.
+- **`compatibility` field** — optional. Only include when the skill has
+  environment requirements (system packages, network access, intended product).
+  Describes dependencies, not relationships to other skills.
 
 ## Description writing
 
