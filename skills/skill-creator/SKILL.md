@@ -26,14 +26,8 @@ Create via `mkdir -p skills/<name>/scripts`.
 ```yaml
 ---
 name: my-skill # lowercase, hyphens, must match directory name
-description: >- # imperative, user-intent focused, under 1024 chars
-  What the skill does and when to use it. Use imperative phrasing:
-  "Use this skill when..." not "This skill does..." Include cases
-  where the user doesn't name the domain directly: "even if they
-  don't explicitly mention X."
-compatibility:
-  >- # optional. Only when environment requirements matter: intended product, system packages, network access.
-  Requires git, docker, jq, and access to the internet.
+description: What the skill does and when to use it. Use imperative phrasing: "Use this skill when..." not "This skill does..." Include cases where the user doesn't name the domain directly: "even if they don't explicitly mention X." # imperative, user-intent focused, under 1024 chars
+compatibility: Requires git, docker, jq, and access to the internet. # optional. Only when environment requirements matter: intended product, system packages, network access.
 allowed-tools: bash # or tool pattern like fred_*
 ---
 ```
@@ -85,12 +79,7 @@ The description is the **only** field the agent sees before deciding whether to 
 description: Process CSV files.
 
 # After — specific about what and when
-description: >
-  Analyze CSV and tabular data files — compute summary statistics,
-  add derived columns, generate charts, and clean messy data. Use
-  this skill when the user has a CSV, TSV, or Excel file and wants
-  to explore, transform, or visualize the data, even if they don't
-  explicitly mention "CSV" or "analysis."
+description: Analyze CSV and tabular data files — compute summary statistics, add derived columns, generate charts, and clean messy data. Use this skill when the user has a CSV, TSV, or Excel file and wants to explore, transform, or visualize the data, even if they don't explicitly mention "CSV" or "analysis."
 ```
 
 ## Gotchas section guidelines
