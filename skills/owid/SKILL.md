@@ -1,7 +1,7 @@
 ---
 name: owid
 description: Fetch data and charts from Our World in Data — search for charts/pages, download CSV datasets, retrieve metadata and chart configurations, and get filtered data by country and time range. Use this skill when the user wants global development data (GDP, CO2, life expectancy, population, etc.) or asks about data-driven topics like climate, health, poverty, energy, or education, even if they don't mention Our World in Data by name.
-compatibility: Requires bash and curl. Scripts are bash — invoke directly (e.g. `scripts/owid-search "gdp"`), not with python. jq required for owid-indicators TSV output and recommended for pretty-printed output elsewhere.
+compatibility: Requires bash and curl. Scripts are bash — invoke directly (e.g. `scripts/owid-search "gdp"`), not with python. jq required for owid-indicators TSV output.
 allowed-tools: bash
 ---
 
@@ -21,7 +21,7 @@ All data is CC BY 4.0 licensed.
 
 - **Don't know the slug or indicator ID?** Start with `owid-search "query"` (charts) or `owid-indicators --search "query"` (indicators).
 - **Want a specific chart's data as CSV?** Use `owid-data <slug>`.
-- **Want raw variable data with entity/time filtering?** Use `owid-indicators <id>`. This is the most powerful approach — semantic search finds the indicator, then you get TSV with entity names, years, and values.
+- **Want raw variable data with entity/time filtering?** Use `owid-indicators <id>`. This is the most powerful approach — semantic search finds the indicator, then you get TSV (requires jq) or JSON with entity names, years, and values.
 
 ## Gotchas
 
@@ -48,18 +48,18 @@ Semantic search for indicators and direct data fetching. This is the most flexib
 owid-indicators --search "<query>" [--limit N] [--min-popularity 0.5]
 ```
 
-Returns indicator IDs, titles, snippets, and catalog paths. Each result has a `#ID` — use it for data fetching. Use `--min-popularity` to filter out low-relevance indicators (0-1 scale).
+Returns raw JSON with query, total_results, and results array (indicator_id, title, snippet, score, n_charts, catalog_path). Use `--min-popularity` to filter out low-relevance indicators (0-1 scale).
 
 ### Fetch data
 
 ```
-owid-indicators <id>                           # full TSV: entity, year, value
+owid-indicators <id>                           # full TSV: entity, year, value (requires jq)
 owid-indicators <id> --entity NAME             # filter by entity (case-insensitive substring)
 owid-indicators <id> --time 2000..2020          # filter by year range
 owid-indicators <id> --time latest              # latest value per entity
 owid-indicators <id> --entity France --time 2000..2020  # combined filters
 owid-indicators <id> -f metadata                # indicator metadata (name, unit, timespan, dimensions)
-owid-indicators <id> --json                     # raw data.json
+owid-indicators <id> -f json                    # raw data.json
 ```
 
 ### APIs used
@@ -88,14 +88,15 @@ owid-search <query> [options]
 ```
 
 | Option             | Description                              |
-| ------------------ | ---------------------------------------- | ------------------------------ |
+| ------------------ | ---------------------------------------- |
 | `--type charts     | pages`                                   | Content type (default: charts) |
 | `--page N`         | Page number, 0-indexed (default: 0)      |
 | `--hits N`         | Results per page, 1-100 (default: 20)    |
 | `--countries u~CN` | Countries separated by `~` (charts only) |
 | `--topics TOPIC`   | Topic filter (charts only)               |
 | `--require-all`    | Only charts containing ALL countries     |
-| `-j, --json`       | Output raw JSON                          |
+
+Output is raw JSON with query, nbHits, results array (title, slug, url, type, variantName).
 
 Available topics: [tags database](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt).
 

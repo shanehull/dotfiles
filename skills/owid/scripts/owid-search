@@ -17,7 +17,8 @@ Options:
   --countries uS~CHN     Countries separated by ~ (charts only)
   --topics TOPIC         Filter by topic name (charts only)
   --require-all          Only charts that include ALL specified countries
-  -j, --json             Output raw JSON (default: pretty-print with jq)
+
+Output: raw JSON with query, nbHits, results array (title, slug, url, type, variantName).
 
 Examples:
   owid-search "gdp per capita"
@@ -31,7 +32,7 @@ EOF
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 main() {
-  local type="charts" page="0" hits="20" countries="" topics="" require_all="false" json_out="false"
+  local type="charts" page="0" hits="20" countries="" topics="" require_all="false"
   local query=""
 
   while [[ $# -gt 0 ]]; do
@@ -43,7 +44,6 @@ main() {
       --countries) countries="${2//,/~}"; shift 2 ;;
       --topics) topics="$2"; shift 2 ;;
       --require-all) require_all="true"; shift ;;
-      -j|--json) json_out="true"; shift ;;
       --type=*) type="${1#*=}"; shift ;;
       --page=*) page="${1#*=}"; shift ;;
       --hits=*) hits="${1#*=}"; shift ;;
@@ -64,29 +64,7 @@ main() {
   [[ -n "$topics" ]] && params+=(--data-urlencode "topics=$topics")
   [[ "$require_all" == "true" ]] && params+=(--data-urlencode "requireAllCountries=true")
 
-  local response
-  response=$(curl -sS --get "$BASE_URL" "${params[@]}" 2>&1)
-
-  if command -v jq &>/dev/null && [[ "$json_out" != "true" ]]; then
-    echo "$response" | jq -r '
-      def result_line:
-        if .type == "chart" then
-          "  [\(.type)] \(.title) — \(.variantName // "default")"
-        else
-          "  [\(.type)] \(.title)"
-        end
-        + "\n    slug: \(.slug)\n    url: \(.url)";
-
-      "Query: \"\(.query)\" | Type: \(if .offset != null then "pages" else "charts" end) | Hits: \(.nbHits) | Page: \(.page // .offset) of \(.nbPages // "?")",
-      (if (.results | length) == 0 then
-        "No results."
-      else
-        (.results[] | result_line)
-      end)
-    '
-  else
-    echo "$response"
-  fi
+  curl -sS --get "$BASE_URL" "${params[@]}"
 }
 
 main "$@"

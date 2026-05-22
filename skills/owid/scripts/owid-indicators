@@ -15,21 +15,20 @@ Usage:
   owid-indicators <id> --entity NAME        Filter by entity name
   owid-indicators <id> --time RANGE         Filter by time (e.g. 2000..2020)
   owid-indicators <id> --time latest        Show latest value per entity
-  owid-indicators <id> --json               Output raw data.json
+  owid-indicators <id> -f json              Output raw JSON
 
 Options:
-  --search, -s QUERY    Semantic search for indicators
+  --search, -s QUERY    Semantic search for indicators (raw JSON output)
   --limit N             Max search results (default: 10)
   --min-popularity N    Exclude low-popularity indicators (0-1)
   --entity, -e NAME     Filter by entity name (case-insensitive substring match)
   --time, -t RANGE      Time filter: year, 2000..2020, latest, earliest
-  -f, --format FMT      Output format: tsv (default), metadata, json
-  -j, --json            Output raw data.json (shorthand for -f json)
+  -f, --format FMT      Output format: tsv (default, requires jq), metadata, json
+  -j, --json            Shorthand for -f json
 
 Examples:
   owid-indicators --search "wine consumption"
-  owid-indicators 815383                                # all data as TSV
-  owid-indicators 815383 --entity France --time 2000..2020
+  owid-indicators 815383                                # all data as TSV (requires jq)
   owid-indicators 815383 --time latest                  # latest value per entity
   owid-indicators 815383 -f metadata
 EOF
@@ -45,17 +44,7 @@ search_indicators() {
   params+=(--data-urlencode "limit=$limit")
   [[ -n "$min_pop" ]] && params+=(--data-urlencode "min_popularity=$min_pop")
 
-  local response
-  response=$(curl -sS --get "$SEARCH_URL" "${params[@]}" 2>&1)
-
-  if command -v jq &>/dev/null; then
-    echo "$response" | jq -r '
-      "Query: \"\(.query)\" | Results: \(.total_results)",
-      (.results[] | "  #\(.indicator_id) [\(.score|tostring[:4])] \(.title)\n    snippet: \(.snippet)\n    charts: \(.n_charts) | path: \(.catalog_path)\n")
-    '
-  else
-    echo "$response"
-  fi
+  curl -sS --get "$SEARCH_URL" "${params[@]}"
 }
 
 get_metadata() {
@@ -264,10 +253,10 @@ main() {
 
   case "$format" in
     metadata)
-      get_metadata "$id" | jq .
+      get_metadata "$id"
       ;;
     json)
-      get_data "$id" | jq .
+      get_data "$id"
       ;;
     tsv)
       if ! command -v jq &>/dev/null; then

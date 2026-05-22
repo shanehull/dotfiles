@@ -30,7 +30,7 @@ Options:
   --tab TAB                 Active tab: table, map, chart, line, scatter, stacked-area,
                             discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko
   --short-names             Use short column names without whitespace (CSV only)
-  --raw                     Output raw response (no header/preview info)
+  --raw                     Skip CSV header/preview (raw output)
 
 Image options (--format png|svg only):
   --im-type TYPE            Preset: twitter, og, thumbnail, square, uncaptioned
@@ -176,11 +176,7 @@ main() {
     echo "# Columns: $header"
     echo "$output"
   elif [[ "$format" == "metadata" || "$format" == "config" || "$format" == "values" ]]; then
-    if command -v jq &>/dev/null && [[ "$raw" != "true" ]]; then
-      echo "$output" | jq .
-    else
-      echo "$output"
-    fi
+    echo "$output"
   else
     echo "$output"
   fi
