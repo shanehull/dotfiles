@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: psd-request <path> [<query-params>...]
+
+Generic PSD API request. Prepends the base URL and auth header.
+
+PATH is the endpoint path after /api/psd/ (e.g., "commodities").
+
+QUERY_PARAMS are passed as-is to curl's --data-urlencode. Use key=value.
+
+Examples:
+  psd-request commodities
+  psd-request countries
+  psd-request commodityAttributes
+  psd-request commodity/0440000/world/year/2026
+  psd-request commodity/0440000/country/all/year/2026
+  psd-request commodity/0440000/country/BR/year/2026
+EOF
+  exit 1
+}
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    *) ARGS+=("$1"); shift ;;
+  esac
+done
+
+if [[ ${#ARGS[@]} -lt 1 ]]; then
+  usage
+fi
+
+PATH_SPEC="${ARGS[0]}"
+
+API_KEY="${USDA_FAS_API_KEY:-}"
+if [[ -z "$API_KEY" ]]; then
+  echo "ERROR: USDA_FAS_API_KEY not set. Get a free key at https://api.data.gov/signup/" >&2
+  exit 1
+fi
+
+curl -sS -H "X-Api-Key: ${API_KEY}" "https://api.fas.usda.gov/api/psd/${PATH_SPEC}"

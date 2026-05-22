@@ -29,6 +29,7 @@
       "owid"
       "qmd"
       "skill-creator"
+      "usda-wasde"
       "yfinance"
       "zettel"
     ];

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: wasde-csv [--raw] <year> <month>
+
+Download a WASDE report CSV as published on usda.gov.
+
+ARGUMENTS:
+  year  4-digit year (2010-2026)
+  month 2-digit month (01-12)
+
+OPTIONS:
+  --raw      Print raw CSV content instead of a preview
+  -h/--help  Show this help
+
+EXAMPLES:
+  wasde-csv 2026 03        # Preview March 2026 WASDE
+  wasde-csv --raw 2026 03  # Full CSV output
+EOF
+  exit 1
+}
+
+RAW=false
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --raw) RAW=true; shift ;;
+    *) ARGS+=("$1"); shift ;;
+  esac
+done
+
+if [[ ${#ARGS[@]} -lt 2 ]]; then
+  usage
+fi
+
+YEAR="${ARGS[0]}"
+MONTH="${ARGS[1]}"
+
+# Try the standard URL first, then V2 if it fails
+BASE_URL="https://www.usda.gov/sites/default/files/documents/oce-wasde-report-data-${YEAR}-${MONTH}"
+URLS=("${BASE_URL}.csv" "${BASE_URL}-V2.csv")
+
+DOWNLOADED=false
+for URL in "${URLS[@]}"; do
+  if RESPONSE=$(curl -sSL -k -w "%{http_code}" --output /tmp/wasde-tmp.csv "$URL" 2>/dev/null) && [[ "$RESPONSE" == "200" ]]; then
+    DOWNLOADED=true
+    break
+  fi
+done
+
+if [[ "$DOWNLOADED" != "true" ]]; then
+  echo "ERROR: WASDE CSV not found for ${YEAR}-${MONTH}" >&2
+  echo "Check availability at https://www.usda.gov/historical-wasde-report-data-3" >&2
+  exit 1
+fi
+
+if [[ "$RAW" == true ]]; then
+  cat /tmp/wasde-tmp.csv
+else
+  echo "=== WASDE Report ${YEAR}-${MONTH} ==="
+  head -1 /tmp/wasde-tmp.csv
+  echo "--- $(wc -l < /tmp/wasde-tmp.csv) rows ---"
+  tail -n +1 /tmp/wasde-tmp.csv | head -6
+  echo "..."
+  echo "Use --raw for full output"
+fi
+
+rm -f /tmp/wasde-tmp.csv

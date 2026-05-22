@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<EOF
+Usage: psd-data [--country <code>|all] <commodityCode> <marketYear>
+
+Fetch PSD supply/demand data for a commodity and year.
+
+ARGUMENTS:
+  commodityCode  PSD commodity code (e.g., 0440000 for Corn)
+  marketYear     Marketing year (e.g., 2026)
+
+OPTIONS:
+  --country <code>  Country code (e.g., BR, AR, US) or "all" for every country.
+                    Default: "world" (world aggregate).
+  -h/--help         Show help
+
+EXAMPLES:
+  psd-data 0440000 2026                  # Corn, world, 2026
+  psd-data --country all 0440000 2026    # Corn, all countries
+  psd-data --country BR 0440000 2026     # Corn, Brazil
+  psd-data --country US 0410000 2025     # Wheat, US
+EOF
+  exit 1
+}
+
+COUNTRY=""
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --country) COUNTRY="$2"; shift 2 ;;
+    --country=*) COUNTRY="${1#*=}"; shift ;;
+    *) ARGS+=("$1"); shift ;;
+  esac
+done
+
+if [[ ${#ARGS[@]} -lt 2 ]]; then
+  usage
+fi
+
+COMMODITY="${ARGS[0]}"
+YEAR="${ARGS[1]}"
+
+if [[ -z "$COUNTRY" || "$COUNTRY" == "world" ]]; then
+  PATH_SPEC="commodity/${COMMODITY}/world/year/${YEAR}"
+elif [[ "$COUNTRY" == "all" ]]; then
+  PATH_SPEC="commodity/${COMMODITY}/country/all/year/${YEAR}"
+else
+  PATH_SPEC="commodity/${COMMODITY}/country/${COUNTRY}/year/${YEAR}"
+fi
+
+exec "$SCRIPT_DIR/psd-request" "$PATH_SPEC"
