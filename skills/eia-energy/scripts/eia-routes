@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [route] [options]
+
+List EIA API routes and metadata. Outputs raw JSON.
+Query a route node to see sub-routes, descriptions, and facet definitions.
+
+Set EIA_API_KEY environment variable.
+
+Options:
+  --facets    Ignored (facets shown in raw JSON output)
+  --json      Ignored (output is always raw JSON)
+  -h, --help  Show this help
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") electricity
+  $(basename "$0") natural-gas/pri/sum
+EOF
+  exit 0
+}
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+API_KEY="${EIA_API_KEY:-}"
+ROUTE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --facets|--json) shift ;;
+    -h|--help) usage ;;
+    *) ROUTE="$1"; shift ;;
+  esac
+done
+
+[[ -z "$API_KEY" ]] && die "EIA_API_KEY not set"
+
+URL="https://api.eia.gov/v2/${ROUTE}/?api_key=${API_KEY}"
+TMPFILE=$(mktemp)
+trap 'rm -f "$TMPFILE"' EXIT
+
+HTTP_CODE=$(curl -sS -w "%{http_code}" -o "$TMPFILE" "$URL") || die "API request failed"
+
+if [[ "$HTTP_CODE" != "200" ]]; then
+  ERROR_MSG=$(grep -o '"error":"[^"]*"' "$TMPFILE" 2>/dev/null | head -1 | cut -d'"' -f4 || grep -o '"message":"[^"]*"' "$TMPFILE" 2>/dev/null | head -1 | cut -d'"' -f4)
+  [[ -z "$ERROR_MSG" ]] && ERROR_MSG="HTTP $HTTP_CODE"
+  die "API error: $ERROR_MSG"
+fi
+
+cat "$TMPFILE"

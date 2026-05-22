@@ -1,0 +1,262 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="https://asx.api.markitdigital.com/asx-research/1.0"
+PDF_BASE="https://cdn-api.markitdigital.com/apiman-gateway/ASX/asx-research/1.0/file"
+
+die() { echo "error: $*" >&2; exit 1; }
+urlenc() { local s="$1"; s="${s//&/%26}"; echo "$s"; }
+
+usage() {
+  cat <<EOF
+Usage: asx-announcements [SYMBOL] [options]
+
+Fetch ASX announcements.
+
+Quick mode (SYMBOL alone):
+  Latest 5 announcements.
+
+Paginated mode (SYMBOL + any flag):
+  Filtered by symbol, paginated by date.
+
+Date feed (no SYMBOL):
+  All companies, paginated by date.
+
+Directory mode (--directory):
+  List companies A-Z with optional name/industry/market-cap filters.
+
+Examples:
+  asx-announcements                                       # market-wide today
+  asx-announcements CBA                                   # CBA latest 5
+  asx-announcements CBA --date=2026-05-21                 # CBA full day
+  asx-announcements CBA,BHP --date=2026-05-21             # multi-ticker
+  asx-announcements --pdf DOCKEY --output ~/a.pdf
+  asx-announcements --directory                           # all companies
+  asx-announcements --directory --industry Banks          # banks only
+
+Options:
+  -d, --date YYYY-MM-DD     Sydney date (default: today).
+  --days-back N              Days back from date to scan.
+  -p, --price-sensitive      Price-sensitive only.
+  -P, --pages N              Pages (default: 1, 0=unlimited).
+  -l, --limit N              Max results (0=unlimited).
+  --pdf DOCKEY               Download PDF by document key.
+  --pdf-dir DIR              Directory for PDFs (default: .).
+  --output FILE              Output path for --pdf.
+  --directory                List company directory.
+  --name-like TEXT           Company name prefix (e.g. A).
+  --industry TEXT            Filter by industry (repeatable).
+  --market-cap-bucket TEXT   Market cap bucket (repeatable).
+  --per-page N               Directory items per page (default: 100).
+  --order asc|desc           Directory sort (default: asc).
+  --order-by FIELD           Sort: companyName, marketCap, symbol.
+  -h, --help                 Show this help.
+EOF
+  exit 1
+}
+
+SYMBOL=""
+SYMS=()
+DATE=""
+PRICE_SENSITIVE="false"
+PAGES=1
+LIMIT=0
+PDF_DL=""
+PDF_DIR="."
+PDF_OUTPUT=""
+DAYS_BACK=0
+THOROUGH=false
+MODE_DIR=false
+DIR_NAME_LIKE=""
+DIR_INDUSTRIES=()
+DIR_MCAPS=()
+DIR_PER_PAGE=100
+DIR_ORDER="ascending"
+DIR_ORDER_BY="companyName"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -d=*|--date=*) DATE="${1#*=}"; THOROUGH=true; shift ;;
+    -d|--date) DATE="$2"; THOROUGH=true; shift 2 ;;
+    --days-back=*) DAYS_BACK="${1#*=}"; THOROUGH=true; shift ;;
+    --days-back) DAYS_BACK="$2"; THOROUGH=true; shift 2 ;;
+    -p|--price-sensitive) PRICE_SENSITIVE="true"; THOROUGH=true; shift ;;
+    -P=*|--pages=*) PAGES="${1#*=}"; THOROUGH=true; shift ;;
+    -P|--pages) PAGES="$2"; THOROUGH=true; shift 2 ;;
+    -l=*|--limit=*) LIMIT="${1#*=}"; THOROUGH=true; shift ;;
+    -l|--limit) LIMIT="$2"; THOROUGH=true; shift 2 ;;
+    --pdf=*) PDF_DL="${1#*=}"; shift ;;
+    --pdf) PDF_DL="$2"; shift 2 ;;
+    --pdf-dir=*) PDF_DIR="${1#*=}"; shift ;;
+    --pdf-dir) PDF_DIR="$2"; shift 2 ;;
+    --output=*) PDF_OUTPUT="${1#*=}"; shift ;;
+    --output) PDF_OUTPUT="$2"; shift 2 ;;
+    --directory|--dir) MODE_DIR=true; shift ;;
+    --name-like=*) DIR_NAME_LIKE="${1#*=}"; shift ;;
+    --name-like) DIR_NAME_LIKE="$2"; shift 2 ;;
+    --industry=*) DIR_INDUSTRIES+=("${1#*=}"); shift ;;
+    --industry) DIR_INDUSTRIES+=("$2"); shift 2 ;;
+    --market-cap-bucket=*) DIR_MCAPS+=("${1#*=}"); shift ;;
+    --market-cap-bucket) DIR_MCAPS+=("$2"); shift 2 ;;
+    --per-page=*) DIR_PER_PAGE="${1#*=}"; shift ;;
+    --per-page) DIR_PER_PAGE="$2"; shift 2 ;;
+    --order=*) DIR_ORDER="${1#*=}"; shift ;;
+    --order) DIR_ORDER="$2"; shift 2 ;;
+    --order-by=*) DIR_ORDER_BY="${1#*=}"; shift ;;
+    --order-by) DIR_ORDER_BY="$2"; shift 2 ;;
+    -h|--help) usage ;;
+    -*) die "unknown option $1" ;;
+    *)
+      if [[ -z "$SYMBOL" ]]; then SYMBOL="$1"
+      else SYMBOL="$SYMBOL,$1"; fi
+      shift
+      ;;
+  esac
+done
+
+case "$DIR_ORDER" in
+  asc|ascending) DIR_ORDER="ascending" ;;
+  desc|descending) DIR_ORDER="descending" ;;
+  *) die "invalid --order: $DIR_ORDER (use asc or desc)" ;;
+esac
+
+# ---------------------------------------------------------------
+# PDF download
+# ---------------------------------------------------------------
+if [[ -n "$PDF_DL" ]]; then
+  if [[ -n "$PDF_OUTPUT" ]]; then
+    mkdir -p "$(dirname "$PDF_OUTPUT")"
+    curl -sf "$PDF_BASE/$PDF_DL" -o "$PDF_OUTPUT" || die "PDF download failed for $PDF_DL"
+    echo "$PDF_OUTPUT"
+  else
+    mkdir -p "$PDF_DIR"
+    out="$PDF_DIR/$PDF_DL.pdf"
+    curl -sf "$PDF_BASE/$PDF_DL" -o "$out" || die "PDF download failed for $PDF_DL"
+    echo "$out"
+  fi
+  exit 0
+fi
+
+# ---------------------------------------------------------------
+# Directory mode
+# ---------------------------------------------------------------
+if $MODE_DIR; then
+  page=0
+  pages_fetched=0
+  tmpfile="$(mktemp)"
+  trap 'rm -f "$tmpfile"' EXIT
+  while true; do
+    url="$BASE/companies/directory?page=$page&itemsPerPage=$DIR_PER_PAGE&order=$DIR_ORDER&orderBy=$DIR_ORDER_BY&includeFilterOptions=false&recentListingsOnly=false"
+    [[ -z "$DIR_NAME_LIKE" ]] || url="$url&companyNameLike[]=$(urlenc "${DIR_NAME_LIKE// /+}")"
+    for mcap in "${DIR_MCAPS[@]}"; do url="$url&marketCapBucket[]=$(urlenc "${mcap// /+}")"; done
+    for ind in "${DIR_INDUSTRIES[@]}"; do url="$url&industries[]=$(urlenc "${ind// /+}")"; done
+
+    curl -sf "$url" > "$tmpfile" || die "directory request failed"
+    cat "$tmpfile"
+    items="$(grep -o '"symbol"' "$tmpfile" | wc -l || true)"
+    pages_fetched=$((pages_fetched + 1))
+    [[ "$items" -eq 0 ]] && break
+    [[ "$PAGES" -ne 0 && "$pages_fetched" -ge "$PAGES" ]] && break
+    page=$((page + 1))
+  done
+  exit 0
+fi
+
+# ---------------------------------------------------------------
+# Announcement modes
+# ---------------------------------------------------------------
+
+if [[ -n "$SYMBOL" && "$THOROUGH" == "false" && "$SYMBOL" != *,* ]]; then
+  curl -sf "$BASE/companies/$SYMBOL/announcements" || die "failed to fetch announcements for $SYMBOL"
+  exit 0
+fi
+
+# Market-wide mode
+if [[ -z "$DATE" ]]; then
+  DATE="$(TZ=Australia/Sydney date +%Y-%m-%d)"
+fi
+
+if [[ -n "$SYMBOL" ]]; then
+  IFS=',' read -ra SYMS <<< "$SYMBOL"
+fi
+
+page=0
+fetched=0
+found=0
+
+fetch_page() {
+  local dt="$1" pg="$2"
+  curl -sf "$BASE/markets/announcements?summaryCountsDate=$dt&page=$pg&itemsPerPage=100&priceSensitiveOnly=$PRICE_SENSITIVE" || die "HTTP request failed"
+}
+
+filter_ticker() {
+  local data="$1"
+  awk -v syms="${SYMS[*]}" '
+  BEGIN { split(syms, sarr, " "); depth = 0; start = 0 }
+  {
+    for (i = 1; i <= length($0); i++) {
+      c = substr($0, i, 1)
+      if (c == "{") { depth++; if (depth == 3) start = i }
+      if (c == "}") {
+        if (depth == 3 && start) {
+          item = substr($0, start, i - start + 1)
+          if (match(item, /"symbol":"[^"]+"/)) {
+            val = substr(item, RSTART + 10, RLENGTH - 11)
+            for (j in sarr) { if (val == sarr[j]) { print item; break } }
+          }
+          start = 0
+        }
+        depth--
+      }
+    }
+  }
+  ' <<< "$data"
+}
+
+# --days-back: paginate each date according to --pages
+if [[ "$DAYS_BACK" -gt 0 ]]; then
+  for i in $(seq "$DAYS_BACK" -1 0); do
+    if TZ=Australia/Sydney date -j +%Y-%m-%d >/dev/null 2>&1; then
+      dt="$(TZ=Australia/Sydney date -j -v-${i}d +%Y-%m-%d)"
+    else
+      dt="$(TZ=Australia/Sydney date -d "-${i} days" +%Y-%m-%d)"
+    fi || continue
+    pg=0
+    while true; do
+      resp="$(fetch_page "$dt" "$pg")"
+      items="$(echo "$resp" | grep -o '"documentKey"' | wc -l || true)"
+      [[ "$items" -eq 0 ]] && break
+      if [[ -n "$SYMBOL" ]]; then
+        out="$(filter_ticker "$resp")"
+        if [[ -n "$out" ]]; then echo "$out"; found=$((found + $(echo "$out" | wc -l))); fi
+      fi
+      fetched=$((fetched + items))
+      pg=$((pg + 1))
+      [[ "$LIMIT" -ne 0 && "$found" -ge "$LIMIT" ]] && break 2
+      [[ "$PAGES" -ne 0 && "$pg" -ge "$PAGES" ]] && break
+    done
+  done
+  [[ "$found" -eq 0 && -n "$SYMBOL" ]] && echo '{"data":{"items":[]}}'
+  exit 0
+fi
+
+# Single date mode: paginated
+while true; do
+  resp="$(fetch_page "$DATE" "$page")"
+  items="$(echo "$resp" | grep -o '"documentKey"' | wc -l || true)"
+  [[ "$items" -eq 0 ]] && break
+
+  if [[ -n "$SYMBOL" ]]; then
+    out="$(filter_ticker "$resp")"
+    if [[ -n "$out" ]]; then echo "$out"; found=$((found + $(echo "$out" | wc -l))); fi
+  else
+    echo "$resp"; found=$((found + items))
+  fi
+
+  fetched=$((fetched + items))
+  page=$((page + 1))
+  [[ "$PAGES" -ne 0 && "$page" -ge "$PAGES" ]] && break
+  [[ "$LIMIT" -ne 0 && "$fetched" -ge "$LIMIT" ]] && break
+done
+
+[[ "$found" -eq 0 && -n "$SYMBOL" ]] && echo '{"data":{"items":[]}}'

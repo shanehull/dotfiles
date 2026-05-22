@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+import sys, zipfile, xml.etree.ElementTree as ET
+
+NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+z = zipfile.ZipFile(sys.argv[1])
+ss = [e.find('s:t', NS).text or '' for e in ET.parse(z.open('xl/sharedStrings.xml')).findall('.//s:si', NS)]
+sheet = ET.parse(z.open('xl/worksheets/sheet2.xml'))
+codes, data = [], []
+for row in sheet.findall('.//s:row', NS):
+    r = int(row.get('r'))
+    vals = []
+    for c in row.findall('s:c', NS):
+        v_el = c.find('s:v', NS)
+        val = v_el.text if v_el is not None else ''
+        if c.get('t') == 's' and val: val = ss[int(val)]
+        vals.append(val)
+    if r == 7: codes = vals[1:]
+    elif r >= 8: data.append(vals)
+opts = sys.argv[2:]
+show_series = '--series' in opts
+find_text = ''
+data_codes = []
+recent = 0
+show_all = False
+i = 0
+while i < len(opts):
+    a = opts[i]
+    if a == '--series': show_series = True
+    elif a == '--find': i += 1; find_text = opts[i]
+    elif a == '--data': i += 1; data_codes.append(opts[i])
+    elif a == '--recent': i += 1; recent = int(opts[i])
+    elif a == '--all': show_all = True
+    i += 1
+if show_series:
+    for c in codes:
+        if c: print(c)
+    sys.exit(0)
+if find_text:
+    for c in codes:
+        if c and find_text.lower() in c.lower(): print(c)
+    sys.exit(0)
+if data_codes:
+    indices = [i for i, c in enumerate(codes) if c in data_codes]
+    if not indices: print('No matching series codes found', file=sys.stderr); sys.exit(1)
+    print('\t'.join(['date'] + [codes[i] for i in indices]))
+    for row in (data[-recent:] if recent else data):
+        print('\t'.join([row[0]] + [row[i + 1] for i in indices]))
+    sys.exit(0)
+print('\t'.join(['date'] + codes))
+if not show_all:
+    recent = recent or 5
+    for row in data[-recent:]: print('\t'.join(row))
+else:
+    for row in data: print('\t'.join(row))

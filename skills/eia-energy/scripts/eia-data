@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <route> [options]
+
+Fetch time-series data from the EIA API v2. Outputs raw JSON.
+
+Arguments:
+  route         API route path, e.g. electricity/retail-sales
+
+Options:
+  --freq FREQ   Frequency: annual, monthly, weekly, daily
+  --data FIELDS Data column(s) to return. Repeat for multiple: --data value --data price
+  --facets K=V  Facet filter. Repeat for multiple: --facets duoarea=SAK --facets process=PRS
+  --start DATE  Start date (inclusive)
+  --end DATE    End date (inclusive)
+  --length N    Max rows (max: 5000)
+  --offset N    Pagination offset
+  --sort COL    Sort column (default: period)
+  --order DIR   Sort direction: asc or desc (default: desc)
+  --raw         Ignored (output is always raw JSON)
+  -h, --help    Show this help
+
+Set EIA_API_KEY environment variable.
+
+Examples:
+  $(basename "$0") natural-gas/pri/sum --freq monthly --facets duoarea=SAK
+  $(basename "$0") electricity/retail-sales --freq annual --facets stateid=CA
+  $(basename "$0") petroleum/cons --freq monthly --start 2023-01 --end 2024-12
+EOF
+  exit 0
+}
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+API_KEY="${EIA_API_KEY:-}"
+ROUTE=""
+FREQ=""
+DATA_FIELDS=()
+FACETS=()
+START=""
+END=""
+LENGTH=""
+OFFSET=""
+SORT="period"
+ORDER="desc"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --freq)    FREQ="$2"; shift 2 ;;
+    --data)    DATA_FIELDS+=("$2"); shift 2 ;;
+    --facets)  FACETS+=("$2"); shift 2 ;;
+    --start)   START="$2"; shift 2 ;;
+    --end)     END="$2"; shift 2 ;;
+    --length)  LENGTH="$2"; shift 2 ;;
+    --offset)  OFFSET="$2"; shift 2 ;;
+    --sort)    SORT="$2"; shift 2 ;;
+    --order)   ORDER="$2"; shift 2 ;;
+    --raw)     shift ;;
+    -h|--help) usage ;;
+    -*)
+      die "Unknown option: $1"
+      ;;
+    *)
+      [[ -z "$ROUTE" ]] && ROUTE="$1" || die "Unexpected argument: $1"
+      shift
+      ;;
+  esac
+done
+
+[[ -z "$ROUTE" ]] && die "Route is required. See --help."
+[[ -z "$API_KEY" ]] && die "EIA_API_KEY not set"
+
+# Build URL
+BASE_URL="https://api.eia.gov/v2/${ROUTE}/data"
+URL="${BASE_URL}?api_key=${API_KEY}"
+
+[[ -n "$FREQ" ]]   && URL+="&frequency=${FREQ}"
+[[ -n "$START" ]]  && URL+="&start=${START}"
+[[ -n "$END" ]]    && URL+="&end=${END}"
+[[ -n "$LENGTH" ]] && URL+="&length=${LENGTH}"
+[[ -n "$OFFSET" ]] && URL+="&offset=${OFFSET}"
+
+# Data fields (repeatable)
+if [[ ${#DATA_FIELDS[@]} -eq 0 ]]; then
+  URL+="&data[]=value"
+else
+  for f in "${DATA_FIELDS[@]}"; do
+    URL+="&data[]=${f}"
+  done
+fi
+
+# Facets (repeatable, key=value pairs)
+for facet in "${FACETS[@]}"; do
+  key="${facet%%=*}"
+  val="${facet#*=}"
+  URL+="&facets[${key}][]=${val}"
+done
+
+# Sort
+URL+="&sort[0][column]=${SORT}&sort[0][direction]=${ORDER}"
+
+# Fetch
+TMPFILE=$(mktemp)
+trap 'rm -f "$TMPFILE"' EXIT
+
+HTTP_CODE=$(curl -sS -g -w "%{http_code}" -o "$TMPFILE" "$URL") || die "API request failed"
+
+if [[ "$HTTP_CODE" != "200" ]]; then
+  ERROR_MSG=$(grep -o '"error":"[^"]*"' "$TMPFILE" 2>/dev/null | head -1 | cut -d'"' -f4 || grep -o '"message":"[^"]*"' "$TMPFILE" 2>/dev/null | head -1 | cut -d'"' -f4)
+  [[ -z "$ERROR_MSG" ]] && ERROR_MSG="HTTP $HTTP_CODE"
+  die "API error: $ERROR_MSG"
+fi
+
+cat "$TMPFILE"

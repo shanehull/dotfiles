@@ -17,10 +17,12 @@
     ...
   }: let
     agentSkills = [
+      "asx-announcements"
       "asx-options"
       "book-to-skill"
       "buffett-financials"
       "business-overview"
+      "eia-energy"
       "fred"
       "github"
       "ibkr"
@@ -28,6 +30,7 @@
       "obsidian-remote"
       "owid"
       "qmd"
+      "wb-pink-sheet"
       "skill-creator"
       "usda-wasde"
       "yfinance"

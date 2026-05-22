@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [options]
+
+Download or extract Pink Sheet commodity price data.
+
+Download options:
+  --type TYPE  File type: monthly (default), annual, pdf
+  --output DIR Output directory (default: current dir)
+  --doc-id ID  Explicit document ID (skip scraping)
+  --month MON  PDF month name, e.g. April (default: current month)
+  --year YR    PDF year (default: current year)
+  --latest     Find latest PDF by trying recent months
+  --raw        Print download URL only
+
+Extraction options (downloads monthly xlsx to /tmp if not cached):
+  --series      List series codes
+  --find TEXT   Search series codes (case-insensitive)
+  --data CODES  Extract specific series (repeatable)
+  --recent N    Show last N rows (default: 5)
+  --all         Extract all data rows
+  -h, --help    Show this help
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --series
+  $(basename "$0") --find crude
+  $(basename "$0") --data CRUDE_BRENT --data GOLD --recent 6
+  $(basename "$0") --all > pink.csv
+  $(basename "$0") --type annual --output ~/data
+  $(basename "$0") --type pdf --month May --year 2026
+EOF
+  exit 0
+}
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+resolve_doc_id() {
+  if [[ -n "$DOC_ID" ]]; then return; fi
+  local html
+  html=$(curl -sS "https://www.worldbank.org/en/research/commodity-markets") || die "Failed to fetch commodity markets page"
+  DOC_ID=$(echo "$html" | grep -oE '/en/doc/[a-z0-9]+-[0-9]+/related/CMO-Historical-Data-Monthly\.xlsx' | head -1 | sed 's|/en/doc/||;s|/related/CMO-Historical-Data-Monthly\.xlsx||') || true
+  if [[ -z "$DOC_ID" ]]; then
+    die "Could not find doc ID. Pass --doc-id explicitly."
+  fi
+}
+
+DOC_ID=""
+OUTPUT=""
+FILE_TYPE="monthly"
+PDF_MONTH=""
+PDF_YEAR=""
+LATEST=false
+RAW=false
+EXTRACT=false
+SERIES=false
+FIND=""
+DATA_CODES=()
+RECENT=""
+ALL=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --type)    FILE_TYPE="$2"; shift 2 ;;
+    --output)  OUTPUT="$2"; shift 2 ;;
+    --doc-id)  DOC_ID="$2"; shift 2 ;;
+    --month)   PDF_MONTH="$2"; shift 2 ;;
+    --year)    PDF_YEAR="$2"; shift 2 ;;
+    --latest)  LATEST=true; shift ;;
+    --raw)     RAW=true; shift ;;
+    --series)  EXTRACT=true; SERIES=true; shift ;;
+    --find)    EXTRACT=true; FIND="$2"; shift 2 ;;
+    --data)    EXTRACT=true; DATA_CODES+=("$2"); shift 2 ;;
+    --recent)  EXTRACT=true; RECENT="$2"; shift 2 ;;
+    --all)     EXTRACT=true; ALL=true; shift ;;
+    -h|--help) usage ;;
+    *)         die "Unknown option: $1" ;;
+  esac
+done
+
+if $EXTRACT; then
+  if [[ "$FILE_TYPE" != "monthly" ]]; then
+    die "Extraction only works with monthly data (remove --type)"
+  fi
+  CACHE="/tmp/CMO-Historical-Data-Monthly.xlsx"
+  if [[ ! -f "$CACHE" ]]; then
+    resolve_doc_id
+    echo "Downloading to cache ($CACHE)..." >&2
+    curl -sS -o "$CACHE" "https://thedocs.worldbank.org/en/doc/${DOC_ID}/related/CMO-Historical-Data-Monthly.xlsx" || die "Download failed"
+    echo "Cached: $CACHE" >&2
+  fi
+  PY_ARGS=""
+  $SERIES    && PY_ARGS="$PY_ARGS --series"
+  [[ -n "$FIND" ]] && PY_ARGS="$PY_ARGS --find $FIND"
+  for code in "${DATA_CODES[@]}"; do PY_ARGS="$PY_ARGS --data $code"; done
+  [[ -n "$RECENT" ]] && PY_ARGS="$PY_ARGS --recent $RECENT"
+  $ALL       && PY_ARGS="$PY_ARGS --all"
+  exec python3 "$(dirname "$0")/pink-extract" "$CACHE" $PY_ARGS
+fi
+
+resolve_doc_id
+BASE_URL="https://thedocs.worldbank.org/en/doc/${DOC_ID}/related"
+
+case "$FILE_TYPE" in
+  monthly)
+    FILENAME="CMO-Historical-Data-Monthly.xlsx"
+    URL="$BASE_URL/$FILENAME"
+    ;;
+  annual)
+    FILENAME="CMO-Historical-Data-Annual.xlsx"
+    URL="$BASE_URL/$FILENAME"
+    ;;
+  pdf)
+    MONTH="${PDF_MONTH:-}"
+    YEAR="${PDF_YEAR:-}"
+    if [[ -n "$MONTH" && -n "$YEAR" ]]; then
+      FILENAME="CMO-Pink-Sheet-${MONTH}-${YEAR}.pdf"
+      URL="$BASE_URL/$FILENAME"
+    elif $LATEST; then
+      FOUND=false
+      for i in $(seq 0 5); do
+        MDATE=$(date -v-${i}m "+%B|%Y" 2>/dev/null || date -d "-${i} months" "+%B|%Y" 2>/dev/null || die "Cannot compute date")
+        MONTH_NAME="${MDATE%|*}"
+        YR="${MDATE#*|}"
+        TRY_FILE="CMO-Pink-Sheet-${MONTH_NAME}-${YR}.pdf"
+        TRY_URL="$BASE_URL/$TRY_FILE"
+        HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 10 "$TRY_URL" 2>/dev/null || echo "000")
+        if [[ "$HTTP_CODE" == "200" ]]; then
+          FILENAME="$TRY_FILE"
+          URL="$TRY_URL"
+          FOUND=true
+          echo "Found: $FILENAME" >&2
+          break
+        fi
+      done
+      $FOUND || die "Could not find a PDF for recent months"
+    else
+      die "PDF requires --month and --year, or --latest"
+    fi
+    ;;
+esac
+
+if $RAW; then
+  echo "$URL"
+  exit 0
+fi
+
+OUTPUT="${OUTPUT:-.}"
+mkdir -p "$OUTPUT"
+OUTPUT_PATH="${OUTPUT}/${FILENAME}"
+echo "Downloading $FILENAME ..." >&2
+curl -sS -o "$OUTPUT_PATH" "$URL" || die "Download failed for $URL"
+echo "Saved: $OUTPUT_PATH ($(du -h "$OUTPUT_PATH" | cut -f1))"
