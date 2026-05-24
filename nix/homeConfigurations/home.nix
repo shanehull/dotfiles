@@ -106,7 +106,9 @@
           wget
           htop
           fastfetch
+          pandoc
           pngpaste
+          poppler-utils
           vhs
           btop
           awscli2
