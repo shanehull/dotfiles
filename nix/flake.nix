@@ -2,7 +2,7 @@
   description = "Shane's MacOS developer environment.";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    opencode.url = "github:anomalyco/opencode";
+    opencode.url = "github:anomalyco/opencode/v1.15.4";
     qmd.url = "github:tobi/qmd";
     fred-mcp.url = "github:shanehull/fred-mcp";
     nix-darwin.url = "flake:nix-darwin";

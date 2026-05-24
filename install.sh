@@ -13,11 +13,11 @@ if [ ! -d ./nix/result ]; then
 fi
 
 ## Install the flake system wide ##
-./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}" "${@:2}"
+sudo ./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}" "${@:2}"
 
 ## Source nix packages for this shell ##
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
 
 ## Install mise plugins and tools ##
-cp ./mise-config-${1}.toml ./mise/config.toml
+ln -sf ../mise-config-${1}.toml ./mise/config.toml
 mise plugin install --all && mise install
