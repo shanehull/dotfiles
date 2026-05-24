@@ -27,15 +27,6 @@ Before diving into each heading, briefly state what you're looking for and why g
 - [ ] **Conclusion** — 2-3 sentences synthesising the discussion.
 - [ ] **Save** — Only after every heading above is confirmed.
 
-## Core Tenets
-
-Evaluate each section through these lenses:
-
-1. **Value** — Undervalued relative to cash flows, assets, or replacement cost.
-2. **Time Horizon** — Longer horizon = less competition. Keep it simple.
-3. **Skin in the Game** — Favor owners/operators with significant skin in the game and rational incentives.
-4. **Capital Cycle** — Target capital starved industries or businesses that defy the cycle through superior allocation.
-
 ## Valuation Models
 
 The user works with two approaches depending on business type:
