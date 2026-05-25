@@ -21,9 +21,11 @@
           overlays = [
             (final: prev: {
               direnv = prev.direnv.overrideAttrs (oldAttrs: {
-                env = (oldAttrs.env or {}) // {
-                  CGO_ENABLED = "1";
-                };
+                env =
+                  (oldAttrs.env or {})
+                  // {
+                    CGO_ENABLED = "1";
+                  };
                 doCheck = false;
               });
             })
@@ -38,6 +40,13 @@
         };
       };
       nix = {
+        gc = {
+          automatic = true;
+          options = "--delete-older-than 30d";
+        };
+        optimise = {
+          automatic = true;
+        };
         extraOptions = ''
           experimental-features = nix-command flakes
         '';
