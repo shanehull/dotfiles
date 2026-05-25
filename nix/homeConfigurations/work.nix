@@ -15,6 +15,7 @@
     agentSkills = [
       "github"
       "gitlab"
+      "honeycomb"
       "notion"
       "obsidian-remote"
       "skill-creator"
@@ -42,6 +43,7 @@
       fonts.fontconfig.enable = true;
       home = {
         stateVersion = "25.11";
+        enableNixpkgsReleaseCheck = false;
         username = "shane.hull";
         homeDirectory = "/Users/shane.hull";
         sessionVariables = {

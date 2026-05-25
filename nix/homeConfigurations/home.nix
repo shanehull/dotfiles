@@ -57,6 +57,7 @@
       fonts.fontconfig.enable = true;
       home = {
         stateVersion = "25.11";
+        enableNixpkgsReleaseCheck = false;
         username = "shane";
         homeDirectory = "/Users/shane";
         sessionVariables = {
@@ -163,26 +164,6 @@
           ollama
           # electrum
           obsidian
-
-          # custom packages from my public git repos
-          (mkGithubReleasePkg
-            {
-              pname = "shed";
-              fname = "shed-darwin-arm64";
-              version = "v0.1.0";
-              repo = "shed";
-              owner = "shanehull";
-              sha256 = "sha256-mZa3K4DX0BoNNeFo9nQkhRgRNxmCJfdfA6RBnN9xHzY=";
-            })
-          (mkGithubReleasePkg
-            {
-              pname = "quickval";
-              fname = "quickval-darwin-arm64";
-              version = "v1.3.0";
-              repo = "quickval";
-              owner = "shanehull";
-              sha256 = "sha256-DKzsofCM5YElilMFwvCSHzhjtJPAB/sAIucisbITObo=";
-            })
         ];
       };
       services = {
