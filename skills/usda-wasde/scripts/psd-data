@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-  cat <<EOF
+  cat <<'EOF'
 Usage: psd-data [--country <code>|all] <commodityCode> <marketYear>
 
 Fetch PSD supply/demand data for a commodity and year.
@@ -15,7 +15,7 @@ ARGUMENTS:
 
 OPTIONS:
   --country <code>  Country code (e.g., BR, AR, US) or "all" for every country.
-                    Default: "world" (world aggregate).
+                    Default: world aggregate.
   -h/--help         Show help
 
 EXAMPLES:
@@ -27,30 +27,28 @@ EOF
   exit 1
 }
 
-COUNTRY=""
-ARGS=()
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -h|--help) usage ;;
-    --country) COUNTRY="$2"; shift 2 ;;
-    --country=*) COUNTRY="${1#*=}"; shift ;;
-    *) ARGS+=("$1"); shift ;;
+main() {
+  local country=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage ;;
+      --country) country="$2"; shift 2 ;;
+      --country=*) country="${1#*=}"; shift ;;
+      *) break ;;
+    esac
+  done
+
+  [[ $# -ge 2 ]] || usage
+
+  local commodity="$1" year="$2" path_spec
+
+  case "${country:-world}" in
+    ""|world) path_spec="commodity/${commodity}/world/year/${year}" ;;
+    all)      path_spec="commodity/${commodity}/country/all/year/${year}" ;;
+    *)        path_spec="commodity/${commodity}/country/${country}/year/${year}" ;;
   esac
-done
 
-if [[ ${#ARGS[@]} -lt 2 ]]; then
-  usage
-fi
+  exec "$SCRIPT_DIR/psd-request" "$path_spec"
+}
 
-COMMODITY="${ARGS[0]}"
-YEAR="${ARGS[1]}"
-
-if [[ -z "$COUNTRY" || "$COUNTRY" == "world" ]]; then
-  PATH_SPEC="commodity/${COMMODITY}/world/year/${YEAR}"
-elif [[ "$COUNTRY" == "all" ]]; then
-  PATH_SPEC="commodity/${COMMODITY}/country/all/year/${YEAR}"
-else
-  PATH_SPEC="commodity/${COMMODITY}/country/${COUNTRY}/year/${YEAR}"
-fi
-
-exec "$SCRIPT_DIR/psd-request" "$PATH_SPEC"
+main "$@"

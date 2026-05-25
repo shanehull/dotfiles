@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+usage() {
+  cat <<'EOF'
+Usage: wasde [--raw] [--csv|--xml] <year> <month>
+
+Download a WASDE report from usda.gov. Defaults to text format.
+
+ARGUMENTS:
+  year  4-digit year (2010-2026)
+  month 2-digit month (01-12)
+
+OPTIONS:
+  --raw       Print full content instead of a preview
+  --csv       Legacy CSV format
+  --xml       Structured XML format
+  -h/--help   Show this help
+
+EXAMPLES:
+  wasde 2026 05         # Preview May 2026 (text)
+  wasde --raw 2026 05   # Full text output
+  wasde --xml 2026 05   # XML format
+EOF
+  exit 1
+}
+
+main() {
+  local raw=false fmt=txt args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage ;;
+      --raw) raw=true; shift ;;
+      --csv) fmt=csv; shift ;;
+      --xml) fmt=xml; shift ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+
+  [[ ${#args[@]} -ge 2 ]] || usage
+
+  local year="${args[0]}" month="${args[1]}"
+  local yy="${year:2:2}"
+  local tmpfile="/tmp/wasde-tmp"
+  local urls=()
+
+  case "$fmt" in
+    csv)
+      local base="https://www.usda.gov/sites/default/files/documents/oce-wasde-report-data-${year}-${month}"
+      urls+=("${base}.csv")
+      for v in $(seq 2 9); do urls+=("${base}-V${v}.csv"); done
+      ;;
+    xml)
+      urls+=("https://www.usda.gov/oce/commodity/wasde/wasde${month}${yy}.xml")
+      for v in $(seq 2 9); do urls+=("https://www.usda.gov/oce/commodity/wasde/wasde${month}${yy}v${v}.xml"); done
+      ;;
+    txt)
+      urls+=("https://www.usda.gov/oce/commodity/wasde/wasde${month}${yy}.txt")
+      for v in $(seq 2 9); do urls+=("https://www.usda.gov/oce/commodity/wasde/wasde${month}${yy}v${v}.txt"); done
+      ;;
+  esac
+
+  local downloaded=false
+  for url in "${urls[@]}"; do
+    if curl -fsSL --connect-timeout 10 --max-time 30 -o "$tmpfile" "$url" 2>/dev/null; then
+      downloaded=true
+      break
+    fi
+  done
+
+  $downloaded || die "WASDE report not found for ${year}-${month}"
+
+  if $raw; then
+    cat "$tmpfile"
+  else
+    echo "=== WASDE Report ${year}-${month} (${fmt}) ==="
+    case "$fmt" in
+      csv) head -1 "$tmpfile"; echo "--- $(wc -l < "$tmpfile") rows ---"; tail -n +2 "$tmpfile" | head -5 ;;
+      xml) echo "--- $(wc -c < "$tmpfile" | tr -d ' ') bytes ---"; head -c 500 "$tmpfile"; echo "..." ;;
+      txt) wc -l < "$tmpfile" | tr -d ' ' | xargs echo "Lines:"; echo "---"; head -20 "$tmpfile" ;;
+    esac
+    echo "..."
+    echo "Use --raw for full output"
+  fi
+
+  rm -f "$tmpfile"
+}
+
+main "$@"
