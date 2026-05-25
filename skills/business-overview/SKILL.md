@@ -36,34 +36,36 @@ The user works with two approaches depending on business type:
 
 ## Output Template
 
-Use this structure when saving to the vault:
+Use this structure when writing the final note:
+
+- **Title format:** `# Ticker/Company: A Descriptive Label` (e.g., "Duxton Farms: A Water-Backed Turnaround")
 
 ```md
-#### The Business
+## The Business
 
 What the company does, its moat, and revenue model. Assess capital cycle — is the industry starved or over-supplied?
 
-#### The Management
+## The Management
 
 Track record, insider ownership, and incentives. Are they owner-operators with skin in the game?
 
-#### The Numbers
+## The Numbers
 
 Key metrics, tailored to the business: revenue growth, margins, ROIC, debt, goodwill, etc. Focus on cash flows, returns on capital, and balance sheet strength.
 
-#### Valuation
+## Valuation
 
 Conservative assumptions (growth rate, exit multiple, margin of safety). Quantify upside and expected return. If it cannot be valued on the back of a napkin, move on.
 
-#### Risks
+## Risks
 
 Key threats to the thesis: competition, cyclicality, balance sheet, management execution. Consider probability and magnitude.
 
-#### Tracking
+## Tracking
 
 Metrics to monitor. What confirms the thesis? What invalidates it? Use concrete thresholds.
 
-#### Conclusion
+## Conclusion
 
 2–3 sentences: why attractive at today's price, long-term outlook.
 ```
