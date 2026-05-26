@@ -34,7 +34,8 @@
       "*": "allow",
       "*.env": "deny",
       "*.env.*": "deny",
-      "*.env.example": "allow"
+      "*.env.example": "allow",
+      "*/.claude/*": "deny"
     },
     "edit": "ask",
     "glob": "allow",
@@ -127,7 +128,12 @@
       "yq *": "allow"
     },
     "task": "allow",
-    "external_directory": "ask",
+    "external_directory": {
+      "*": "ask",
+      "*/.config/opencode/skills/*/scripts/*": "allow",
+      "*/.config/opencode/skills/*/references/*": "allow",
+      "*/.claude/*": "deny"
+    },
     "question": "allow",
     "webfetch": "allow",
     "doom_loop": "ask",
