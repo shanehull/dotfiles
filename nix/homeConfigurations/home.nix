@@ -31,6 +31,7 @@
       "owid"
       "qmd"
       "wb-pink-sheet"
+      "silo-weather"
       "skill-creator"
       "usda-wasde"
       "yfinance"

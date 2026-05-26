@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SILO_BASE="https://www.longpaddock.qld.gov.au/cgi-bin/silo/DataDrillDataset.php"
+AUTH_EMAIL="apirequest@qld.gov.au"
+AUTH_PASS="apirequest"
+
+usage() {
+  cat <<'EOF'
+Fetch daily weather data from the SILO DataDrill API.
+
+Usage:
+  silo-fetch --lat <lat> --lon <lon> --start <YYYYMMDD> --finish <YYYYMMDD> [--variable <name>]
+
+Options:
+  --lat <float>        Latitude (decimal degrees, negative for South)
+  --lon <float>        Longitude (decimal degrees, positive for East)
+  --start <YYYYMMDD>   Start date
+  --finish <YYYYMMDD>  End date (inclusive)
+  --variable <name>    Column to extract: rain, tmax, tmin, evap, radn, vp, rhmaxt, rhmint
+                       Omit to output full raw data.
+
+Examples:
+  silo-fetch --lat -29.46 --lon 149.84 --start 20260401 --finish 20260430
+  silo-fetch --lat -35.11 --lon 147.36 --start 20260101 --finish 20260525 --variable rain
+
+Output:
+  Without --variable: raw space-delimited SILO standard format (header comments + data rows).
+  With --variable: one value per line (negative values are missing data).
+
+Notes:
+  - The first data row (19970526) is a dummy sentinel — skip it during parsing.
+  - Missing/invalid values are -999 or -99.9 — filter with awk '>=0'.
+  - Public credentials are fixed (apirequest@qld.gov.au / apirequest).
+  - SILO uses the Creative Commons Attribution 4.0 International licence.
+EOF
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+main() {
+  local lat="" lon="" start="" finish="" variable=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --lat) lat="$2"; shift 2 ;;
+      --lat=*) lat="${1#*=}"; shift ;;
+      --lon) lon="$2"; shift 2 ;;
+      --lon=*) lon="${1#*=}"; shift ;;
+      --start) start="$2"; shift 2 ;;
+      --start=*) start="${1#*=}"; shift ;;
+      --finish) finish="$2"; shift 2 ;;
+      --finish=*) finish="${1#*=}"; shift ;;
+      --variable) variable="$2"; shift 2 ;;
+      --variable=*) variable="${1#*=}"; shift ;;
+      -h|--help) usage; exit 0 ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
+
+  [[ -n "$lat" ]] || die "--lat is required"
+  [[ -n "$lon" ]] || die "--lon is required"
+  [[ -n "$start" ]] || die "--start is required"
+  [[ -n "$finish" ]] || die "--finish is required"
+
+  local response
+  response=$(curl -sS --fail-with-body \
+    "${SILO_BASE}?format=standard&lat=${lat}&lon=${lon}&start=${start}&finish=${finish}&username=${AUTH_EMAIL}&password=${AUTH_PASS}" 2>&1) || die "SILO request failed: ${response}"
+
+  if [[ -z "$variable" ]]; then
+    echo "$response"
+    return
+  fi
+
+  local col
+  case "$variable" in
+    rain) col=7 ;;
+    tmax) col=3 ;;
+    tmin) col=5 ;;
+    evap) col=9 ;;
+    radn) col=11 ;;
+    vp)   col=13 ;;
+    rhmaxt) col=15 ;;
+    rhmint) col=16 ;;
+    *) die "Unknown variable: $variable (valid: rain, tmax, tmin, evap, radn, vp, rhmaxt, rhmint)" ;;
+  esac
+
+  echo "$response" | awk -v c="$col" '/^[0-9]/ {print $c}'
+}
+
+main "$@"
