@@ -87,14 +87,14 @@ owid-indicators <id> -f json                    # raw data.json
 owid-search <query> [options]
 ```
 
-| Option             | Description                              |
-| ------------------ | ---------------------------------------- | ------------------------------ |
-| `--type charts     | pages`                                   | Content type (default: charts) |
-| `--page N`         | Page number, 0-indexed (default: 0)      |
-| `--hits N`         | Results per page, 1-100 (default: 20)    |
-| `--countries u~CN` | Countries separated by `~` (charts only) |
-| `--topics TOPIC`   | Topic filter (charts only)               |
-| `--require-all`    | Only charts containing ALL countries     |
+| Option                   | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `--type charts \| pages` | Content type (default: charts)           |
+| `--page N`               | Page number, 0-indexed (default: 0)      |
+| `--hits N`               | Results per page, 1-100 (default: 20)    |
+| `--countries u~CN`       | Countries separated by `~` (charts only) |
+| `--topics TOPIC`         | Topic filter (charts only)               |
+| `--require-all`          | Only charts containing ALL countries     |
 
 Output is raw JSON with query, nbHits, results array (title, slug, url, type, variantName).
 
@@ -108,15 +108,15 @@ Each chart result includes: `title`, `slug`, `subtitle`, `variantName`, `availab
 owid-data <slug>[.format] [options]
 ```
 
-| Option             | Description                                                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `-f, --format FMT` | csv, metadata, config, readme, zip, values, png, svg (default: csv)                                                           |
-| `-o, --out PATH`   | Save output to file (required for png/svg)                                                                                    |
-| `--csv-type full   | filtered`                                                                                                                     | full = all data, filtered = chart subset (default: full) |
-| `--country ENTITY` | Filter by entity. `~OWID_WRL` for World. (repeatable)                                                                         |
-| `--time RANGE`     | year, `2000..2020`, `latest`, `earliest`                                                                                      |
-| `--tab TAB`        | Active tab: table, map, chart, line, scatter, stacked-area, discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko |
-| `--short-names`    | Compact column names (no spaces)                                                                                              |
+| Option                        | Description                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `-f, --format FMT`            | csv, metadata, config, readme, zip, values, png, svg (default: csv)                                                           |
+| `-o, --out PATH`              | Save output to file (required for png/svg)                                                                                    |
+| `--csv-type full \| filtered` | full = all data, filtered = chart subset (default: full)                                                                      |
+| `--country ENTITY`            | Filter by entity. `~OWID_WRL` for World. (repeatable)                                                                         |
+| `--time RANGE`                | year, `2000..2020`, `latest`, `earliest`                                                                                      |
+| `--tab TAB`                   | Active tab: table, map, chart, line, scatter, stacked-area, discrete-bar, stacked-discrete-bar, slope, stacked-bar, marimekko |
+| `--short-names`               | Compact column names (no spaces)                                                                                              |
 
 ### Image options (`--format png|svg`)
 
