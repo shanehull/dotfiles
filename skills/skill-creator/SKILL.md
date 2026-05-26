@@ -34,14 +34,15 @@ allowed-tools: bash # or tool pattern like fred_*
 
 ### Body sections (convention order)
 
-| Section        | Purpose                                                      |
-| -------------- | ------------------------------------------------------------ |
-| `# Title`      | Brief one-liner of what the skill enables                    |
-| Intro          | 2-3 lines expanding on scope. Reference scripts by path.     |
-| `## Gotchas`   | Environment-specific facts the agent would get wrong.        |
-| `## Scripts`   | Each script's usage, options table, examples.                |
-| `## Workflows` | Common task sequences with concrete commands.                |
-| `## Reference` | Field tables, column layouts, IDs. Keep in SKILL.md if small; use `references/` for larger material. |
+| Section        | Purpose                                                  |
+| -------------- | -------------------------------------------------------- |
+| `# Title`      | Brief one-liner of what the skill enables                |
+| Intro          | 2-3 lines expanding on scope. Reference scripts by path. |
+| `## Gotchas`   | Environment-specific facts the agent would get wrong.    |
+| `## Scripts`   | Each script's usage, options table, examples.            |
+| `## Workflows` | Common task sequences with concrete commands.            |
+
+Adapt these to the particular requirements of the skill.
 
 ## Script conventions
 
