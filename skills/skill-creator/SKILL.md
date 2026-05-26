@@ -41,7 +41,7 @@ allowed-tools: bash # or tool pattern like fred_*
 | `## Gotchas`   | Environment-specific facts the agent would get wrong.        |
 | `## Scripts`   | Each script's usage, options table, examples.                |
 | `## Workflows` | Common task sequences with concrete commands.                |
-| `## Reference` | API endpoints, field tables, IDs. Keep in SKILL.md if small. |
+| `## Reference` | Field tables, column layouts, IDs. Keep in SKILL.md if small; use `references/` for larger material. |
 
 ## Script conventions
 
@@ -109,7 +109,7 @@ Match instruction specificity to task fragility:
 
 ## Progressive disclosure
 
-Keep `SKILL.md` under 500 lines. For larger reference material:
+For larger reference material:
 
 - **`references/`** — docs loaded on demand. Tell the agent _when_ to load each file: "Read `references/api-errors.md` if the API returns a non-200 status code."
 - **`assets/`** — output templates, schemas, or config files.
