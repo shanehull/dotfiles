@@ -100,6 +100,14 @@ The highest-value content. Each item should be a concrete fact that defies reaso
 
 When an agent makes a mistake you have to correct, add the correction to gotchas.
 
+## Keep it evergreen
+
+Skills are read months later. Generalise patterns; skip details tied to now — timestamps, in-flight tickets, current headcount, patch versions. If a fact would need quarterly edits to stay true, link to a live source instead of embedding it.
+
+## Keep it portable
+
+Skills may run on other machines and other users. Use `$HOME`, `~`, or paths relative to `SKILL.md` — never hard-coded home directories or usernames.
+
 ## Calibrating control
 
 Match instruction specificity to task fragility:
