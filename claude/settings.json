@@ -1,26 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "opus[1m]",
-  "enabledPlugins": {
-    "mcps@shane-mcps": true,
-    "linear@claude-plugins-official": true,
-    "notion@claude-plugins-official": true,
-    "slack@claude-plugins-official": true,
-    "gitlab@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "shane-mcps": {
-      "source": {
-        "source": "directory",
-        "path": "~/.config/claude/marketplace"
-      }
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git fetch *)",
+      "Bash(git -C * log *)",
+      "Bash(git -C * diff *)",
+      "Bash(git -C * show *)",
+      "Bash(git -C * status*)",
+      "Bash(git -C * branch*)",
+      "Bash(git -C * remote*)",
+      "Bash(git -C * add *)",
+      "Bash(git -C * commit *)",
+      "Bash(git -C * fetch*)",
       "Bash(glab mr view *)",
       "Bash(glab mr diff *)",
       "Bash(glab ci trace *)",
@@ -36,17 +29,41 @@
       "Bash(aws ecr describe-images *)",
       "Bash(aws cloudwatch get-metric-statistics *)",
       "Bash(aws cloudtrail lookup-events *)",
-      "mcp__plugin_gitlab_gitlab__search",
+      "mcp__plugin_gitlab_gitlab__get_*",
+      "mcp__plugin_gitlab_gitlab__search*",
       "mcp__plugin_gitlab_gitlab__semantic_code_search",
-      "mcp__plugin_gitlab_gitlab__get_merge_request",
-      "mcp__plugin_gitlab_gitlab__get_merge_request_diffs",
-      "mcp__plugin_slack_slack__slack_read_thread",
-      "mcp__plugin_slack_slack__slack_search_public_and_private",
-      "mcp__plugin_slack_slack__slack_search_channels",
-      "mcp__plugin_linear_linear__list_issues",
+      "mcp__plugin_slack_slack__slack_read_*",
+      "mcp__plugin_slack_slack__slack_search_*",
+      "mcp__plugin_slack_slack__slack_get_*",
+      "mcp__plugin_slack_slack__slack_list_*",
+      "mcp__plugin_linear_linear__list_*",
+      "mcp__plugin_linear_linear__get_*",
       "mcp__plugin_Notion_notion__notion-fetch",
-      "mcp__plugin_mcps_honeycomb__find_columns"
+      "mcp__plugin_Notion_notion__notion-search",
+      "mcp__plugin_mcps_honeycomb__get_*",
+      "mcp__plugin_mcps_honeycomb__find_*",
+      "mcp__plugin_mcps_honeycomb__list_*",
+      "mcp__plugin_mcps_honeycomb__search_*",
+      "mcp__plugin_mcps_honeycomb__run_query",
+      "mcp__plugin_mcps_honeycomb__run_bubbleup"
     ]
+  },
+  "model": "opus[1m]",
+  "enabledPlugins": {
+    "mcps@shane-mcps": true,
+    "linear@claude-plugins-official": true,
+    "notion@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "gitlab@claude-plugins-official": true,
+    "aikido@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "shane-mcps": {
+      "source": {
+        "source": "directory",
+        "path": "~/.config/claude/marketplace"
+      }
+    }
   },
   "theme": "dark-ansi"
 }
