@@ -32,35 +32,24 @@ allowed-tools: bash # or tool pattern like fred_*
 ---
 ```
 
-### Body sections (convention order)
+### Body sections
 
-| Section        | Purpose                                                  |
-| -------------- | -------------------------------------------------------- |
-| `# Title`      | Brief one-liner of what the skill enables                |
-| Intro          | 2-3 lines expanding on scope. Reference scripts by path. |
-| `## Gotchas`   | Environment-specific facts the agent would get wrong.    |
-| `## Scripts`   | Each script's usage, options table, examples.            |
-| `## Workflows` | Common task sequences with concrete commands.            |
-
-Adapt these to the particular requirements of the skill.
+The spec imposes no section order. Start with a title and a short intro (2-3 lines). A `## Gotchas` section is recommended — it's often the highest-value content in a skill.
 
 ## Script conventions
 
-Scripts live in `scripts/` relative to `SKILL.md`. The agent invokes them by path (`scripts/owid-search`).
+Scripts live in `scripts/` relative to `SKILL.md`. Invoked by relative path (`scripts/search`).
 
-- **Pure bash + curl** — zero external dependencies. Scripts output raw data
-  (JSON, CSV, etc.) as-is. Never call `jq` or other formatters — the agent
-  pipes to `jq` itself if it wants pretty output.
-- **`#!/usr/bin/env bash`** — shebang line.
-- **`set -euo pipefail`** — at top of every script.
-- **`usage()` function** — heredoc with examples, triggered by `-h`/`--help`.
-- **`die()` function** — consistent error messages to stderr.
-- **`main()` function** — entry point, called at bottom: `main "$@"`.
-- **Long options** — `--country`, `--time`; avoid single-dash long flags.
-- **`=` variants** — support both `--key value` and `--key=value` forms.
-- **`compatibility` field** — optional. Only include when the skill has
-  environment requirements (system packages, network access, intended product).
-  Describes dependencies, not relationships to other skills.
+- **No interactive prompts** — Agents cannot respond to TTY prompts. Accept all input via flags, env vars, or stdin.
+- **Structured output** — Emit JSON to stdout, diagnostics to stderr. Agents parse structured output more reliably than free text.
+- **Helpful errors** — Say what went wrong, what was expected, what to try next. Provide `--help` with examples.
+- **Safe by default** — Support `--dry-run` for destructive operations. Prefer idempotent operations (create-if-not-exists over create).
+- **Predictable output size** — Agents truncate output beyond ~10-30K chars. Default to summaries; support `--offset` or `--output` for large results.
+- **Meaningful exit codes** — Use distinct codes for different failure types. Document them in `--help`.
+- **Pure bash + curl** — zero external dependencies. Output raw data (JSON, CSV) as-is. Agent pipes to `jq` itself.
+- **`#!/usr/bin/env bash`** + **`set -euo pipefail`** — standard preamble.
+- **`usage()`** / **`die()`** / **`main()`** — standard entry point pattern. Called at bottom: `main "$@"`.
+- **Long options** — `--key value` and `--key=value` forms.
 
 ## Description writing
 
@@ -90,12 +79,10 @@ The highest-value content. Each item should be a concrete fact that defies reaso
 ```markdown
 ## Gotchas
 
-- **Naming mismatch** — The user ID is `user_id` in the database,
-  `uid` in the auth service, and `accountId` in the billing API.
-- **API quirk** — The `/health` endpoint returns 200 even when the
-  database is down. Use `/ready` to check full service health.
-- **Non-obvious default** — CSV output uses long human-readable column
-  names. Use `--short-names` for machine-readable headers.
+- **Naming mismatch** — The user ID is `user_id` in the database, `uid` in the auth service, and `accountId` in the billing API.
+- **Non-obvious default** — CSV output uses long human-readable column names. Use `--short-names` for machine-readable headers.
+- **Fiscal year mismatch** — Company filings are in fiscal, not calendar year. Microsoft's FY2025 ends June 2025. Calendar year queries may span two fiscal periods.
+- **Currency varies by filing** — Non-US companies may report in local currency (`CNY`, `JPY`) even when the stock trades in USD. Check the `currency` field before comparing metrics across companies.
 ```
 
 When an agent makes a mistake you have to correct, add the correction to gotchas.
