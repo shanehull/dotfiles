@@ -13,29 +13,6 @@ renewable energy, nuclear, CO₂ emissions, and state/projection data.
 
 Scripts are in `scripts/`.
 
-## Gotchas
-
-- **API key required** — free at https://www.eia.gov/opendata/register.php.
-  Set `EIA_API_KEY` in environment.
-- **5000 row max** — JSON format caps at 5000 rows per request. Use `--offset`
-  and paginate, or use facets/date ranges to narrow results.
-- **Facets are filters** — most datasets have facets like `duoarea`, `sectorid`,
-  `stateid`, `product`, `process`. Use `--facets` to filter. Discover facet
-  values by querying the route metadata (omit `/data`).
-- **Frequency** — each dataset has one or more periodicities: `annual`,
-  `monthly`, `weekly`, `daily`. Default is the dataset's native frequency.
-  Specify with `--freq`.
-- **Date format** — `YYYY` (annual), `YYYY-MM` (monthly), `YYYY-MM-DD` (daily).
-- **Route hierarchy** — routes form a tree: `electricity/retail-sales`,
-  `natural-gas/pri/sum`, etc. Query a route node (without `/data`) to see
-  sub-routes, facets, and metadata.
-- **API key in URL** — passed as query parameter `api_key=YOURKEY`.
-- **International route country codes** — use 3-letter ISO codes (`AUS`, `CHN`, `GBR`), not 2-letter (`AU`).
-  Must also facet on `countryRegionTypeId=c` for countries. Without it, queries silently return 0 rows.
-- **International route uses numeric IDs** — `productId` and `activityId` are integers, not string codes. See `references/international-ids.md`. Discover values by querying without product/activity filters and inspecting the output.
-- **International route has no sub-routes** — unlike `natural-gas/pri/sum` or `electricity/retail-sales`,
-  the `international` endpoint is flat. All filtering is done via facets.
-
 ## Scripts
 
 ### `eia-routes`
@@ -260,6 +237,29 @@ scripts/eia-data petroleum/cons/psup --freq monthly \
 scripts/eia-data natural-gas/stor --freq weekly --length 5000 --offset 0
 scripts/eia-data natural-gas/stor --freq weekly --length 5000 --offset 5000
 ```
+
+## Gotchas
+
+- **API key required** — free at https://www.eia.gov/opendata/register.php.
+  Set `EIA_API_KEY` in environment.
+- **5000 row max** — JSON format caps at 5000 rows per request. Use `--offset`
+  and paginate, or use facets/date ranges to narrow results.
+- **Facets are filters** — most datasets have facets like `duoarea`, `sectorid`,
+  `stateid`, `product`, `process`. Use `--facets` to filter. Discover facet
+  values by querying the route metadata (omit `/data`).
+- **Frequency** — each dataset has one or more periodicities: `annual`,
+  `monthly`, `weekly`, `daily`. Default is the dataset's native frequency.
+  Specify with `--freq`.
+- **Date format** — `YYYY` (annual), `YYYY-MM` (monthly), `YYYY-MM-DD` (daily).
+- **Route hierarchy** — routes form a tree: `electricity/retail-sales`,
+  `natural-gas/pri/sum`, etc. Query a route node (without `/data`) to see
+  sub-routes, facets, and metadata.
+- **API key in URL** — passed as query parameter `api_key=YOURKEY`.
+- **International route country codes** — use 3-letter ISO codes (`AUS`, `CHN`, `GBR`), not 2-letter (`AU`).
+  Must also facet on `countryRegionTypeId=c` for countries. Without it, queries silently return 0 rows.
+- **International route uses numeric IDs** — `productId` and `activityId` are integers, not string codes. See `references/international-ids.md`. Discover values by querying without product/activity filters and inspecting the output.
+- **International route has no sub-routes** — unlike `natural-gas/pri/sum` or `electricity/retail-sales`,
+  the `international` endpoint is flat. All filtering is done via facets.
 
 ## Reference
 

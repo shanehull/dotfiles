@@ -23,21 +23,6 @@ All data is CC BY 4.0 licensed.
 - **Want a specific chart's data as CSV?** Use `owid-data <slug>`.
 - **Want raw variable data with entity/time filtering?** Use `owid-indicators <id>`. This is the most powerful approach — semantic search finds the indicator, then you get TSV (requires jq) or JSON with entity names, years, and values.
 
-## Gotchas
-
-- **Chart slugs are exact** — always search first to confirm the slug before fetching data.
-- **Indicator IDs are numeric** — use `owid-indicators --search` to find them, then pass the ID.
-- **Country names use full names** — `United States` not `USA`. Use `~` (tilde) to separate multiple countries in the chart/search APIs.
-- **Entities in indicators** use a different ID system. Always use `--entity` with the indicator script; it resolves names to IDs automatically via metadata.
-- **Time ranges** use `..` — `2000..2020`, `latest`, `earliest`, or a single year `2020`.
-- **CSV column names** default to long human-readable names. Use `--short-names` for machine-readable headers.
-- **`filtered` csvType** returns only visible chart data (selected entities and time range). `full` returns everything.
-- **403 on certain datasets** — some charts have non-redistributable data. The API returns 403. Use search to find alternative charts.
-- **`--tab` only affects values, png, and svg** — the CSV endpoint ignores the tab parameter.
-- **Image export requires `-o PATH`** — png/svg are binary; always specify an output file.
-- **Popularity filter is aggressive** — `--min-popularity 0.9` may return zero results. Start with 0.5 and adjust.
-- **Indicators API returns parallel arrays** — `values`, `years`, `entities` are zipped by index. The script handles this automatically.
-
 ## owid-indicators
 
 Semantic search for indicators and direct data fetching. This is the most flexible data access method.
@@ -175,3 +160,18 @@ owid-search "emissions" --topics "Energy" --hits 5
 owid-data life-expectancy -f png --country France --time 2000..2020 -o ~/secondbrain/assets/life-expectancy-france.png
 owid-data co2-emissions -f svg --tab map --time latest -o ~/secondbrain/assets/co2-map.svg
 ```
+
+## Gotchas
+
+- **Chart slugs are exact** — always search first to confirm the slug before fetching data.
+- **Indicator IDs are numeric** — use `owid-indicators --search` to find them, then pass the ID.
+- **Country names use full names** — `United States` not `USA`. Use `~` (tilde) to separate multiple countries in the chart/search APIs.
+- **Entities in indicators** use a different ID system. Always use `--entity` with the indicator script; it resolves names to IDs automatically via metadata.
+- **Time ranges** use `..` — `2000..2020`, `latest`, `earliest`, or a single year `2020`.
+- **CSV column names** default to long human-readable names. Use `--short-names` for machine-readable headers.
+- **`filtered` csvType** returns only visible chart data (selected entities and time range). `full` returns everything.
+- **403 on certain datasets** — some charts have non-redistributable data. The API returns 403. Use search to find alternative charts.
+- **`--tab` only affects values, png, and svg** — the CSV endpoint ignores the tab parameter.
+- **Image export requires `-o PATH`** — png/svg are binary; always specify an output file.
+- **Popularity filter is aggressive** — `--min-popularity 0.9` may return zero results. Start with 0.5 and adjust.
+- **Indicators API returns parallel arrays** — `values`, `years`, `entities` are zipped by index. The script handles this automatically.

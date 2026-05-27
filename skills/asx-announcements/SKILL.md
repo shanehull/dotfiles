@@ -9,15 +9,6 @@ description: Search and fetch ASX company announcements — latest 5 by symbol, 
 Fetch ASX-listed company announcements via the Markit Digital API.
 Uses `scripts/asx-announcements` (bash + curl + awk).
 
-## Gotchas
-
-- **ASX ticker codes only** — resolve names with `--directory` or `yfinance_search`.
-- **Timestamps in UTC** — `--date` filter applies in Sydney timezone. Defaults to today Sydney.
-- **Latest 5 only with bare SYMBOL** — any flag switches to paginated date feed. `SYMBOL alone → latest 5. SYMBOL + any flag → paginated by date, filtered by symbol. Multi-symbol or no SYMBOL → paginated by date. --directory → company directory.
-- **Zero results ≠ error** — `{"data":{"items":[]}}` means the query succeeded but nothing matched. Try a different date or remove `--price-sensitive`.
-- **Multi-date queries** — use `--days-back N` with `--pages`. Each day paginates per `--pages`; 90 days × 8 pages = 720 API calls, takes minutes.
-- **Output format** — without symbol filter: raw JSON (`data.items[]`). With symbol filter: NDJSON (one item per line). Zero matches returns `{"data":{"items":[]}}`.
-
 ## Usage
 
 ```
@@ -56,6 +47,15 @@ scripts/asx-announcements --directory --industry Banks          # banks only
 scripts/asx-announcements --directory --name-like A --industry Banks --market-cap-bucket "Large Caps"
 scripts/asx-announcements --directory --order-by marketCap --order desc
 ```
+
+## Gotchas
+
+- **ASX ticker codes only** — resolve names with `--directory` or `yfinance_search`.
+- **Timestamps in UTC** — `--date` filter applies in Sydney timezone. Defaults to today Sydney.
+- **Latest 5 only with bare SYMBOL** — any flag switches to paginated date feed. `SYMBOL alone → latest 5. SYMBOL + any flag → paginated by date, filtered by symbol. Multi-symbol or no SYMBOL → paginated by date. --directory → company directory.
+- **Zero results ≠ error** — `{"data":{"items":[]}}` means the query succeeded but nothing matched. Try a different date or remove `--price-sensitive`.
+- **Multi-date queries** — use `--days-back N` with `--pages`. Each day paginates per `--pages`; 90 days × 8 pages = 720 API calls, takes minutes.
+- **Output format** — without symbol filter: raw JSON (`data.items[]`). With symbol filter: NDJSON (one item per line). Zero matches returns `{"data":{"items":[]}}`.
 
 ## Reference
 

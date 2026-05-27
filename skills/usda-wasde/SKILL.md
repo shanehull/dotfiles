@@ -19,22 +19,6 @@ Production, Supply & Distribution (PSD) data through two sources:
 
 
 
-## Gotchas
-
-- **API key required for PSD** — The PSD API returns 403 without
-  `USDA_FAS_API_KEY` set. Get one free at https://api.data.gov/signup/.
-- **PSD vs WASDE** — The PSD API returns current (revised) data. WASDE
-  reports are as-published snapshots (not revised).
-- **CSV path may fail** — The CSV lives on a different CDN path
-  (`sites/default/files/documents/`) that can be slow or unreachable on some
-  networks. Text and XML formats (on `oce/commodity/wasde/`) are preferred.
-- **No WASDE report date filter** — The PSD API doesn't allow filtering by
-  WASDE report release date/month. Parameter is `marketYear` only.
-- **Marketing years** — Market years are numeric (e.g. 2026 for the
-  2025/2026 season). Use the later calendar year as the key.
-- **Historical coverage** — PSD API has data back to ~1960. WASDE reports go
-  back to April 2010.
-
 ## Scripts
 
 ### `wasde`
@@ -176,6 +160,22 @@ scripts/psd-request countries
 scripts/psd-request commodityAttributes
 scripts/psd-request unitsOfMeasure
 ```
+
+## Gotchas
+
+- **API key required for PSD** — The PSD API returns 403 without
+  `USDA_FAS_API_KEY` set. Get one free at https://api.data.gov/signup/.
+- **PSD vs WASDE** — The PSD API returns current (revised) data. WASDE
+  reports are as-published snapshots (not revised).
+- **CSV path may fail** — The CSV lives on a different CDN path
+  (`sites/default/files/documents/`) that can be slow or unreachable on some
+  networks. Text and XML formats (on `oce/commodity/wasde/`) are preferred.
+- **No WASDE report date filter** — The PSD API doesn't allow filtering by
+  WASDE report release date/month. Parameter is `marketYear` only.
+- **Marketing years** — Market years are numeric (e.g. 2026 for the
+  2025/2026 season). Use the later calendar year as the key.
+- **Historical coverage** — PSD API has data back to ~1960. WASDE reports go
+  back to April 2010.
 
 ## Reference
 

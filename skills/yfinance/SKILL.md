@@ -9,13 +9,6 @@ allowed-tools: yfinance_*
 
 Access real-time and historical stock data, company information, and financial news.
 
-## Gotchas
-
-- **Interval/period compatibility** — minute intervals (`1m`, `5m`, `15m`, `30m`) only work with short periods (`1d`, `5d`). Using `1m` with `1y` returns an error.
-- **Option expiration dates** — call `yfinance_get_option_dates` first to get valid dates. Passing an invalid or expired date to `yfinance_get_option_chain` silently returns empty data.
-- **Missing fields** — `yfinance_get_ticker_info` field availability varies by security type. ETFs lack some fields (e.g., `pegRatio`). Check for `null` before using.
-- **Sector names are exact** — `yfinance_get_top` requires exact sector names from the list below. `"Tech"` or `"finance"` won't match — use `"Technology"`, `"Financial Services"`.
-
 ## Tools
 
 ### Get Ticker Info
@@ -110,6 +103,13 @@ Returns: Array of expiration dates in YYYY-MM-DD format.
 Returns per contract: `strike`, `lastPrice`, `bid`, `ask`, `volume`, `openInterest`, `impliedVolatility`, `inTheMoney`.
 
 **Workflow**: Use `yfinance_get_option_dates` first to find valid dates, then `yfinance_get_option_chain` for the full chain.
+
+## Gotchas
+
+- **Interval/period compatibility** — minute intervals (`1m`, `5m`, `15m`, `30m`) only work with short periods (`1d`, `5d`). Using `1m` with `1y` returns an error.
+- **Option expiration dates** — call `yfinance_get_option_dates` first to get valid dates. Passing an invalid or expired date to `yfinance_get_option_chain` silently returns empty data.
+- **Missing fields** — `yfinance_get_ticker_info` field availability varies by security type. ETFs lack some fields (e.g., `pegRatio`). Check for `null` before using.
+- **Sector names are exact** — `yfinance_get_top` requires exact sector names from the list below. `"Tech"` or `"finance"` won't match — use `"Technology"`, `"Financial Services"`.
 
 ## Options Formulas
 

@@ -13,19 +13,6 @@ individual commodity series.
 
 Scripts are in `scripts/`.
 
-## Gotchas
-
-- **No official REST API for the data** — the data is published as Excel files
-  (.xlsx) on thedocs.worldbank.org, linked from the commodity markets page.
-- **Doc ID changes periodically** — the URL includes a document ID that is
-  updated each year. The `pink` script scrapes the current ID from the
-  commodity markets page, or you can pass it explicitly with `--doc-id`.
-- **XLSX format** — the data is in Excel format with specific row/column layout.
-  Read `references/excel-format.md` for the exact structure (sheets, row layout,
-  series codes, header hierarchy, date format).
-- **Monthly vs Annual** — the monthly file (~1.5MB) is the most current. The
-  annual file has yearly averages. Both are updated monthly.
-
 ## Scripts
 
 ### `pink`
@@ -131,6 +118,19 @@ scripts/pink --data CRUDE_PETRO --data NGAS_US --data GOLD --recent 12
 
 Visit https://www.worldbank.org/en/research/commodity-markets
 Look for "Monthly prices" link — the doc ID is the UUID in the URL path.
+
+## Gotchas
+
+- **No official REST API for the data** — the data is published as Excel files
+  (.xlsx) on thedocs.worldbank.org, linked from the commodity markets page.
+- **Doc ID changes periodically** — the URL includes a document ID that is
+  updated each year. The `pink` script scrapes the current ID from the
+  commodity markets page, or you can pass it explicitly with `--doc-id`.
+- **XLSX format** — the data is in Excel format with specific row/column layout.
+  Read `references/excel-format.md` for the exact structure (sheets, row layout,
+  series codes, header hierarchy, date format).
+- **Monthly vs Annual** — the monthly file (~1.5MB) is the most current. The
+  annual file has yearly averages. Both are updated monthly.
 
 ## Reference
 

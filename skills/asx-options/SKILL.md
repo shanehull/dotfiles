@@ -13,18 +13,6 @@ Works for both equities (CBA, BHP, WBC) and indices (XJO).
 
 **Base URL:** `https://asx.api.markitdigital.com/asx-research/1.0`
 
-## Gotchas
-
-- **ASX ticker codes only** — use ASX codes (CBA, BHP, WBC, XJO).
-  Use `yfinance_search(query="CBA.AX", search_type="quotes")` to resolve
-  company names to ASX codes if unsure.
-- **Prices in AUD** — all prices in Australian dollars. Contract size is
-  always 100 shares.
-- **Default styles=all** — returns both American and European. Use
-  `--american` or `--european` to filter.
-- **Theoretical prices** — `priceTheoretical` is model-generated. May
-  diverge from traded prices, especially for deep ITM/OTM strikes.
-
 ## Script
 
 Use `scripts/asx-options` to fetch data. Pure bash + curl, zero dependencies.
@@ -138,3 +126,15 @@ Inside each expiry group:
    expiries.
 3. **Present data** — report strikes, notable volume/OI, or extract
    specific contracts.
+
+## Gotchas
+
+- **ASX ticker codes only** — use ASX codes (CBA, BHP, WBC, XJO).
+  Use `yfinance_search(query="CBA.AX", search_type="quotes")` to resolve
+  company names to ASX codes if unsure.
+- **Prices in AUD** — all prices in Australian dollars. Contract size is
+  always 100 shares.
+- **Default styles=all** — returns both American and European. Use
+  `--american` or `--european` to filter.
+- **Theoretical prices** — `priceTheoretical` is model-generated. May
+  diverge from traded prices, especially for deep ITM/OTM strikes.

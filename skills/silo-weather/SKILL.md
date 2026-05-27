@@ -8,16 +8,6 @@ allowed-tools: bash
 
 Fetch interpolated daily weather data for any location in Australia, with records back to 1889.
 
-## Gotchas
-
-- **First data row is a dummy** — raw output includes a `19970526` sentinel row. Skip it in parsing. Use `/^[0-9]/` to match data rows and verify the year.
-- **Lat/lon grid is 0.05° resolution** — coordinates are rounded to the nearest 0.05°. Use increments of 0.05 for predictable results.
-- **Missing values are -99.9 or -999** — filter with `>= 0` or `!= -99.9`.
-- **Dates are YYYYMMDD** — no separators (e.g., `20260401`).
-- **Raw output is space-delimited** — not CSV. Each field separated by one or more spaces.
-- **CC BY 4.0 licence** — attribute SILO as the data source if publishing externally.
-- **Interpolation accuracy varies** — mountainous or coastal locations are less reliable than flat inland terrain.
-
 ## Scripts
 
 ### `scripts/silo-fetch`
@@ -97,3 +87,13 @@ silo-fetch --lat -33.87 --lon 151.21 --start 20260101 --finish 20260131 --variab
 silo-fetch --lat -29.46 --lon 149.84 --start 20260101 --finish 20260131 --variable tmax \
   | awk '$1!=-99.9 && $1>35 {hot++} END {printf "Days >35°C: %d\n",hot}'
 ```
+
+## Gotchas
+
+- **First data row is a dummy** — raw output includes a `19970526` sentinel row. Skip it in parsing. Use `/^[0-9]/` to match data rows and verify the year.
+- **Lat/lon grid is 0.05° resolution** — coordinates are rounded to the nearest 0.05°. Use increments of 0.05 for predictable results.
+- **Missing values are -99.9 or -999** — filter with `>= 0` or `!= -99.9`.
+- **Dates are YYYYMMDD** — no separators (e.g., `20260401`).
+- **Raw output is space-delimited** — not CSV. Each field separated by one or more spaces.
+- **CC BY 4.0 licence** — attribute SILO as the data source if publishing externally.
+- **Interpolation accuracy varies** — mountainous or coastal locations are less reliable than flat inland terrain.
