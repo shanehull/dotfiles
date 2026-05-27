@@ -13,7 +13,7 @@ if [ ! -d ./nix/result ]; then
 fi
 
 ## Install the flake system wide ##
-./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}" "${@:2}"
+sudo ./nix/result/sw/bin/darwin-rebuild switch --flake "./nix/#${1}" "${@:2}"
 
 ## Source nix packages for this shell ##
 export PATH=$PATH:/etc/profiles/per-user/${USER}/bin/
