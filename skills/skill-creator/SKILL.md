@@ -95,6 +95,12 @@ Skills are read months later. Generalise patterns; skip details tied to now — 
 
 Skills may run on other machines and other users. Use `$HOME`, `~`, or paths relative to `SKILL.md` — never hard-coded home directories or usernames.
 
+## Optimise for tokens
+
+Do not include anything the agent inherently knows or can easily infer. If a fact would be true in any project, leave it out.
+
+Don't restate the same rule in two sections.
+
 ## Calibrating control
 
 Match instruction specificity to task fragility:
