@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+API_BASE="https://api.corelogic.asia/webflow"
+INDICES_URL="https://au-indices.cotality.com/asx.json"
+API_KEY=""
+AUTH=()
+
+die() { echo "error: $*" >&2; exit 1; }
+
+usage() {
+  cat >&2 <<EOF
+Usage: cotality <command> [args...]
+
+Commands:
+  auctions <state>      Auction results (nsw/vic/qld/wa/sa/act/tas).
+  indices               Home value indices (public, no auth).
+  suggest <postcode>    Resolve postcode to locationId.
+  stats <locationId>    Market statistics for a location.
+  sales <postcode>      Recent property sales in a postcode.
+
+Options:
+  -h, --help            Show this help.
+
+Examples:
+  cotality auctions vic
+  cotality indices
+  cotality suggest 2000
+  cotality stats 101812
+  cotality sales 2000 | jq '.data[].properties[] | {price: .salesLastSoldPrice, address: .addressFirstLine, suburb: .addressSuburb, type, beds: .bedrooms, baths: .bathrooms, cars: .carSpaces}'
+EOF
+  exit 0
+}
+
+get_api_key() {
+  local page key
+  page=$(curl -sS "https://www.cotality.com/au/our-data/auction-results") || die "failed to fetch www.cotality.com"
+  key=$(echo "$page" | grep -oE "apiKey = '[^']+'" | head -1 | sed "s/apiKey = '//;s/'//") || die "could not extract API key from page source (the pattern on the page may have changed)"
+  echo "$key"
+}
+
+check_json_err() {
+  local body="$1" context="$2"
+  if echo "$body" | grep -q '"errors"'; then
+    echo "$body" >&2
+    die "$context returned an error"
+  fi
+}
+
+cmd_auctions() {
+  local state="$1"
+  local url="$API_BASE/auction/au/results/state/$state/weeks/4"
+  [[ "$state" != "tas" ]] && url="$url?capitalCityOnly=true"
+  local body
+  body=$(curl -sS "${AUTH[@]}" "$url") || die "auctions request failed (state=$state)"
+  check_json_err "$body" "auctions"
+  echo "$body"
+}
+
+cmd_indices() {
+  local body
+  body=$(curl -sS "$INDICES_URL") || die "indices request failed"
+  check_json_err "$body" "indices"
+  echo "$body"
+}
+
+cmd_suggest() {
+  local q="$1"
+  local body
+  body=$(curl -sS "${AUTH[@]}" "$API_BASE/property/au/v2/suggest.json?suggestionTypes=postcode&q=$q") || die "suggest request failed (q=$q)"
+  check_json_err "$body" "suggest"
+  echo "$body"
+}
+
+cmd_stats() {
+  local location_id="$1"
+  local metric="${2:-58}"
+  local property_type="${3:-1}"
+  local from="${4:-$(date -v-6m +%Y-%m-01 2>/dev/null || date -d '-6 months' +%Y-%m-%d)}"
+  local to="${5:-$(date +%Y-%m-%d)}"
+
+  local data
+  data=$(cat <<JSON
+{"seriesRequestList":[{"locationId":$location_id,"locationTypeId":"4","propertyTypeId":"$property_type","fromDate":"$from","toDate":"$to","metricTypeId":"$metric","interval":"1"}]}
+JSON
+)
+  local body
+  body=$(curl -sS "${AUTH[@]}" -H "Content-Type: application/json" -d "$data" \
+    "$API_BASE/statistics/v1/statistics.json") || die "stats request failed"
+  check_json_err "$body" "stats"
+  echo "$body"
+}
+
+cmd_sales() {
+  local postcode="$1"
+  local limit="${2:-10}"
+
+  local data
+  data=$(cat <<JSON
+{"requests":[{"resultsFormat":{"sort":"-salesLastSoldPrice","offset":0,"limit":$limit},"filters":[{"operation":"and","filters":[{"field":"salesLastSaleSettlementDate","operation":"from","value":"$(date -v-6m +%Y-%m-%d 2>/dev/null || date -d '-6 months' +%Y-%m-%d)"},{"field":"salesLastSaleSettlementDate","operation":"to","value":"$(date +%Y-%m-%d)"},{"field":"addressPostcode","operation":"equals","value":"$postcode"}]},{"operation":"or","filters":[{"field":"type","operation":"equals","value":"HOUSE"},{"field":"type","operation":"equals","value":"UNIT"}]}]}]}
+JSON
+)
+  local body
+  body=$(curl -sS "${AUTH[@]}" -H "Content-Type: application/json" -d "$data" \
+    "$API_BASE/rapid-search/batchSearch/au") || die "sales request failed"
+  check_json_err "$body" "sales"
+  echo "$body"
+}
+
+main() {
+  [[ $# -eq 0 ]] && usage
+
+  local cmd="$1"; shift
+
+  case "$cmd" in
+    indices|-h|--help)
+      # no auth needed
+      case "$cmd" in indices) cmd_indices;; *) usage;; esac
+      ;;
+
+    auctions|suggest|stats|sales)
+      API_KEY=$(get_api_key)
+      AUTH=(-H "X-API-Key: $API_KEY" -H "Origin: https://www.cotality.com")
+      case "$cmd" in
+        auctions)
+          [[ $# -lt 1 ]] && die "missing state argument. Usage: cotality auctions <state>"
+          cmd_auctions "$1"
+          ;;
+        suggest)
+          [[ $# -lt 1 ]] && die "missing postcode argument. Usage: cotality suggest <postcode>"
+          cmd_suggest "$1"
+          ;;
+        stats)
+          [[ $# -lt 1 ]] && die "missing locationId argument. Usage: cotality stats <locationId>"
+          cmd_stats "$1" "${2:-}" "${3:-}" "${4:-}" "${5:-}"
+          ;;
+        sales)
+          [[ $# -lt 1 ]] && die "missing postcode argument. Usage: cotality sales <postcode>"
+          cmd_sales "$1" "${2:-}"
+          ;;
+      esac
+      ;;
+    *) die "unknown command: $cmd" ;;
+  esac
+}
+
+main "$@"

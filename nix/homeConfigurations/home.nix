@@ -22,6 +22,7 @@
       "book-to-skill"
       "buffett-financials"
       "business-overview"
+      "cotality"
       "eia-energy"
       "fred"
       "github"
