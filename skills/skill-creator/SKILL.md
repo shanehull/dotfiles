@@ -74,7 +74,7 @@ description: Analyze CSV and tabular data files — compute summary statistics, 
 
 ## Gotchas section guidelines
 
-The highest-value content. Each item should be a concrete fact that defies reasonable assumptions — not general advice.
+The highest-value content. Each item should be a concrete fact that defies reasonable assumptions — not general advice. Gotchas for scripts should not include details of the underlying implementation, only their usage.
 
 ```markdown
 ## Gotchas
