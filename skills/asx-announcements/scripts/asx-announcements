@@ -13,14 +13,11 @@ Usage: asx-announcements [SYMBOL] [options]
 
 Fetch ASX announcements.
 
-Quick mode (SYMBOL alone):
-  Latest 5 announcements.
+Single symbol (e.g. CBA):
+  Latest 5. --price-sensitive filters results.
 
-Paginated mode (SYMBOL + any flag):
-  Filtered by symbol, paginated by date.
-
-Date feed (no SYMBOL):
-  All companies, paginated by date.
+Multiple symbols or no symbol (e.g. CBA,BHP):
+  Scans broadly. Supports all flags.
 
 Directory mode (--directory):
   List companies A-Z with optional name/industry/market-cap filters.
@@ -28,7 +25,7 @@ Directory mode (--directory):
 Examples:
   asx-announcements                                       # market-wide today
   asx-announcements CBA                                   # CBA latest 5
-  asx-announcements CBA --date=2026-05-21                 # CBA full day
+  asx-announcements CBA --price-sensitive                 # CBA price-sensitive only
   asx-announcements CBA,BHP --date=2026-05-21             # multi-ticker
   asx-announcements --pdf DOCKEY --output ~/a.pdf
   asx-announcements --directory                           # all companies
@@ -65,7 +62,7 @@ PDF_DL=""
 PDF_DIR="."
 PDF_OUTPUT=""
 DAYS_BACK=0
-THOROUGH=false
+
 MODE_DIR=false
 DIR_NAME_LIKE=""
 DIR_INDUSTRIES=()
@@ -76,15 +73,15 @@ DIR_ORDER_BY="companyName"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -d=*|--date=*) DATE="${1#*=}"; THOROUGH=true; shift ;;
-    -d|--date) DATE="$2"; THOROUGH=true; shift 2 ;;
-    --days-back=*) DAYS_BACK="${1#*=}"; THOROUGH=true; shift ;;
-    --days-back) DAYS_BACK="$2"; THOROUGH=true; shift 2 ;;
-    -p|--price-sensitive) PRICE_SENSITIVE="true"; THOROUGH=true; shift ;;
-    -P=*|--pages=*) PAGES="${1#*=}"; THOROUGH=true; shift ;;
-    -P|--pages) PAGES="$2"; THOROUGH=true; shift 2 ;;
-    -l=*|--limit=*) LIMIT="${1#*=}"; THOROUGH=true; shift ;;
-    -l|--limit) LIMIT="$2"; THOROUGH=true; shift 2 ;;
+    -d=*|--date=*) DATE="${1#*=}"; shift ;;
+    -d|--date) DATE="$2"; shift 2 ;;
+    --days-back=*) DAYS_BACK="${1#*=}"; shift ;;
+    --days-back) DAYS_BACK="$2"; shift 2 ;;
+    -p|--price-sensitive) PRICE_SENSITIVE="true"; shift ;;
+    -P=*|--pages=*) PAGES="${1#*=}"; shift ;;
+    -P|--pages) PAGES="$2"; shift 2 ;;
+    -l=*|--limit=*) LIMIT="${1#*=}"; shift ;;
+    -l|--limit) LIMIT="$2"; shift 2 ;;
     --pdf=*) PDF_DL="${1#*=}"; shift ;;
     --pdf) PDF_DL="$2"; shift 2 ;;
     --pdf-dir=*) PDF_DIR="${1#*=}"; shift ;;
@@ -114,11 +111,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$DIR_ORDER" in
-  asc|ascending) DIR_ORDER="ascending" ;;
-  desc|descending) DIR_ORDER="descending" ;;
-  *) die "invalid --order: $DIR_ORDER (use asc or desc)" ;;
-esac
+if ! $MODE_DIR && [[ "$DIR_ORDER" != "ascending" || "$DIR_ORDER_BY" != "companyName" ]]; then
+  die "--order and --order-by are only valid with --directory"
+fi
+
+if $MODE_DIR; then
+  case "$DIR_ORDER" in
+    asc|ascending) DIR_ORDER="ascending" ;;
+    desc|descending) DIR_ORDER="descending" ;;
+    *) die "invalid --order: $DIR_ORDER (use asc or desc)" ;;
+  esac
+fi
 
 # ---------------------------------------------------------------
 # PDF download
@@ -166,12 +169,18 @@ fi
 # Announcement modes
 # ---------------------------------------------------------------
 
-if [[ -n "$SYMBOL" && "$THOROUGH" == "false" && "$SYMBOL" != *,* ]]; then
-  curl -sf "$BASE/companies/$SYMBOL/announcements" || die "failed to fetch announcements for $SYMBOL"
+# Single symbol: company endpoint (consistent JSON, always latest 5)
+if [[ -n "$SYMBOL" && "$SYMBOL" != *,* ]]; then
+  resp=$(curl -sf "$BASE/companies/$SYMBOL/announcements") || die "failed to fetch announcements for $SYMBOL"
+  if [[ "$PRICE_SENSITIVE" == "true" ]]; then
+    echo "$resp" | jq '.data.items = [.data.items[] | select(.isPriceSensitive == true)]'
+  else
+    echo "$resp"
+  fi
   exit 0
 fi
 
-# Market-wide mode
+# Multi-symbol or no symbol: broad scan
 if [[ -z "$DATE" ]]; then
   DATE="$(TZ=Australia/Sydney date +%Y-%m-%d)"
 fi
@@ -229,6 +238,8 @@ if [[ "$DAYS_BACK" -gt 0 ]]; then
       if [[ -n "$SYMBOL" ]]; then
         out="$(filter_ticker "$resp")"
         if [[ -n "$out" ]]; then echo "$out"; found=$((found + $(echo "$out" | wc -l))); fi
+      else
+        echo "$resp"; found=$((found + items))
       fi
       fetched=$((fetched + items))
       pg=$((pg + 1))
@@ -238,10 +249,8 @@ if [[ "$DAYS_BACK" -gt 0 ]]; then
   done
   [[ "$found" -eq 0 && -n "$SYMBOL" ]] && echo '{"data":{"items":[]}}'
   exit 0
-fi
-
-# Single date mode: paginated
-while true; do
+else
+  while true; do
   resp="$(fetch_page "$DATE" "$page")"
   items="$(echo "$resp" | grep -o '"documentKey"' | wc -l || true)"
   [[ "$items" -eq 0 ]] && break
@@ -256,7 +265,12 @@ while true; do
   fetched=$((fetched + items))
   page=$((page + 1))
   [[ "$PAGES" -ne 0 && "$page" -ge "$PAGES" ]] && break
-  [[ "$LIMIT" -ne 0 && "$fetched" -ge "$LIMIT" ]] && break
+  if [[ -n "$SYMBOL" ]]; then
+    [[ "$LIMIT" -ne 0 && "$found" -ge "$LIMIT" ]] && break
+  else
+    [[ "$LIMIT" -ne 0 && "$fetched" -ge "$LIMIT" ]] && break
+  fi
 done
+fi
 
 [[ "$found" -eq 0 && -n "$SYMBOL" ]] && echo '{"data":{"items":[]}}'

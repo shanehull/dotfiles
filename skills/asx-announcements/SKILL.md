@@ -1,13 +1,12 @@
 ---
 name: asx-announcements
-compatibility: Requires bash, curl, and awk.
-description: Search and fetch ASX company announcements — latest 5 by symbol, paginated by date with symbol filter, or company directory with industry/market-cap/name filters. Use this skill when the user asks about ASX announcements, company filings, market-sensitive news, or wants to fetch or search ASX announcements for Australian listed companies, even if they don't name the ASX or Markit Digital API directly.
+compatibility: Requires bash, curl, awk, and jq.
+description: Use this skill when the user asks about ASX company announcements, filings, or market-sensitive news for Australian listed companies. Fetches latest 5 by ticker, scans broadly with date and ticker filters, or browses the company directory.
 ---
 
 # ASX Announcements
 
-Fetch ASX-listed company announcements via the Markit Digital API.
-Uses `scripts/asx-announcements` (bash + curl + awk).
+Fetch ASX-listed company announcements.
 
 ## Usage
 
@@ -39,7 +38,6 @@ scripts/asx-announcements [SYMBOL] [options]
 scripts/asx-announcements                                       # all companies today
 scripts/asx-announcements --date=2026-05-21 --price-sensitive   # price-sensitive only
 scripts/asx-announcements CBA                                   # CBA latest 5
-scripts/asx-announcements CBA --date=2026-05-21                 # CBA full day
 scripts/asx-announcements CBA,BHP --date=2026-05-21             # multi-ticker
 scripts/asx-announcements --pdf DOCKEY --output ~/ann.pdf       # PDF download
 scripts/asx-announcements --directory                           # all companies A-Z
@@ -51,11 +49,12 @@ scripts/asx-announcements --directory --order-by marketCap --order desc
 ## Gotchas
 
 - **ASX ticker codes only** — resolve names with `--directory` or `yfinance_search`.
-- **Timestamps in UTC** — `--date` filter applies in Sydney timezone. Defaults to today Sydney.
-- **Latest 5 only with bare SYMBOL** — any flag switches to paginated date feed. `SYMBOL alone → latest 5. SYMBOL + any flag → paginated by date, filtered by symbol. Multi-symbol or no SYMBOL → paginated by date. --directory → company directory.
-- **Zero results ≠ error** — `{"data":{"items":[]}}` means the query succeeded but nothing matched. Try a different date or remove `--price-sensitive`.
-- **Multi-date queries** — use `--days-back N` with `--pages`. Each day paginates per `--pages`; 90 days × 8 pages = 720 API calls, takes minutes.
-- **Output format** — without symbol filter: raw JSON (`data.items[]`). With symbol filter: NDJSON (one item per line). Zero matches returns `{"data":{"items":[]}}`.
+- **`--date`** defaults to today in Sydney timezone.
+- **Single company** → latest 5 as JSON. Only `--price-sensitive` does anything: filters the results to price-sensitive announcements only.
+- **Multiple companies or no company** → scans broadly. Supports `--date`, `--pages`, `--limit`, `--days-back`, `--price-sensitive`. May miss some announcements.
+- **`--days-back N`** scans N days. Slow: 30 days = 30+ requests, takes minutes.
+- **Output** — single company: JSON. Multiple/no company: raw JSON or one result per line.
+- **Zero results** — `{"data":{"items":[]}}` means nothing matched.
 
 ## Reference
 
