@@ -22,6 +22,7 @@ Target specific headings, blocks, or frontmatter fields without loading full fil
 | `search_replace`     | Yes     |
 | `manage_frontmatter` | Yes     |
 | `manage_tags`        | Yes     |
+| `move_note`          | Yes     |
 
 ### `read_note`
 
@@ -82,6 +83,14 @@ Behavior by combination:
 | `operation` | `add` or `remove`             |
 | `tag`       | Tag value without leading `#` |
 
+### `move_note`
+
+| Parameter        | Description                                              |
+| ---------------- | -------------------------------------------------------- |
+| `path`           | Current path of the note                                 |
+| `newPath`        | Destination path                                         |
+| `allowOverwrite` | `"true"` to overwrite if destination exists (default false) |
+
 ## Behavioral Rules
 
 ### Exclusive Write Path
@@ -90,7 +99,7 @@ Use **only** `obsidian-remote` tools for vault writes — never local `edit`/`wr
 
 ### Confirmation Required
 
-Before any write (`update_note`, `delete_note`, `search_replace`):
+Before any write (`update_note`, `delete_note`, `search_replace`, `move_note`):
 
 1. Show the exact content or diff.
 2. Ask for explicit confirmation.
@@ -99,6 +108,7 @@ Before any write (`update_note`, `delete_note`, `search_replace`):
 - **`update_note` replace**: Show old vs new via `read_note` with same target, then diffs.
 - **`update_note` append/prepend**: Show the block being inserted.
 - **`search_replace`**: Show old and new text in "Before/After" format.
+- **`move_note`**: Show current path and destination path.
 
 Never skip confirmation. No exceptions.
 
