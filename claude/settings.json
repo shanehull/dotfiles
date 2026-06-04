@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -55,13 +58,21 @@
     "notion@claude-plugins-official": true,
     "slack@claude-plugins-official": true,
     "gitlab@claude-plugins-official": true,
-    "aikido@claude-plugins-official": true
+    "aikido@claude-plugins-official": true,
+    "sre-security-patch-day@remote-claude-plugins": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "shane-mcps": {
       "source": {
         "source": "directory",
         "path": "~/.config/claude/marketplace"
+      }
+    },
+    "remote-claude-plugins": {
+      "source": {
+        "source": "git",
+        "url": "git@gitlab.com:remote-com/claude-code-plugin-marketplace.git"
       }
     }
   },

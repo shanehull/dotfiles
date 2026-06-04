@@ -9,8 +9,16 @@
       "url": "https://mcp.remote.com/mcp"
     },
     "honeycomb": {
-        "type": "http",
-        "url": "https://mcp.eu1.honeycomb.io/mcp"
+      "type": "http",
+      "url": "https://mcp.eu1.honeycomb.io/mcp"
+    },
+    "pganalyze-staging": {
+      "type": "http",
+      "url": "https://pganalyze.eu-west-1.niceremote.com/mcp"
+    },
+    "pganalyze-production": {
+      "type": "http",
+      "url": "https://pganalyze.eu-west-1.remote.com/mcp"
     }
   }
 }
