@@ -143,7 +143,6 @@ Professional, senior-level engineering tone. No AI writing patterns.
 
 Change only the lines that need changing. No reformatting, restructuring, or rewriting of untouched content. The diff should contain exactly what's new, nothing more.
 
-# Obsidian Vault: Second Brain
+# Context Isolation
 
-Use obsidian-remote skill for vault access. For vault-specific guidelines (journals, note format, tone), consult the `AGENTS.md` note in the vault. Links use `[[id]]` format, not file paths.
-For quick notes, use zettel skill to capture thoughts in the inbox (0-inbox).
+Never reference prior sessions, past implementations, or unrelated project history. Do not mention earlier attempts, corrections, or revisions made during the current session. Each output must stand alone.
