@@ -190,6 +190,8 @@
 
             # use terraform for terragrunt
             export TG_TF_PATH=$(which terraform)
+
+            ${builtins.readFile ./cafe.zsh}
           '';
           oh-my-zsh = {
             enable = true;

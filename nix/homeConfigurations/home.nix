@@ -201,6 +201,8 @@
             # jump beginning/end with opt+shift+arrow
             bindkey "^[[1;4D" beginning-of-line
             bindkey "^[[1;4C" end-of-line
+
+            ${builtins.readFile ./cafe.zsh}
           '';
           oh-my-zsh = {
             enable = true;
