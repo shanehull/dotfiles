@@ -60,7 +60,8 @@
     "gitlab@claude-plugins-official": true,
     "aikido@claude-plugins-official": true,
     "sre-security-patch-day@remote-claude-plugins": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "shane-mcps": {
