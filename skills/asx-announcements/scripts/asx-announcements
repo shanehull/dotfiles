@@ -14,17 +14,18 @@ Usage: asx-announcements [SYMBOL] [options]
 Fetch ASX announcements.
 
 Single symbol (e.g. CBA):
-  Latest 5. --price-sensitive filters results.
+  Supports all flags. Returns JSON per page.
 
 Multiple symbols or no symbol (e.g. CBA,BHP):
-  Scans broadly. Supports all flags.
+  Supports all flags. Returns raw JSON or one per line.
 
 Directory mode (--directory):
   List companies A-Z with optional name/industry/market-cap filters.
 
 Examples:
   asx-announcements                                       # market-wide today
-  asx-announcements CBA                                   # CBA latest 5
+  asx-announcements CBA                                   # CBA announcements
+  asx-announcements CBA --date=2026-05-21                 # CBA that date
   asx-announcements CBA --price-sensitive                 # CBA price-sensitive only
   asx-announcements CBA,BHP --date=2026-05-21             # multi-ticker
   asx-announcements --pdf DOCKEY --output ~/a.pdf
@@ -169,13 +170,57 @@ fi
 # Announcement modes
 # ---------------------------------------------------------------
 
-# Single symbol: company endpoint (consistent JSON, always latest 5)
 if [[ -n "$SYMBOL" && "$SYMBOL" != *,* ]]; then
-  resp=$(curl -sf "$BASE/companies/$SYMBOL/announcements") || die "failed to fetch announcements for $SYMBOL"
-  if [[ "$PRICE_SENSITIVE" == "true" ]]; then
-    echo "$resp" | jq '.data.items = [.data.items[] | select(.isPriceSensitive == true)]'
+  sydney='((.date[:19] + "Z" | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime) + 36000 | strftime("%Y-%m-%d"))'
+
+  jq_args=()
+  jq_cond="true"
+  [[ "$PRICE_SENSITIVE" == "true" ]] && jq_cond="$jq_cond and .isPriceSensitive == true"
+
+  if [[ "$DAYS_BACK" -gt 0 ]]; then
+    [[ -z "$DATE" ]] && DATE="$(TZ=Australia/Sydney date +%Y-%m-%d)"
+    if TZ=Australia/Sydney date -j +%Y-%m-%d >/dev/null 2>&1; then
+      start_d="$(TZ=Australia/Sydney date -j -v-${DAYS_BACK}d -f %Y-%m-%d "$DATE" +%Y-%m-%d)"
+    else
+      start_d="$(TZ=Australia/Sydney date -d "$DATE - $DAYS_BACK days" +%Y-%m-%d)"
+    fi
+    jq_args+=(--arg start "$start_d" --arg end "$DATE")
+    jq_cond="$jq_cond and ($sydney as \$d | \$d >= \$start and \$d <= \$end)"
+  elif [[ -n "$DATE" ]]; then
+    jq_args+=(--arg date "$DATE")
+    jq_cond="$jq_cond and $sydney == \$date"
+  fi
+
+  search=$(curl -sf "$BASE/search/predictive?searchText=$SYMBOL" || true)
+  xid_entity=$(echo "$search" | jq -r --arg sym "$SYMBOL" '.data.items[] | select(.symbol == $sym) | .xidEntity // empty' 2>/dev/null || true)
+
+  if [[ -n "$xid_entity" ]]; then
+    pg=0
+    page_count=0
+    total=0
+    while true; do
+      resp=$(curl -sf "$BASE/markets/announcements?entityXids=$xid_entity&page=$pg&itemsPerPage=100&priceSensitiveOnly=$PRICE_SENSITIVE") || die "failed to fetch announcements for $SYMBOL"
+      raw=$(echo "$resp" | jq "${jq_args[@]}" --arg sym "$SYMBOL" ".data.items = [.data.items[] | select(.symbol == \$sym and ($jq_cond))]")
+      count=$(echo "$raw" | jq '.data.items | length')
+      [[ "$count" -eq 0 ]] && break
+      if [[ "$LIMIT" -ne 0 && $((total + count)) -gt "$LIMIT" ]]; then
+        echo "$raw" | jq ".data.items = .data.items[:$((LIMIT - total))]"
+        break
+      fi
+      echo "$raw"
+      total=$((total + count))
+      pg=$((pg + 1))
+      page_count=$((page_count + 1))
+      [[ "$PAGES" -ne 0 && "$page_count" -ge "$PAGES" ]] && break
+    done
+    [[ "$total" -eq 0 ]] && echo '{"data":{"items":[]}}'
   else
-    echo "$resp"
+    resp=$(curl -sf "$BASE/companies/$SYMBOL/announcements") || die "failed to fetch announcements for $SYMBOL"
+    if [[ "$jq_cond" != "true" ]]; then
+      echo "$resp" | jq "${jq_args[@]}" ".data.items = [.data.items[] | select($jq_cond)]"
+    else
+      echo "$resp"
+    fi
   fi
   exit 0
 fi
@@ -222,30 +267,22 @@ filter_ticker() {
   ' <<< "$data"
 }
 
-# --days-back: paginate each date according to --pages
 if [[ "$DAYS_BACK" -gt 0 ]]; then
-  for i in $(seq "$DAYS_BACK" -1 0); do
-    if TZ=Australia/Sydney date -j +%Y-%m-%d >/dev/null 2>&1; then
-      dt="$(TZ=Australia/Sydney date -j -v-${i}d +%Y-%m-%d)"
+  pg=0
+  while true; do
+    resp="$(fetch_page "$DATE" "$pg")"
+    items="$(echo "$resp" | grep -o '"documentKey"' | wc -l || true)"
+    [[ "$items" -eq 0 ]] && break
+    if [[ -n "$SYMBOL" ]]; then
+      out="$(filter_ticker "$resp")"
+      if [[ -n "$out" ]]; then echo "$out"; found=$((found + $(echo "$out" | wc -l))); fi
     else
-      dt="$(TZ=Australia/Sydney date -d "-${i} days" +%Y-%m-%d)"
-    fi || continue
-    pg=0
-    while true; do
-      resp="$(fetch_page "$dt" "$pg")"
-      items="$(echo "$resp" | grep -o '"documentKey"' | wc -l || true)"
-      [[ "$items" -eq 0 ]] && break
-      if [[ -n "$SYMBOL" ]]; then
-        out="$(filter_ticker "$resp")"
-        if [[ -n "$out" ]]; then echo "$out"; found=$((found + $(echo "$out" | wc -l))); fi
-      else
-        echo "$resp"; found=$((found + items))
-      fi
-      fetched=$((fetched + items))
-      pg=$((pg + 1))
-      [[ "$LIMIT" -ne 0 && "$found" -ge "$LIMIT" ]] && break 2
-      [[ "$PAGES" -ne 0 && "$pg" -ge "$PAGES" ]] && break
-    done
+      echo "$resp"; found=$((found + items))
+    fi
+    fetched=$((fetched + items))
+    pg=$((pg + 1))
+    [[ "$LIMIT" -ne 0 && "$found" -ge "$LIMIT" ]] && break
+    [[ "$PAGES" -ne 0 && "$pg" -ge "$PAGES" ]] && break
   done
   [[ "$found" -eq 0 && -n "$SYMBOL" ]] && echo '{"data":{"items":[]}}'
   exit 0

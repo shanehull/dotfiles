@@ -1,7 +1,7 @@
 ---
 name: asx-announcements
 compatibility: Requires bash, curl, awk, and jq.
-description: Use this skill when the user asks about ASX company announcements, filings, or market-sensitive news for Australian listed companies. Fetches latest 5 by ticker, scans broadly with date and ticker filters, or browses the company directory.
+description: Use this skill when the user asks about ASX company announcements, filings, or market-sensitive news for Australian listed companies. Fetches announcements by ticker with date, recency, and price-sensitivity filters, or browses the company directory.
 ---
 
 # ASX Announcements
@@ -17,7 +17,7 @@ scripts/asx-announcements [SYMBOL] [options]
 | Option                     | Description                               |
 | -------------------------- | ----------------------------------------- |
 | `-d, --date YYYY-MM-DD`    | Sydney date (default: today).             |
-| `--days-back N`            | Scan N days back (uses --pages per date). |
+| `--days-back N`            | Scan N days back.                         |
 | `-p, --price-sensitive`    | Price-sensitive only.                     |
 | `-P, --pages N`            | Pages (default: 1, 0=unlimited).          |
 | `-l, --limit N`            | Max results (0=unlimited).                |
@@ -37,7 +37,7 @@ scripts/asx-announcements [SYMBOL] [options]
 ```
 scripts/asx-announcements                                       # all companies today
 scripts/asx-announcements --date=2026-05-21 --price-sensitive   # price-sensitive only
-scripts/asx-announcements CBA                                   # CBA latest 5
+scripts/asx-announcements CBA                                   # CBA announcements
 scripts/asx-announcements CBA,BHP --date=2026-05-21             # multi-ticker
 scripts/asx-announcements --pdf DOCKEY --output ~/ann.pdf       # PDF download
 scripts/asx-announcements --directory                           # all companies A-Z
@@ -50,10 +50,10 @@ scripts/asx-announcements --directory --order-by marketCap --order desc
 
 - **ASX ticker codes only** — resolve names with `--directory` or `yfinance_search`.
 - **`--date`** defaults to today in Sydney timezone.
-- **Single company** → latest 5 as JSON. Only `--price-sensitive` does anything: filters the results to price-sensitive announcements only.
-- **Multiple companies or no company** → scans broadly. Supports `--date`, `--pages`, `--limit`, `--days-back`, `--price-sensitive`. May miss some announcements.
-- **`--days-back N`** scans N days. Slow: 30 days = 30+ requests, takes minutes.
-- **Output** — single company: JSON. Multiple/no company: raw JSON or one result per line.
+- **Single company** → supports all flags: `--date`, `--days-back`, `--price-sensitive`, `--pages`, `--limit`.
+- **Multiple companies or no company** → supports `--pages`, `--limit`, `--price-sensitive`. `--date` and `--days-back` are accepted but do not filter results.
+- **`--days-back N`** filters to the last N Sydney days (single company only).
+- **Output** — one JSON document per page. Use `--pages` and `--limit` to control volume.
 - **Zero results** — `{"data":{"items":[]}}` means nothing matched.
 
 ## Reference
