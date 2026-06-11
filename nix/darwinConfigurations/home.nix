@@ -14,22 +14,7 @@
         nixpkgs = {
           config = {
             allowUnfree = true;
-            permittedInsecurePackages = [
-              "python3.13-ecdsa-0.19.1"
-            ];
           };
-          overlays = [
-            (final: prev: {
-              direnv = prev.direnv.overrideAttrs (oldAttrs: {
-                env =
-                  (oldAttrs.env or {})
-                  // {
-                    CGO_ENABLED = "1";
-                  };
-                doCheck = false;
-              });
-            })
-          ];
         };
       }
     ];
