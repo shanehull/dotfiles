@@ -15,6 +15,7 @@
     ...
   }: let
     agentSkills = [
+      "abares"
       "asx-announcements"
       "asx-options"
       "book-to-skill"
@@ -161,8 +162,6 @@
           openssl
           lz4
           aerospace
-          ollama
-          # electrum
           obsidian
         ];
       };

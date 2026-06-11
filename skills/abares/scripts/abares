@@ -1,0 +1,365 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+usage() {
+  cat <<'EOF'
+Usage: abares <command> [args...]
+
+ABARES agricultural data — fetch reports, statistics, and weekly prices.
+
+COMMANDS:
+  discover                  List all reports on the data landing page.
+  commodities [--quarter Q] Fetch latest Ag Commodities outlook + stats.
+  crops [--quarter Q]       Fetch latest Crop Report data.
+  annual-stats [--commodity C] Fetch annual Commodity Statistics.
+  weekly-prices [--type T]  Weekly prices table (TSV).
+  fetch <asset-id> <index>  Raw download from SirsiDynix.
+
+EXAMPLES:
+  abares discover
+  abares commodities
+  abares crops
+  abares annual-stats --commodity wheat
+  abares annual-stats --list
+  abares weekly-prices
+  abares fetch 1038221 2
+
+Parse downloaded XLSX with: scripts/parse-xlsx <file>
+
+Use --help on subcommands for more.
+EOF
+  exit 1
+}
+
+DATA_URL="https://www.agriculture.gov.au/abares/research-topics/agricultural-outlook/data"
+SIRSI_BASE="https://daff.ent.sirsidynix.net.au/client/en_AU/search/asset"
+WEEKLY_URL="https://www.agriculture.gov.au/abares/data/weekly-commodity-price-update"
+
+# ── Link extraction (bash, no deps) ──────────────────────────────────────
+# Output: asset_id\tfile_idx\tlabel
+
+extract_links() {
+  tr '\n' ' ' | grep -oE '<a[^>]*href="https://daff\.ent\.sirsidynix\.net\.au/client/en_AU/search/asset/[0-9]+/[0-9]+"[^>]*>[^<]*</a>' |
+    while IFS= read -r tag; do
+      local aid idx label
+      aid=$(echo "$tag" | grep -oE 'asset/[0-9]+/' | grep -oE '[0-9]+' | head -1)
+      idx=$(echo "$tag" | grep -oE '/[0-9]+"' | tr -d '"/' | head -1)
+      label=$(echo "$tag" | sed 's/<[^>]*>//g' | sed 's/&nbsp;/ /g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -s ' ')
+      echo "$aid	$idx	$label"
+    done | sort -t'	' -k1,1nr -k2,2n
+}
+
+# ── Price table (bash, no deps) ──────────────────────────────────────────
+
+extract_price_table() {
+  sed 's/<tr/\n<tr/g; s/<\/tr>/<\/tr>\n/g' |
+  awk '
+    BEGIN { in_table=0; found=0 }
+    /Current indicators/ { found=1 }
+    found && /<table/ { in_table=1 }
+    /<\/table>/ && in_table { exit }
+    in_table && /<tr/ {
+      gsub(/<\/t[hd]><t[hd][^>]*>/, "\t")
+      gsub(/<\/t[hd]><\/tr>/, "")
+      gsub(/<tr[^>]*>/, "")
+      gsub(/<[^>]*>/, "")
+      gsub(/&nbsp;/, " ")
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+      if (NF > 0) print
+    }
+  '
+}
+
+# ── Discover ─────────────────────────────────────────────────────────────
+
+cmd_discover() {
+  local html
+  html=$(curl -fsSL --connect-timeout 15 --max-time 30 "$DATA_URL" 2>/dev/null) ||
+    die "Failed to fetch: $DATA_URL"
+
+  echo "=== Agricultural Commodities Report ==="
+  echo "$html" | extract_links | grep -i 'outlook tables\|statistical tables' | head -20 |
+    while IFS=$'\t' read -r aid idx label; do
+      printf "  asset=%-8s idx=%-2s %s\n" "$aid" "$idx" "$label"
+    done
+
+  echo ""
+  echo "=== Australian Crop Report ==="
+  echo "$html" | extract_links | grep -i 'crop data\|state data' |
+    grep -iv 'file size' | head -20 |
+    while IFS=$'\t' read -r aid idx label; do
+      printf "  asset=%-8s idx=%-2s %s\n" "$aid" "$idx" "$label"
+    done
+
+  echo ""
+  echo "=== Commodity Statistics (latest year) ==="
+  echo "$html" | extract_links | grep -i 'economy - overview' | head -3 |
+    while IFS=$'\t' read -r aid idx label; do
+      printf "  asset=%-8s idx=%-2s %s\n" "$aid" "$idx" "$label"
+    done
+}
+
+# ── Commodities ──────────────────────────────────────────────────────────
+
+cmd_commodities() {
+  while [[ $# -gt 0 ]]; do case "$1" in
+    -h|--help) echo "Usage: abares commodities"; exit 0 ;;
+    --quarter|--year) shift 2 ;;
+    *) shift ;;
+  esac; done
+
+  local html
+  html=$(curl -fsSL --connect-timeout 15 --max-time 30 "$DATA_URL" 2>/dev/null) ||
+    die "Failed to fetch landing page"
+
+  local links
+  links=$(echo "$html" | extract_links)
+
+  echo ">>> Outlook Tables"
+  local outlook_line
+  outlook_line=$(echo "$links" | grep -i 'outlook tables' | head -1)
+  if [[ -n "$outlook_line" ]]; then
+    local aid idx
+    aid=$(echo "$outlook_line" | cut -f1)
+    idx=$(echo "$outlook_line" | cut -f2)
+    cmd_fetch "$aid" "$idx"
+  else
+    echo "  Not found"
+  fi
+
+  echo ""
+  echo ">>> Statistical Tables"
+  local stats_line
+  stats_line=$(echo "$links" | grep -i 'statistical tables' | head -1)
+  if [[ -n "$stats_line" ]]; then
+    local aid idx
+    aid=$(echo "$stats_line" | cut -f1)
+    idx=$(echo "$stats_line" | cut -f2)
+    cmd_fetch "$aid" "$idx"
+  else
+    echo "  Not found"
+  fi
+}
+
+# ── Crops ────────────────────────────────────────────────────────────────
+
+cmd_crops() {
+  while [[ $# -gt 0 ]]; do case "$1" in
+    -h|--help) echo "Usage: abares crops"; exit 0 ;;
+    --quarter|--year) shift 2 ;;
+    *) shift ;;
+  esac; done
+
+  local html
+  html=$(curl -fsSL --connect-timeout 15 --max-time 30 "$DATA_URL" 2>/dev/null) ||
+    die "Failed to fetch landing page"
+
+  local links
+  links=$(echo "$html" | extract_links)
+
+  echo ">>> Crop Data"
+  local crop_line
+  crop_line=$(echo "$links" | grep -i 'crop data:' | head -1)
+  if [[ -n "$crop_line" ]]; then
+    local aid idx
+    aid=$(echo "$crop_line" | cut -f1)
+    idx=$(echo "$crop_line" | cut -f2)
+    cmd_fetch "$aid" "$idx"
+  else
+    echo "  Not found"
+  fi
+
+  echo ""
+  echo ">>> State Data"
+  local state_line
+  state_line=$(echo "$links" | grep -i 'state data:' | head -1)
+  if [[ -n "$state_line" ]]; then
+    local aid idx
+    aid=$(echo "$state_line" | cut -f1)
+    idx=$(echo "$state_line" | cut -f2)
+    cmd_fetch "$aid" "$idx"
+  else
+    echo "  Not found"
+  fi
+}
+
+# ── Annual Stats ─────────────────────────────────────────────────────────
+
+# File index → commodity name
+declare -A STATS_MAP=(
+  [0]="Australian economy - overview"
+  [1]="Macroeconomic indicators"
+  [2]="Farm sector"
+  [3]="Coarse grains"
+  [4]="Cotton"
+  [5]="Dairy"
+  [6]="Farm inputs"
+  [7]="Fisheries"
+  [8]="Food"
+  [9]="Forestry"
+  [10]="Horticulture"
+  [11]="Meat - general"
+  [12]="Beef and veal"
+  [13]="Pigs and poultry"
+  [14]="Sheep"
+  [15]="Oilseeds"
+  [16]="Pulses"
+  [17]="Rice"
+  [18]="Sugar"
+  [19]="Wool"
+  [20]="Wheat"
+  [21]="Wine"
+)
+
+cmd_annual_stats() {
+  local commodity="" print_list=false
+  while [[ $# -gt 0 ]]; do case "$1" in
+    -h|--help) echo "Usage: abares annual-stats [--commodity NAME] [--list]"; exit 0 ;;
+    --commodity) commodity="$2"; shift 2 ;;
+    --year) shift 2 ;;
+    --list) print_list=true; shift ;;
+    *) shift ;;
+  esac; done
+
+  if $print_list; then
+    echo "Available commodities (index -> name):"
+    for idx in $(seq 0 21); do
+      printf "  %-2s  %s\n" "$idx" "${STATS_MAP[$idx]}"
+    done
+    exit 0
+  fi
+
+  local html
+  html=$(curl -fsSL --connect-timeout 15 --max-time 30 "$DATA_URL" 2>/dev/null) ||
+    die "Failed to fetch landing page"
+
+  local links
+  links=$(echo "$html" | extract_links)
+
+  local stats_id
+  stats_id=$(echo "$links" | grep -i 'economy - overview' | head -1 | cut -f1)
+  [[ -n "$stats_id" ]] || die "Could not find commodity statistics asset ID on landing page"
+
+  if [[ -n "$commodity" ]]; then
+    local idx=""
+    for i in $(seq 0 21); do
+      if echo "${STATS_MAP[$i]}" | grep -qi "$commodity"; then
+        idx=$i; break
+      fi
+    done
+    [[ -n "$idx" ]] || die "Unknown commodity: $commodity. Use --list to see available."
+    echo ">>> ${STATS_MAP[$idx]}"
+    cmd_fetch "$stats_id" "$idx"
+  else
+    echo "Asset ID: $stats_id"
+    for idx in $(seq 0 21); do
+      echo ""
+      echo ">>> [${idx}] ${STATS_MAP[$idx]}"
+      cmd_fetch "$stats_id" "$idx"
+    done
+  fi
+}
+
+# ── Weekly Prices ────────────────────────────────────────────────────────
+
+cmd_weekly_prices() {
+  local type=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+    -h|--help)
+      echo "Usage: abares weekly-prices [--type world|australia|hort]"
+      exit 0 ;;
+    --type) type="$2"; shift 2 ;;
+    *) shift ;;
+  esac; done
+
+  local url="$WEEKLY_URL"
+  case "$type" in
+    world)     url="${WEEKLY_URL}/world-agricultural-prices" ;;
+    australia) url="${WEEKLY_URL}/australian-agricultural-prices" ;;
+    hort)      url="${WEEKLY_URL}/australian-horticulture-prices" ;;
+  esac
+
+  local html
+  html=$(curl -fsSL --connect-timeout 15 --max-time 30 "$url" 2>/dev/null) ||
+    die "Failed to fetch: $url"
+
+  echo "$html" | extract_price_table || {
+    echo "Price table not found. Page may have changed. URL: $url"
+    exit 1
+  }
+}
+
+# ── Fetch ────────────────────────────────────────────────────────────────
+
+cmd_fetch() {
+  local asset_id="${1:-}" file_idx="${2:-}" quiet=false
+  shift 2 2>/dev/null || true
+  while [[ $# -gt 0 ]]; do case "$1" in
+    --quiet) quiet=true; shift ;;
+    *) shift ;;
+  esac; done
+
+  [[ -n "$asset_id" && -n "$file_idx" ]] || die "Usage: abares fetch <asset-id> <file-index>"
+
+  local url="${SIRSI_BASE}/${asset_id}/${file_idx}"
+
+  # Follow redirect to get final file URL (SirsiDynix redirects)
+  local final_url content_type
+  final_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+    --connect-timeout 10 --max-time 15 "$url" 2>/dev/null) ||
+    die "Failed to reach: $url"
+
+  content_type=$(curl -fsSL -o /dev/null -w '%{content_type}' \
+    --connect-timeout 10 --max-time 10 "$final_url" 2>/dev/null) ||
+    die "Failed to fetch: $final_url"
+
+  local filename
+  filename=$(curl -fsSLI --connect-timeout 10 --max-time 10 "$final_url" 2>/dev/null |
+    grep -i 'content-disposition' | sed -n 's/.*filename="\{0,1\}\([^";]*\).*/\1/p' | head -1)
+  [[ -n "$filename" ]] || filename=$(basename "$final_url" | sed 's/\?.*//')
+  [[ -n "$filename" ]] || filename="abares-${asset_id}-${file_idx}"
+
+  if $quiet; then
+    echo "$final_url"
+    return 0
+  fi
+
+  echo "URL:  $final_url"
+  echo "Type: $content_type"
+  echo "File: $filename"
+
+  if echo "$content_type" | grep -qi 'html\|text\|json\|csv'; then
+    echo ""
+    curl -fsSL --connect-timeout 10 --max-time 30 "$final_url"
+  else
+    local tmpdir="/tmp/abares-$$"
+    mkdir -p "$tmpdir"
+    local outfile="${tmpdir}/${filename}"
+    curl -fsSL --connect-timeout 10 --max-time 60 -o "$outfile" "$final_url" ||
+      die "Download failed"
+    local sz
+    sz=$(wc -c < "$outfile" | tr -d ' ')
+    echo "Saved: $outfile ($sz bytes)"
+  fi
+}
+
+# ── Main ─────────────────────────────────────────────────────────────────
+
+main() {
+  [[ $# -gt 0 ]] || usage
+  local cmd="$1"; shift
+  case "$cmd" in
+    -h|--help) usage ;;
+    discover)       cmd_discover "$@" ;;
+    commodities)    cmd_commodities "$@" ;;
+    crops)          cmd_crops "$@" ;;
+    annual-stats)   cmd_annual_stats "$@" ;;
+    weekly-prices)  cmd_weekly_prices "$@" ;;
+    fetch)          cmd_fetch "$@" ;;
+    *) die "Unknown command: $cmd. Run 'abares' for help." ;;
+  esac
+}
+
+main "$@"
