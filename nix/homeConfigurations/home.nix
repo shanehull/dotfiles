@@ -8,8 +8,6 @@
   qmd-pkg = inputs.qmd.packages.${system}.default;
   fred-mcp-pkg = inputs.fred-mcp.packages.${system}.default;
 
-  mkGithubReleasePkg = import ./make-github-release-package.nix {inherit pkgs;};
-
   homeModule = {
     config,
     lib,
