@@ -1,5 +1,6 @@
 # caffeinate IV-drip helper
-# usage: cafe [on|off]   (no args = status)
+# usage: cafe [on [timeout]|off]   (no args = status)
+#   timeout: seconds to stay awake, 0 = forever (default: $CAFE_TIMEOUT or 7200)
 cafe() {
   local pidfile=/tmp/caffeinate.pid
   local running=false
@@ -11,8 +12,18 @@ cafe() {
         echo "already dripping (pid $(cat $pidfile))"
         return
       fi
-      caffeinate -dimsu & echo $! > $pidfile; disown
-      echo "cafe on (pid $(cat $pidfile))"
+      local timeout=${2:-${CAFE_TIMEOUT:-7200}}
+      if [[ ! $timeout =~ ^[0-9]+$ ]]; then
+        echo "cafe: timeout must be a non-negative integer (seconds), got '$timeout'" >&2
+        return 1
+      fi
+      if (( timeout > 0 )); then
+        caffeinate -dimsu -t "$timeout" & echo $! > $pidfile; disown
+        echo "cafe on (pid $(cat $pidfile), ${timeout}s)"
+      else
+        caffeinate -dimsu & echo $! > $pidfile; disown
+        echo "cafe on (pid $(cat $pidfile), no timeout)"
+      fi
       ;;
     off)
       if ! $running; then
