@@ -14,23 +14,23 @@ Fetch ASX-listed company announcements.
 scripts/asx-announcements [SYMBOL] [options]
 ```
 
-| Option                     | Description                               |
-| -------------------------- | ----------------------------------------- |
-| `-d, --date YYYY-MM-DD`    | Sydney date (default: today).             |
-| `--days-back N`            | Scan N days back.                         |
-| `-p, --price-sensitive`    | Price-sensitive only.                     |
-| `-P, --pages N`            | Pages (default: 1, 0=unlimited).          |
-| `-l, --limit N`            | Max results (0=unlimited).                |
-| `--pdf DOCKEY`             | Download PDF by document key.             |
-| `--pdf-dir DIR`            | Directory for PDFs (default: .).          |
-| `--output FILE`            | Output path for `--pdf`.                  |
-| `--directory`              | List company directory.                   |
-| `--name-like TEXT`         | Company name prefix (e.g. A).             |
-| `--industry TEXT`          | Filter by industry (repeatable).          |
-| `--market-cap-bucket TEXT` | Market cap bucket (repeatable).           |
-| `--per-page N`             | Directory items per page (default: 100).  |
-| `--order asc\|desc`        | Directory sort order (default: asc).      |
-| `--order-by FIELD`         | Directory sort field.                     |
+| Option                     | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `-d, --date YYYY-MM-DD`    | Sydney date (default: today).            |
+| `--days-back N`            | Scan N days back.                        |
+| `-p, --price-sensitive`    | Price-sensitive only.                    |
+| `-P, --pages N`            | Pages (default: 1, 0=unlimited).         |
+| `-l, --limit N`            | Max results (0=unlimited).               |
+| `--pdf DOCKEY`             | Download PDF by document key.            |
+| `--pdf-dir DIR`            | Directory for PDFs (default: .).         |
+| `--output FILE`            | Output path for `--pdf`.                 |
+| `--directory`              | List company directory.                  |
+| `--name-like TEXT`         | Company name prefix (e.g. A).            |
+| `--industry TEXT`          | Filter by industry (repeatable).         |
+| `--market-cap-bucket TEXT` | Market cap bucket (repeatable).          |
+| `--per-page N`             | Directory items per page (default: 100). |
+| `--order asc\|desc`        | Directory sort order (default: asc).     |
+| `--order-by FIELD`         | Directory sort field.                    |
 
 **Examples:**
 
@@ -52,7 +52,7 @@ scripts/asx-announcements --directory --order-by marketCap --order desc
 - **`--date`** defaults to today in Sydney timezone.
 - **Single company** → supports all flags: `--date`, `--days-back`, `--price-sensitive`, `--pages`, `--limit`.
 - **Multiple companies or no company** → supports `--pages`, `--limit`, `--price-sensitive`. `--date` and `--days-back` are accepted but do not filter results.
-- **`--days-back N`** filters to the last N Sydney days (single company only).
+- **`--days-back N`** filters to the last N Sydney days (single company only, slow on many days).
 - **Output** — one JSON document per page. Use `--pages` and `--limit` to control volume.
 - **Zero results** — `{"data":{"items":[]}}` means nothing matched.
 
