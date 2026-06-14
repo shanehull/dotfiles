@@ -110,14 +110,9 @@ Frontmatter (minimal required):
 ```yaml
 ---
 name: <hyphenated-name>
-description: >-
-  <imperative, 1-1024 chars. What the skill does and when to use it.
-  "Use this skill when..." phrasing. Include contexts where the user
-  doesn't name the domain directly.>
-compatibility:
-  >- # optional. Only when the skill has environment requirements (system packages, network access, intended product).
-  Requires ...
-allowed-tools: ... # optional. Pre-approve domain-specific tools the skill needs.
+description: <single line. Imperative, 1-1024 chars. "Use this skill when..." phrasing. Include contexts where the user doesn't name the domain directly.>
+compatibility: Requires git, jq. # optional. Execution-environment requirements only (system packages), not user data needs.
+allowed-tools: bash # optional. Pre-approve tools the environment always has. Never list domain MCP tools that may not exist.
 ---
 ```
 
