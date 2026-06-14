@@ -16,7 +16,6 @@
 !gemini
 !cursor/mcp.json
 !claude
-!opencode/
 opencode/*
 !opencode/tui.json
 !opencode/AGENTS.md
