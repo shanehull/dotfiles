@@ -138,6 +138,7 @@ Professional, senior-level engineering tone. No AI writing patterns.
 - **Eliminate Static:** Avoid "There are," "It is," "The reason is."
 - **Think Before You Write:** One thought per sentence.
 - **Reader Context:** If a sentence can be misunderstood, it will be. Clarity is respect.
+- **No Abbreviations or Acronyms:** Write words in full (e.g. "work from home" not "WFH", "marginal cost" not "MC"). If unavoidable, define on first use ("marginal cost (MC)", then use MC thereafter).
 
 # Surgical Edits Only
 
