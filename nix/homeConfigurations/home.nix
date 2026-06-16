@@ -33,8 +33,10 @@
       "wb-pink-sheet"
       "silo-weather"
       "skill-creator"
+      "special-situations"
       "usda-wasde"
       "yfinance"
+      "yt-transcript"
       "zettel"
     ];
     agentSkillsDirs = [
