@@ -123,6 +123,7 @@
           opencode-pkg
           fred-mcp-pkg
           slides
+          bitwarden-cli
 
           # k8s tools
           k9s
