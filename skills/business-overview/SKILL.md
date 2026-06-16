@@ -38,7 +38,7 @@ The user works with two approaches depending on business type:
 
 Use this structure when writing the final note:
 
-- **Title format:** `# Ticker/Company: A Descriptive Label` (e.g., "Duxton Farms: A Water-Backed Turnaround")
+- **Title format:** `# Company: A Descriptive Label` (e.g., "Emeco: A Deleveraged Turnaround")
 
 ```md
 ## The Business
@@ -69,6 +69,8 @@ Metrics to monitor. What confirms the thesis? What invalidates it? Use concrete 
 
 2–3 sentences: why attractive at today's price, long-term outlook.
 ```
+
+Once the final note has been written, use surgical edits only.
 
 ## Gotchas
 
