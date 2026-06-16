@@ -18,10 +18,12 @@ cafe() {
         return 1
       fi
       if (( timeout > 0 )); then
-        caffeinate -dimsu -t "$timeout" & echo $! > $pidfile; disown
+        caffeinate -dimsu -t "$timeout" > /dev/null &!
+        echo $! > $pidfile
         echo "cafe on (pid $(cat $pidfile), ${timeout}s)"
       else
-        caffeinate -dimsu & echo $! > $pidfile; disown
+        caffeinate -dimsu > /dev/null &!
+        echo $! > $pidfile
         echo "cafe on (pid $(cat $pidfile), no timeout)"
       fi
       ;;
