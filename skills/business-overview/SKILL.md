@@ -25,6 +25,7 @@ Before diving into each heading, briefly state what you're looking for and why g
 - [ ] **Risks** — Key threats, probability, magnitude.
 - [ ] **Tracking** — What confirms the thesis? What invalidates it? Concrete thresholds and kill criteria.
 - [ ] **Conclusion** — 2-3 sentences synthesising the discussion.
+- [ ] **Sources** — Direct links to the actual documents used, not landing pages.
 - [ ] **Save** — Only after every heading above is confirmed.
 
 ## Valuation Models
@@ -68,6 +69,10 @@ Metrics to monitor. What confirms the thesis? What invalidates it? Use concrete 
 ## Conclusion
 
 2–3 sentences: why attractive at today's price, long-term outlook.
+
+## Sources
+
+Direct links to sources used in the analysis — annual reports, ASX filings, industry data, company websites, news articles. No landing pages or generic investor relations URLs.
 ```
 
 Once the final note has been written, use surgical edits only.
