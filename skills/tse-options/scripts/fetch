@@ -82,6 +82,7 @@ HEADER
 awk '/<tr class="row-num/{p=1; s=""} p{s=s $0} /<\/tr>/ && p{print s; p=0}' "$TMPFILE" > /tmp/_jpxtmp
 trap 'rm -f "$TMPFILE" /tmp/_jpxtmp' EXIT
 
+QUOTED=0
 while IFS= read -r row; do
   ATM=0
   echo "$row" | grep -q "atm-pos" && ATM=1
@@ -130,4 +131,7 @@ while IFS= read -r row; do
   [[ "$put_bid" =~ ^[-\(\)]*$ || -z "$put_bid" ]] && put_bid=""
 
   echo "$strike|$ATM|$call_bid|$call_ask|$call_iv|$put_bid|$put_ask|$put_iv"
+  [[ -n "$call_bid$call_ask$put_bid$put_ask" ]] && QUOTED=1
 done < /tmp/_jpxtmp
+
+echo "quoted=$QUOTED"

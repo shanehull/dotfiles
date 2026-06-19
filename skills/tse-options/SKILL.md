@@ -1,7 +1,7 @@
 ---
 name: tse-options
 description: Fetch Japanese stock option chain data from the Osaka Exchange via JPX. Use this skill when the user wants to see option prices, implied volatility, or strikes for a listed Japanese company — including evaluating protective puts, covered calls, or hedging strategies for TSE stocks. Accepts a 4-digit security code (e.g., 6146 for Disco Corp, 7203 for Toyota). Supports both the nearest and subsequent monthly expiries.
-compatibility: Requires curl, sed, awk, grep. No external dependencies.
+compatibility: Requires curl, sed, awk, grep.
 allowed-tools: bash
 ---
 
@@ -23,30 +23,31 @@ scripts/fetch 6146 --raw  # raw HTML dump
 
 **Header block** — `key=value` pairs:
 
-| Key | Description |
-|-----|-------------|
-| `code` | 4-digit security code |
-| `month` | Expiry index (0=nearest) |
-| `expiry` | Expiry month label |
-| `underlying_price` | Last price in JPY |
-| `underlying_date` | Quote timestamp |
-| `trading_date` | Current trading date |
-| `last_trading_day` | Option expiry date |
-| `hv` | Historical volatility (%) |
-| `lot_size` | Shares per contract |
+| Key                | Description                                                                |
+| ------------------ | -------------------------------------------------------------------------- |
+| `code`             | 4-digit security code                                                      |
+| `month`            | Expiry index (0=nearest)                                                   |
+| `expiry`           | Expiry month label                                                         |
+| `underlying_price` | Last price in JPY                                                          |
+| `underlying_date`  | Quote timestamp                                                            |
+| `trading_date`     | Current trading date                                                       |
+| `last_trading_day` | Option expiry date                                                         |
+| `hv`               | Historical volatility (%)                                                  |
+| `lot_size`         | Shares per contract                                                        |
+| `quoted`           | 1 if any row has a non-empty bid or ask, 0 if the chain is completely dead |
 
 **Option chain** — pipe-delimited rows following the header line `strike|atm|call_bid|call_ask|call_iv|put_bid|put_ask|put_iv`:
 
-| Column | Description |
-|--------|-------------|
-| `strike` | Strike price (JPY) |
-| `atm` | 1 if at-the-money |
+| Column     | Description                  |
+| ---------- | ---------------------------- |
+| `strike`   | Strike price (JPY)           |
+| `atm`      | 1 if at-the-money            |
 | `call_bid` | Call bid (empty if no quote) |
-| `call_ask` | Call ask |
-| `call_iv` | Call IV (%) |
-| `put_bid` | Put bid (empty if no quote) |
-| `put_ask` | Put ask |
-| `put_iv` | Put IV (%) |
+| `call_ask` | Call ask                     |
+| `call_iv`  | Call IV (%)                  |
+| `put_bid`  | Put bid (empty if no quote)  |
+| `put_ask`  | Put ask                      |
+| `put_iv`   | Put IV (%)                   |
 
 ## Data Source
 
