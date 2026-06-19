@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SQM_BASE="https://sqmresearch.com.au/property"
+
+die() { echo "error: $*" >&2; exit 1; }
+
+usage() {
+  cat >&2 <<EOF
+Usage: sqm <command> [args...]
+
+Commands:
+  listings <postcode> [--months N]  Stock on market for a postcode (default: 6 months).
+  rentals  <postcode> [--months N]  Rental listings for a postcode.
+  asking   <postcode> [--months N]  Asking prices for a postcode.
+  vacancy  <postcode> [--months N]  Vacancy rates for a postcode.
+
+Options:
+  --months N   Number of recent months to show (default: 6, max: all available).
+  -h, --help   Show this help.
+
+Examples:
+  sqm listings 3095                        # Eltham stock on market, last 6 months
+  sqm listings 3095 --months 12            # Eltham, last 12 months
+  sqm listings 3095 | jq '.data[-1]'       # Latest month only
+  sqm listings 3095 | jq '.comparison'     # YoY change summary
+  sqm listings 3095 | jq '[.data[] | {month: "\(.year)-\(.month)", total, stale: .r180p}]'
+EOF
+  exit 0
+}
+
+fetch_data() {
+  local url="$1"
+  local html raw
+
+  html=$(curl -sS -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" "$url") || die "failed to fetch $url"
+
+  raw=$(echo "$html" | grep -oE '(var|let|const) data = \[.*?\];' | head -1 | sed 's/^.*data = //' | sed 's/;$//')
+
+  [[ -z "$raw" ]] && die "could not extract data variable from page (pattern may have changed)"
+  echo "$raw"
+}
+
+cmd_listings() {
+  local pc="$1" n="${2:-6}"
+  local data
+  data=$(fetch_data "$SQM_BASE/total-property-listings?t=1&postcode=$pc")
+  echo "$data" | jq --argjson n "$n" --arg pc "$pc" '
+    . as $all |
+    {
+      postcode: $pc,
+      source: "SQM Research",
+      data: [
+        $all[-$n:] | .[] |
+        . + {total: (.r30 + .r60 + .r90 + .r180 + .r180p)}
+      ],
+      comparison: (
+        if ($all | length) >= 13 then
+          ($all[-1] | {latest_total: (.r30 + .r60 + .r90 + .r180 + .r180p)}) +
+          ($all[-13] | {year_ago_total: (.r30 + .r60 + .r90 + .r180 + .r180p)}) |
+          . + {
+            yoy_change: (.latest_total - .year_ago_total),
+            yoy_pct: (((.latest_total / .year_ago_total - 1) * 1000 | round) / 10)
+          }
+        else null end
+      )
+    }
+  '
+}
+
+cmd_generic() {
+  local endpoint="$1" pc="$2" n="${3:-6}"
+  local data
+  data=$(fetch_data "$SQM_BASE/$endpoint?t=1&postcode=$pc")
+  echo "$data" | jq --argjson n "$n" --arg pc "$pc" '
+    {
+      postcode: $pc,
+      source: "SQM Research",
+      data: .[-$n:]
+    }
+  '
+}
+
+main() {
+  [[ $# -eq 0 ]] && usage
+
+  local cmd="$1"; shift
+
+  case "$cmd" in
+    -h|--help) usage ;;
+
+    listings)
+      local pc="" n=6
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --months) n="$2"; shift 2 ;;
+          -*) shift ;;
+          *) pc="$1"; shift ;;
+        esac
+      done
+      [[ -z "$pc" ]] && die "missing postcode. Usage: sqm listings <postcode> [--months N]"
+      cmd_listings "$pc" "$n"
+      ;;
+
+    rentals|asking|vacancy)
+      local pc="" n=6
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --months) n="$2"; shift 2 ;;
+          -*) shift ;;
+          *) pc="$1"; shift ;;
+        esac
+      done
+      [[ -z "$pc" ]] && die "missing postcode. Usage: sqm $cmd <postcode> [--months N]"
+      case "$cmd" in
+        rentals) cmd_generic "total-rent-listings" "$pc" "$n" ;;
+        asking)  cmd_generic "asking-property-prices" "$pc" "$n" ;;
+        vacancy) cmd_generic "vacancy-rates"        "$pc" "$n" ;;
+      esac
+      ;;
+
+    *) die "unknown command: $cmd" ;;
+  esac
+}
+
+main "$@"

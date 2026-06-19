@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Fetch JPX/Osaka Exchange option chain data for a listed security.
+
+Usage:
+  fetch CODE [MONTH] [--raw]
+
+Arguments:
+  CODE    4-digit security code (e.g., 6146 for Disco Corporation)
+  MONTH   Expiry index: 0 = nearest, 1 = next, etc. (default: 1)
+  --raw   Output raw HTML
+
+Output:
+  Header block with underlying quote, expiry, HV, lot size.
+  Options: pipe-delimited rows with strike, atm_flag, call_bid, call_ask, call_iv, put_bid, put_ask, put_iv
+
+Examples:
+  fetch 6146        # Disco Corp, next expiry
+  fetch 6146 0      # Disco Corp, nearest expiry
+  fetch 7203        # Toyota
+EOF
+  exit 0
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+[[ "${1:-}" == "--help" || "${1:-}" == "-h" ]] && usage
+
+CODE="${1:-}"; MONTH="${2:-1}"
+RAW=false
+for arg in "$@"; do case "$arg" in --raw) RAW=true ;; esac; done
+
+[[ -z "$CODE" ]] && die "Security code required: fetch CODE [MONTH]"
+[[ ! "$CODE" =~ ^[0-9]{4}$ ]] && die "Security code must be 4 digits"
+
+URL="https://svc.qri.jp/jpx/english/kbopm/${CODE}/${MONTH}"
+TMPFILE=$(mktemp)
+trap 'rm -f "$TMPFILE"' EXIT
+
+HTTP_CODE=$(curl -sS -L -o "$TMPFILE" -w "%{http_code}" \
+  -H "Accept: text/html" \
+  -H "Referer: https://www.jpx.co.jp/english/" \
+  "$URL" 2>&1) || die "curl failed for $URL"
+
+[[ "$HTTP_CODE" != "200" ]] && die "JPX returned HTTP $HTTP_CODE"
+
+if $RAW; then
+  cat "$TMPFILE"
+  exit 0
+fi
+
+# collapse to single line for simple sed patterns
+O=$(tr '\n' ' ' < "$TMPFILE" | sed 's/&nbsp;/ /g')
+
+PRICE=$(echo "$O" | sed -n 's/.*class="a-right price-now"> *\([0-9,.]*\) *<span>.*/\1/p' | tr -d ',' | head -1)
+PRICE_DATE=$(echo "$O" | sed -n 's/.*class="a-right price-now">[0-9,]*<span>(\([^)]*\)).*/\1/p' | head -1)
+LTD=$(echo "$O" | sed -n 's/.*<dt>Last Trading Day<\/dt> *<dd>\([^<]*\)<\/dd>.*/\1/p' | head -1)
+TDATE=$(echo "$O" | sed -n 's/.*<dt>Trading Date<\/dt> *<dd>\([^<]*\)<\/dd>.*/\1/p' | head -1)
+HV=$(echo "$O" | sed -n 's/.*<th><span>HV<\/span><\/th>.*<td class="a-right">\([0-9.]*\)%<\/td>.*/\1/p' | head -1)
+LOT=$(echo "$O" | sed -n 's/.*<th><span>Lot<\/span><\/th>.*<td class="a-right">\([0-9]*\)<\/td>.*/\1/p' | head -1)
+ACTIVE_TAB=$(echo "$O" | sed -n 's/.*<li class="active"><a[^>]*>\([^<]*\)<\/a>.*/\1/p' | head -1)
+
+cat <<HEADER
+code=$CODE
+month=$MONTH
+expiry=$ACTIVE_TAB
+underlying_price=$PRICE
+underlying_date=$PRICE_DATE
+trading_date=$TDATE
+last_trading_day=$LTD
+hv=$HV
+lot_size=$LOT
+---
+strike|atm|call_bid|call_ask|call_iv|put_bid|put_ask|put_iv
+HEADER
+
+# --- Option chain ---
+# Extract each row-num block into a temp file, process one at a time
+awk '/<tr class="row-num/{p=1; s=""} p{s=s $0} /<\/tr>/ && p{print s; p=0}' "$TMPFILE" > /tmp/_jpxtmp
+trap 'rm -f "$TMPFILE" /tmp/_jpxtmp' EXIT
+
+while IFS= read -r row; do
+  ATM=0
+  echo "$row" | grep -q "atm-pos" && ATM=1
+
+  # --- Strike ---
+  # Collapse the row to one line, extract the td with class "price"
+  strike_cell=$(echo "$row" | tr '\n' ' ' | sed 's/<td class="a-center va-middle price">/\nPRICE_CELL:/' | grep 'PRICE_CELL:' | sed 's/PRICE_CELL://; s/<\/td>.*//')
+  strike=$(echo "$strike_cell" | sed 's/<[^>]*>//g' | sed 's/A *T *M//g' | tr -d -c '0-9')
+  [[ -z "$strike" ]] && continue
+
+  # --- Cell extraction helpers ---
+  # Grab all <td> contents, index by position
+  # Use awk to split on </td> and number them
+  tds=$(echo "$row" \
+    | sed 's/<br\s*\/\s*>/|/g' \
+    | sed 's/<br\s*>/|/g' \
+    | sed 's/<td[^>]*>/\n/g' \
+    | sed 's/<\/td>//g' \
+    | sed 's/<[^>]*>//g' \
+    | sed 's/&nbsp;/ /g' \
+    | sed '/^[[:space:]]*$/d')
+
+  td3=$(echo "$tds" | sed -n '4p')
+  td4=$(echo "$tds" | sed -n '5p')
+  td13=$(echo "$tds" | sed -n '14p')
+  td12=$(echo "$tds" | sed -n '13p')
+
+  # Parse call IV (td3 = "ask_iv%|bid_iv%")
+  call_iv=$(echo "$td3" | cut -d'|' -f1 | tr -d ' %')
+  [[ "$call_iv" =~ ^-*$ ]] && call_iv=""
+
+  # Parse call bid/ask (td4 = "ask,(size)|bid,(size)")
+  call_ask=$(echo "$td4" | cut -d'|' -f1 | sed 's/ *([0-9]*)//g' | tr -d ', ')
+  call_bid=$(echo "$td4" | cut -d'|' -f2 | sed 's/ *([0-9]*)//g' | tr -d ', ')
+  [[ "$call_ask" =~ ^[-\(\)]*$ || -z "$call_ask" ]] && call_ask=""
+  [[ "$call_bid" =~ ^[-\(\)]*$ || -z "$call_bid" ]] && call_bid=""
+
+  # Parse put IV (td13 = "ask_iv%|bid_iv%")
+  put_iv=$(echo "$td13" | cut -d'|' -f1 | tr -d ' %')
+  [[ "$put_iv" =~ ^-*$ ]] && put_iv=""
+
+  # Parse put bid/ask (td12 = "ask,(size)|bid,(size)")
+  put_ask=$(echo "$td12" | cut -d'|' -f1 | sed 's/ *([0-9]*)//g' | tr -d ', ')
+  put_bid=$(echo "$td12" | cut -d'|' -f2 | sed 's/ *([0-9]*)//g' | tr -d ', ')
+  [[ "$put_ask" =~ ^[-\(\)]*$ || -z "$put_ask" ]] && put_ask=""
+  [[ "$put_bid" =~ ^[-\(\)]*$ || -z "$put_bid" ]] && put_bid=""
+
+  echo "$strike|$ATM|$call_bid|$call_ask|$call_iv|$put_bid|$put_ask|$put_iv"
+done < /tmp/_jpxtmp
