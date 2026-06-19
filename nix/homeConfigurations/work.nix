@@ -192,8 +192,6 @@
             # use terraform for terragrunt
             export TG_TF_PATH=$(which terraform)
 
-            # set envs from op
-            export AIKIDO_API_KEY=$(op read "op://a3bjwc4734ro6ufcsuw44sj5eu/tuhxar7qy55j4aazxz3g7qra2i/password")
             ${builtins.readFile ./cafe.zsh}
           '';
           oh-my-zsh = {
