@@ -155,7 +155,8 @@
           yamlfmt
           yamllint
           lua-language-server
-          beam27Packages.expert
+          dexter
+          tree-sitter
           ocaml-ng.ocamlPackages_5_4.dune_3
           ocaml-ng.ocamlPackages_5_4.utop
           ocaml-ng.ocamlPackages_5_4.odoc

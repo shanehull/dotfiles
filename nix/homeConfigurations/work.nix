@@ -138,7 +138,8 @@
           yamlfmt
           yamllint
           lua-language-server
-          beam27Packages.expert
+          dexter
+          tree-sitter
           postgresql_17
 
           # other

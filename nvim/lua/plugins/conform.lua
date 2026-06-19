@@ -29,7 +29,6 @@ return {
 				terragrunt = { "terragrunt_hclfmt" },
 				hcl = { "terragrunt_hclfmt" },
 				yaml = { "yamlfmt" },
-				elixir = { "mix" },
 				ocaml = { "ocamlformat" },
 				javascript = { "prettierd", "prettier", stop_after_first = true },
 				typescript = { "prettierd", "prettier", stop_after_first = true },

@@ -34,12 +34,14 @@ return {
 				},
 			})
 
-			vim.lsp.config("expert", {
+			vim.lsp.config("dexter", {
 				capabilities = capabilities,
-				cmd = { "expert", "--stdio" },
+				cmd = { "dexter", "lsp" },
 				filetypes = { "elixir", "eelixir", "heex" },
-				root_markers = { "mix.exs", ".git" },
-				settings = {},
+				root_markers = { ".dexter/dexter.db", ".dexter.db", "mix.exs", ".git" },
+				init_options = {
+					followDelegates = true,
+				},
 			})
 
 			vim.lsp.config("ocamllsp", {
@@ -47,7 +49,7 @@ return {
 			})
 
 			vim.lsp.enable("gopls")
-			vim.lsp.enable("expert")
+			vim.lsp.enable("dexter")
 			vim.lsp.enable("ocamllsp")
 			vim.lsp.enable("lua_ls")
 			vim.lsp.enable("eslint")
