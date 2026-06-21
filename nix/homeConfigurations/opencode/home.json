@@ -135,6 +135,7 @@
     "task": "allow",
     "external_directory": {
       "*": "ask",
+      "/tmp/*": "allow",
       "*/.config/opencode/skills/*/scripts/*": "allow",
       "*/.config/opencode/skills/*/references/*": "allow",
       "*/.claude/*": "deny"
