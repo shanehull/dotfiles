@@ -26,6 +26,7 @@
       "fred"
       "github"
       "ibkr"
+      "myschool"
       "netnet-worksheet"
       "obsidian-remote"
       "owid"

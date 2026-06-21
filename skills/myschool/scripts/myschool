@@ -1,0 +1,331 @@
+#!/usr/bin/env python3
+"""Query Australian school data from ACARA My School datasets (stdlib only)."""
+
+import sys, json, math, zipfile, argparse, re
+from xml.etree import ElementTree as ET
+from pathlib import Path
+from urllib.request import Request, urlopen
+
+CACHE_DIR = Path.home() / ".cache" / "myschool"
+PROFILE_URL = (
+    "https://dataandreporting.blob.core.windows.net/anrdataportal/"
+    "Data-Access-Program/School%20Profile%202025.xlsx"
+)
+LOCATION_URL = (
+    "https://dataandreporting.blob.core.windows.net/anrdataportal/"
+    "Data-Access-Program/School%20Location%202025.xlsx"
+)
+PROFILE_XLSX = CACHE_DIR / "school_profile_2025.xlsx"
+LOCATION_XLSX = CACHE_DIR / "school_location_2025.xlsx"
+MERGED_JSON = CACHE_DIR / "schools.json"
+
+SS_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+WB_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+NS = {"s": SS_NS}
+
+
+def die(msg):
+    print(json.dumps({"error": msg}))
+    sys.exit(1)
+
+
+def col_to_index(col_str):
+    r = 0
+    for c in col_str:
+        r = r * 26 + (ord(c) - ord("A") + 1)
+    return r - 1
+
+
+def to_float(val, default=None):
+    if val is None or val == "":
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
+def find_data_sheet(zf):
+    wb_xml = zf.read("xl/workbook.xml")
+    wb_root = ET.fromstring(wb_xml)
+    rels_xml = zf.read("xl/_rels/workbook.xml.rels")
+    rels_root = ET.fromstring(rels_xml)
+
+    rid_to_target = {}
+    for rel in rels_root.findall(f"{{{REL_NS}}}Relationship"):
+        rid_to_target[rel.get("Id")] = rel.get("Target")
+
+    for sheet_el in wb_root.findall(f".//{{{WB_NS}}}sheet"):
+        name = sheet_el.get("name", "")
+        if "dictionary" in name.lower():
+            continue
+        rid = sheet_el.get(f"{{{REL_NS}}}id")
+        if not rid:
+            for attr, val in sheet_el.attrib.items():
+                if attr.endswith("}id"):
+                    rid = val
+                    break
+        if rid and rid in rid_to_target:
+            return "xl/" + rid_to_target[rid]
+
+    sheets = sorted([n for n in zf.namelist() if re.match(r"xl/worksheets/sheet\d+\.xml", n)])
+    return sheets[-1] if sheets else None
+
+
+def parse_xlsx(path):
+    with zipfile.ZipFile(path) as zf:
+        shared = []
+        if "xl/sharedStrings.xml" in zf.namelist():
+            ss_root = ET.fromstring(zf.read("xl/sharedStrings.xml"))
+            for si in ss_root.findall("s:si", NS):
+                shared.append("".join(t.text or "" for t in si.findall(".//s:t", NS)))
+
+        sheet_path = find_data_sheet(zf)
+        if not sheet_path:
+            die(f"No data worksheet found in {path.name}")
+
+        sheet_root = ET.fromstring(zf.read(sheet_path))
+        rows_data = []
+        max_col = 0
+        for row_el in sheet_root.findall(".//s:sheetData/s:row", NS):
+            cells = {}
+            for cell_el in row_el.findall("s:c", NS):
+                ref = cell_el.get("r", "")
+                col_str = "".join(c for c in ref if c.isalpha())
+                col_idx = col_to_index(col_str)
+                max_col = max(max_col, col_idx)
+                cell_type = cell_el.get("t")
+                val_el = cell_el.find("s:v", NS)
+                if cell_type == "s" and val_el is not None and val_el.text:
+                    cells[col_idx] = shared[int(val_el.text)]
+                elif cell_type == "inlineStr":
+                    t_el = cell_el.find(".//s:t", NS)
+                    cells[col_idx] = t_el.text if t_el is not None and t_el.text else ""
+                elif val_el is not None and val_el.text:
+                    cells[col_idx] = val_el.text
+                else:
+                    cells[col_idx] = ""
+            rows_data.append(cells)
+
+        if not rows_data:
+            return []
+
+        headers = {i: rows_data[0].get(i, "").strip() for i in range(max_col + 1) if rows_data[0].get(i, "").strip()}
+        return [{headers[ci]: row.get(ci, "") for ci in headers} for row in rows_data[1:]]
+
+
+def download_file(url, dest):
+    if dest.exists():
+        return
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"Downloading {dest.name}...", file=sys.stderr)
+    req = Request(url, headers={"User-Agent": "myschool-skill/1.0"})
+    with urlopen(req) as resp, open(dest, "wb") as f:
+        while True:
+            chunk = resp.read(65536)
+            if not chunk:
+                break
+            f.write(chunk)
+
+
+def load_schools(force_refresh=False):
+    if MERGED_JSON.exists() and not force_refresh:
+        with open(MERGED_JSON) as f:
+            return json.load(f)
+
+    download_file(PROFILE_URL, PROFILE_XLSX)
+    download_file(LOCATION_URL, LOCATION_XLSX)
+
+    print("Parsing school profile...", file=sys.stderr)
+    profile_rows = parse_xlsx(PROFILE_XLSX)
+    print("Parsing school locations...", file=sys.stderr)
+    location_rows = parse_xlsx(LOCATION_XLSX)
+
+    locations = {}
+    for row in location_rows:
+        sid = row.get("ACARA SML ID", "")
+        if sid:
+            locations[sid] = {
+                "latitude": to_float(row.get("Latitude")),
+                "longitude": to_float(row.get("Longitude")),
+                "lga_name": row.get("Local Government Area Name", ""),
+            }
+
+    schools = []
+    for row in profile_rows:
+        sid = row.get("ACARA SML ID", "")
+        if not sid:
+            continue
+        loc = locations.get(sid, {})
+        fte_teachers = to_float(row.get("Full Time Equivalent Teaching Staff"))
+        enrolments = to_float(row.get("Total Enrolments"))
+        ratio = None
+        if fte_teachers and fte_teachers > 0 and enrolments:
+            ratio = round(enrolments / fte_teachers, 1)
+        schools.append({
+            "acara_sml_id": sid,
+            "school_name": row.get("School Name", ""),
+            "suburb": row.get("Suburb", ""),
+            "state": row.get("State", ""),
+            "postcode": row.get("Postcode", ""),
+            "sector": row.get("School Sector", ""),
+            "school_type": row.get("School Type", ""),
+            "year_range": row.get("Year Range", ""),
+            "geolocation": row.get("Geolocation", ""),
+            "school_url": row.get("School URL", ""),
+            "icsea": to_float(row.get("ICSEA")),
+            "icsea_percentile": to_float(row.get("ICSEA Percentile")),
+            "total_enrolments": enrolments,
+            "girls_enrolments": to_float(row.get("Girls Enrolments")),
+            "boys_enrolments": to_float(row.get("Boys Enrolments")),
+            "teaching_staff_fte": fte_teachers,
+            "non_teaching_staff_fte": to_float(row.get("Full Time Equivalent Non-Teaching Staff")),
+            "student_teacher_ratio": ratio,
+            "indigenous_pct": to_float(row.get("Indigenous Enrolments (%)")),
+            "lbote_pct": to_float(row.get("Language Background Other Than English - Yes (%)")),
+            "bottom_sea_quarter_pct": to_float(row.get("Bottom SEA Quarter (%)")),
+            "top_sea_quarter_pct": to_float(row.get("Top SEA Quarter (%)")),
+            "latitude": loc.get("latitude"),
+            "longitude": loc.get("longitude"),
+            "lga_name": loc.get("lga_name", ""),
+        })
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(MERGED_JSON, "w") as f:
+        json.dump(schools, f)
+    print(f"Cached {len(schools)} schools", file=sys.stderr)
+    return schools
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    R = 6371.0
+    rlat1, rlon1 = math.radians(lat1), math.radians(lon1)
+    rlat2, rlon2 = math.radians(lat2), math.radians(lon2)
+    dlat, dlon = rlat2 - rlat1, rlon2 - rlon1
+    a = math.sin(dlat / 2) ** 2 + math.cos(rlat1) * math.cos(rlat2) * math.sin(dlon / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def by_icsea(s):
+    return s.get("icsea") or 0
+
+
+def cmd_postcode(schools, postcode, limit):
+    m = [s for s in schools if str(s.get("postcode", "")).strip() == str(postcode).strip()]
+    m.sort(key=by_icsea, reverse=True)
+    return m[:limit]
+
+
+def cmd_search(schools, query, limit):
+    q = query.lower()
+    m = [s for s in schools if q in (s.get("school_name") or "").lower()]
+    m.sort(key=by_icsea, reverse=True)
+    return m[:limit]
+
+
+def cmd_suburb(schools, suburb, limit):
+    q = suburb.lower().strip()
+    m = [s for s in schools if (s.get("suburb") or "").lower().strip() == q]
+    m.sort(key=by_icsea, reverse=True)
+    return m[:limit]
+
+
+def cmd_nearby(schools, lat, lon, radius_km, limit):
+    results = []
+    for s in schools:
+        slat, slon = s.get("latitude"), s.get("longitude")
+        if slat is None or slon is None:
+            continue
+        d = haversine_km(lat, lon, slat, slon)
+        if d <= radius_km:
+            results.append({**s, "distance_km": round(d, 2)})
+    results.sort(key=lambda s: s["distance_km"])
+    return results[:limit]
+
+
+def cmd_top(schools, state, limit):
+    m = schools
+    if state:
+        st = state.upper().strip()
+        m = [s for s in m if (s.get("state") or "").upper().strip() == st]
+    m = [s for s in m if s.get("icsea") is not None]
+    m.sort(key=lambda s: s["icsea"], reverse=True)
+    return m[:limit]
+
+
+def cmd_lga(schools, lga_name, limit):
+    q = lga_name.lower().strip()
+    m = [s for s in schools if q in (s.get("lga_name") or "").lower()]
+    m.sort(key=by_icsea, reverse=True)
+    return m[:limit]
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description="Query Australian school data from ACARA My School.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
+Commands:
+  postcode <code>          Schools in a postcode
+  search <name>            Search schools by name
+  suburb <name>            Schools in a suburb
+  nearby <lat> <lon>       Schools near coordinates
+  top [state]              Highest ICSEA schools (optionally by state)
+  lga <name>               Schools in an LGA
+  refresh                  Force re-download of data files
+
+Examples:
+  myschool postcode 2000
+  myschool search "Sydney Grammar"
+  myschool suburb Eltham
+  myschool nearby -37.7130 145.1530 --radius 3
+  myschool top VIC --limit 20
+  myschool lga Nillumbik
+""",
+    )
+    p.add_argument("command", help="Command to run")
+    p.add_argument("args", nargs="*", help="Command arguments")
+    p.add_argument("--limit", type=int, default=20, help="Max results (default: 20)")
+    p.add_argument("--radius", type=float, default=5.0, help="Radius in km for nearby (default: 5)")
+    p.add_argument("--refresh", action="store_true", help="Force re-download")
+    args = p.parse_args()
+    cmd = args.command.lower()
+
+    if cmd == "refresh":
+        for f in (PROFILE_XLSX, LOCATION_XLSX, MERGED_JSON):
+            if f.exists():
+                f.unlink()
+                print(f"Removed {f}", file=sys.stderr)
+        print("Cache cleared.", file=sys.stderr)
+        sys.exit(0)
+
+    schools = load_schools(force_refresh=args.refresh)
+
+    if cmd == "postcode":
+        if not args.args: die("Usage: myschool postcode <code>")
+        result = cmd_postcode(schools, args.args[0], args.limit)
+    elif cmd == "search":
+        if not args.args: die("Usage: myschool search <name>")
+        result = cmd_search(schools, " ".join(args.args), args.limit)
+    elif cmd == "suburb":
+        if not args.args: die("Usage: myschool suburb <name>")
+        result = cmd_suburb(schools, " ".join(args.args), args.limit)
+    elif cmd == "nearby":
+        if len(args.args) < 2: die("Usage: myschool nearby <lat> <lon> [--radius km]")
+        lat, lon = to_float(args.args[0]), to_float(args.args[1])
+        if lat is None or lon is None: die("Invalid coordinates")
+        result = cmd_nearby(schools, lat, lon, args.radius, args.limit)
+    elif cmd == "top":
+        result = cmd_top(schools, args.args[0] if args.args else None, args.limit)
+    elif cmd == "lga":
+        if not args.args: die("Usage: myschool lga <name>")
+        result = cmd_lga(schools, " ".join(args.args), args.limit)
+    else:
+        die(f"Unknown command: {cmd}. Use --help for usage.")
+
+    print(json.dumps(result, indent=2, default=str))
+
+
+if __name__ == "__main__":
+    main()
