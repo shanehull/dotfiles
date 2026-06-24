@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="https://live.euronext.com"
+UA="Mozilla/5.0"
+
+usage() {
+  cat <<'EOF'
+Fetch Euronext stock option chains.
+
+Usage:
+  fetch --search QUERY                      Search instruments (TSV: symbol, exchange)
+  fetch SYMBOL EXCHANGE                     Nearest expiry (raw JSON)
+  fetch SYMBOL EXCHANGE --md DD-MM-YYYY     Specific expiry (raw HTML table)
+  fetch SYMBOL EXCHANGE --md 01-12-2030 --md 01-12-2028  Multiple expiries
+  fetch SYMBOL EXCHANGE --discover          List available maturity dates (one per line)
+  fetch SYMBOL EXCHANGE --underlying        Underlying instrument info (raw HTML)
+
+Arguments:
+  SYMBOL    Option class symbol (e.g., RD for Shell, HEI for Heineken)
+  EXCHANGE  Derivatives MIC (e.g., DAMS, DPAR, DMIL — see references/exchanges.md)
+
+Options:
+  --md DATE       Maturity date in DD-MM-YYYY format. Repeatable.
+  --discover      Probe for available expiries and list them.
+  --underlying    Print underlying instrument info.
+  --search QUERY  Search for instruments by name/symbol/ISIN.
+  -h, --help      Show this help.
+
+Output:
+  --search      → TSV: symbol \t exchange \t name
+  default       → raw JSON (nearest expiry only)
+  --md          → raw HTML (option chain tables for requested expiries)
+  --discover    → DD-MM-YYYY dates, one per line
+  --underlying  → raw HTML
+
+Examples:
+  fetch --search shell
+  fetch RD DAMS
+  fetch RD DAMS --md 01-12-2030
+  fetch RD DAMS --discover
+EOF
+}
+
+die() { echo "error: $*" >&2; exit 1; }
+
+# ── Search ──────────────────────────────────────────────────────────────────
+do_search() {
+  local query="$1"
+  curl -sfL "${BASE}/en/instrumentSearch/searchJSON?q=$(printf '%s' "$query" | jq -sRr @uri)" \
+    -H "User-Agent: ${UA}" \
+    -H "Accept: application/json" |
+    jq -r '
+      .[] |
+      select(.link | test("stock-options")) |
+      .link |
+      sub("^/en/product/stock-options/";"") |
+      split("-") as $p |
+      $p[0] + "\t" + $p[1]
+    '
+}
+
+# ── Nearest expiry (JSON) ───────────────────────────────────────────────────
+do_nearest() {
+  local symbol="$1" exchange="$2"
+  curl -sfL "${BASE}/en/ajax/getPricesOptionsAjax/stock-options/${symbol}/${exchange}/" \
+    -H "User-Agent: ${UA}" \
+    -H "Accept: application/json" \
+    -H "Referer: ${BASE}/en/product/stock-options/${symbol,,}-${exchange,,}"
+}
+
+# ── Underlying info ─────────────────────────────────────────────────────────
+do_underlying() {
+  local symbol="$1" exchange="$2"
+  curl -sfL "${BASE}/en/ajax/getUnderlying/${symbol}/${exchange}/options" \
+    -H "User-Agent: ${UA}" \
+    -H "Referer: ${BASE}/en/product/stock-options/${symbol,,}-${exchange,,}"
+}
+
+# ── Discover available maturity dates ───────────────────────────────────────
+do_discover() {
+  local symbol="$1" exchange="$2"
+  local dates=()
+  local i year month
+
+  # Monthly for next 18 months
+  for i in $(seq 0 17); do
+    year=$(date -v+${i}m +%Y 2>/dev/null || date -d "+${i} months" +%Y 2>/dev/null)
+    month=$(date -v+${i}m +%m 2>/dev/null || date -d "+${i} months" +%m 2>/dev/null)
+    dates+=("01-${month}-${year}")
+  done
+
+  # December LEAPS for next 6 years
+  for y in $(seq "$(date +%Y)" "$(($(date +%Y) + 6))"); do
+    dates+=("01-12-${y}")
+  done
+
+  # Deduplicate
+  local unique
+  unique=$(printf '%s\n' "${dates[@]}" | sort -u)
+
+  # Build POST body
+  local body=""
+  while IFS= read -r d; do
+    body="${body}md[]=${d}&"
+  done <<< "$unique"
+  body="${body}ps=999"
+
+  curl -s -X POST "${BASE}/en/ajax/submitOptionsForm/stock-options/${symbol}/${exchange}" \
+    -H "User-Agent: ${UA}" \
+    -H "Accept: text/html" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "Referer: ${BASE}/en/product/stock-options/${symbol,,}-${exchange,,}" \
+    -d "$body" |
+    grep -oE '[A-Z][a-z]{2} [0-9]{4}' |
+    sort -u |
+    while read -r m y; do
+      local mm
+      case "$m" in
+        Jan) mm=01;; Feb) mm=02;; Mar) mm=03;; Apr) mm=04;;
+        May) mm=05;; Jun) mm=06;; Jul) mm=07;; Aug) mm=08;;
+        Sep) mm=09;; Oct) mm=10;; Nov) mm=11;; Dec) mm=12;;
+      esac
+      echo "01-${mm}-${y}"
+    done
+}
+
+# ── Fetch specific expiries (raw HTML) ──────────────────────────────────────
+fetch_expiries() {
+  local symbol="$1" exchange="$2"; shift 2
+  local body=""
+  for d in "$@"; do
+    body="${body}md[]=${d}&"
+  done
+  body="${body}ps=999"
+
+  curl -s -X POST "${BASE}/en/ajax/submitOptionsForm/stock-options/${symbol}/${exchange}" \
+    -H "User-Agent: ${UA}" \
+    -H "Accept: text/html" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "Referer: ${BASE}/en/product/stock-options/${symbol,,}-${exchange,,}" \
+    -d "$body"
+}
+
+# ── Main ────────────────────────────────────────────────────────────────────
+main() {
+  local -a md_args=() positional=()
+  local discover=0 underlying=0 search_query=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --search)     search_query="$2"; shift 2 ;;
+      --md)         md_args+=("$2"); shift 2 ;;
+      --discover)   discover=1; shift ;;
+      --underlying) underlying=1; shift ;;
+      -h|--help)    usage; exit 0 ;;
+      -*)           echo "unknown option: $1" >&2; exit 1 ;;
+      *)            positional+=("$1"); shift ;;
+    esac
+  done
+
+  if [[ -n "$search_query" ]]; then
+    do_search "$search_query"
+    return
+  fi
+
+  [[ ${#positional[@]} -lt 2 ]] && { usage >&2; exit 1; }
+  local symbol="${positional[0]}" exchange="${positional[1]}"
+
+  if [[ $underlying -eq 1 ]]; then
+    do_underlying "$symbol" "$exchange"
+    return
+  fi
+
+  if [[ $discover -eq 1 ]]; then
+    do_discover "$symbol" "$exchange"
+    return
+  fi
+
+  if [[ ${#md_args[@]} -gt 0 ]]; then
+    fetch_expiries "$symbol" "$exchange" "${md_args[@]}"
+    return
+  fi
+
+  do_nearest "$symbol" "$exchange"
+}
+
+main "$@"

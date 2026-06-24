@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# SEC EDGAR REST API client. Free, no API key. Outputs raw JSON to stdout.
+# SEC fair-access policy REQUIRES a descriptive User-Agent with a contact.
+# Override with EDGAR_USER_AGENT="Your Name your@email.com". Limit ~10 req/s.
+
+UA="${EDGAR_USER_AGENT:-secondbrain-research agent@example.com}"
+CACHE="${TMPDIR:-/tmp}/edgar_company_tickers.json"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <command> [args] [options]
+
+Free SEC EDGAR REST API client. Outputs raw JSON to stdout for piping to jq.
+No API key. A descriptive User-Agent is required by the SEC; set EDGAR_USER_AGENT.
+
+Commands:
+  cik <ticker>
+      Resolve a ticker symbol to its zero-padded 10-digit CIK. Prints the CIK.
+
+  submissions <ticker|cik>
+      Filing history + entity metadata (name, tickers, exchanges, SIC, addresses).
+      .filings.recent holds up to 1000 newest; .filings.files lists overflow
+      archives (older history, back to the 1990s) fetched with: archive <name>
+
+  archive <filename>
+      Fetch an overflow submissions archive named in .filings.files[].name,
+      e.g. CIK0000320193-submissions-001.json
+
+  concept <ticker|cik> <taxonomy> <tag> [--unit UNIT]
+      All values of one XBRL concept over time for one company.
+      taxonomy: us-gaap | ifrs-full | dei | srt
+      --unit filters .units (e.g. USD, shares, USD-per-shares). Default: all units.
+
+  facts <ticker|cik>
+      Every XBRL fact for a company in one call (large; pipe to jq to filter).
+
+  series <ticker|cik> <tag[,tag...]> [options]
+      Clean per-period history for one or more metrics, aligned by period end.
+      Full-period filtering and restatement dedup (latest filed per period) are
+      applied automatically. Outputs a JSON array, oldest first.
+      A tag may carry a taxonomy prefix, e.g. dei:EntityCommonStockSharesOutstanding.
+      Options:
+        --taxonomy TAX   default taxonomy for bare tags (default: us-gaap)
+        --unit UNIT      unit of measure (default: USD)
+        --period KIND    annual | quarterly | instant (default: annual)
+                         instant = balance-sheet point-in-time (no duration)
+        --since YYYY     drop periods ending before this year
+        --limit N        keep only the N most recent periods
+
+  frames <taxonomy> <tag> <unit> <period>
+      One fact per reporting entity for a calendar period (cross-company compare).
+      period: CY#### (annual) | CY####Q# (quarterly) | CY####Q#I (instantaneous)
+      e.g. frames us-gaap AccountsPayableCurrent USD CY2019Q1I
+
+Common options:
+  --unit UNIT   restrict to one unit of measure (concept, series)
+  -h, --help    Show this help
+
+Examples:
+  $(basename "$0") cik AAPL
+  $(basename "$0") submissions AAPL | jq '{name, sic:.sicDescription, tickers}'
+  $(basename "$0") concept MSFT us-gaap Assets --unit USD | jq '.units.USD[-4:]'
+  $(basename "$0") frames us-gaap Revenues USD CY2022 | jq '.data | length'
+  $(basename "$0") series XOM NetIncomeLoss,NetCashProvidedByUsedInOperatingActivities,PaymentsToAcquirePropertyPlantAndEquipment --since 2010
+  $(basename "$0") series AAPL Assets --period instant --limit 8
+
+Exit codes: 0 ok | 1 usage error | 2 ticker not found | 3 HTTP/API error
+EOF
+  exit 0
+}
+
+die() { echo "Error: $*" >&2; exit "${2:-1}"; }
+
+fetch() {
+  # fetch <url> ; emits body to stdout, dies on non-200. Cleans its temp on
+  # every path (RETURN traps do not fire when die->exit runs inside a $() subshell).
+  local url="$1" tmp code
+  tmp=$(mktemp)
+  code=$(curl -sS -w "%{http_code}" -o "$tmp" -H "User-Agent: $UA" -H "Accept-Encoding: gzip,deflate" --compressed "$url") \
+    || { rm -f "$tmp"; die "request failed: $url" 3; }
+  if [[ "$code" != "200" ]]; then
+    rm -f "$tmp"
+    die "HTTP $code for $url (404 often means the CIK/tag/period has no data)" 3
+  fi
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+pad_cik() { printf '%010d' "$((10#$1))"; }
+
+resolve_cik() {
+  # echoes a zero-padded 10-digit CIK for a ticker or numeric CIK
+  local in="$1"
+  if [[ "$in" =~ ^[0-9]+$ ]]; then
+    pad_cik "$in"
+    return
+  fi
+  local up tick
+  up=$(printf '%s' "$in" | tr '[:lower:]' '[:upper:]')
+  if [[ ! -f "$CACHE" ]] || [[ -z "$(find "$CACHE" -mtime -1 2>/dev/null)" ]]; then
+    curl -sS -H "User-Agent: $UA" --compressed \
+      "https://www.sec.gov/files/company_tickers.json" -o "$CACHE" \
+      || die "could not download ticker map" 3
+  fi
+  tick=$(jq -r --arg t "$up" '.[] | select(.ticker==$t) | .cik_str' "$CACHE" | head -1)
+  [[ -z "$tick" ]] && die "ticker not found: $in (try a CIK, or check sec.gov CIK lookup)" 2
+  pad_cik "$tick"
+}
+
+[[ $# -eq 0 ]] && usage
+cmd="$1"; shift || true
+
+case "$cmd" in
+  -h|--help) usage ;;
+
+  cik)
+    [[ $# -lt 1 ]] && die "cik requires a ticker"
+    resolve_cik "$1"
+    ;;
+
+  submissions)
+    [[ $# -lt 1 ]] && die "submissions requires a ticker or CIK"
+    cik=$(resolve_cik "$1")
+    fetch "https://data.sec.gov/submissions/CIK${cik}.json"
+    ;;
+
+  archive)
+    [[ $# -lt 1 ]] && die "archive requires a filename from .filings.files[].name"
+    fetch "https://data.sec.gov/submissions/$1"
+    ;;
+
+  concept)
+    [[ $# -lt 3 ]] && die "concept requires <ticker|cik> <taxonomy> <tag>"
+    cik=$(resolve_cik "$1"); tax="$2"; tag="$3"; shift 3
+    unit=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --unit) unit="$2"; shift 2 ;;
+        --unit=*) unit="${1#*=}"; shift ;;
+        *) die "unknown option: $1" ;;
+      esac
+    done
+    out=$(fetch "https://data.sec.gov/api/xbrl/companyconcept/CIK${cik}/${tax}/${tag}.json")
+    if [[ -n "$unit" ]]; then
+      printf '%s' "$out" | jq --arg u "$unit" '{cik,taxonomy,tag,label,description, units: {($u): .units[$u]}}'
+    else
+      printf '%s' "$out"
+    fi
+    ;;
+
+  facts)
+    [[ $# -lt 1 ]] && die "facts requires a ticker or CIK"
+    cik=$(resolve_cik "$1")
+    echo "note: companyfacts is large; pipe to jq to filter (.facts.\"us-gaap\".<Tag>)" >&2
+    fetch "https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json"
+    ;;
+
+  frames)
+    [[ $# -lt 4 ]] && die "frames requires <taxonomy> <tag> <unit> <period>"
+    fetch "https://data.sec.gov/api/xbrl/frames/$1/$2/$3/$4.json"
+    ;;
+
+  series)
+    [[ $# -lt 2 ]] && die "series requires <ticker|cik> <tag[,tag...]>"
+    cik=$(resolve_cik "$1"); tags_csv="$2"; shift 2
+    tax="us-gaap"; unit="USD"; period="annual"; since="0000"; limit="0"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --taxonomy) tax="$2"; shift 2 ;;
+        --taxonomy=*) tax="${1#*=}"; shift ;;
+        --unit) unit="$2"; shift 2 ;;
+        --unit=*) unit="${1#*=}"; shift ;;
+        --period) period="$2"; shift 2 ;;
+        --period=*) period="${1#*=}"; shift ;;
+        --since) since="$2"; shift 2 ;;
+        --since=*) since="${1#*=}"; shift ;;
+        --limit) limit="$2"; shift 2 ;;
+        --limit=*) limit="${1#*=}"; shift ;;
+        *) die "unknown option: $1" ;;
+      esac
+    done
+    case "$period" in
+      annual)    lo=300; hi=400 ;;
+      quarterly) lo=80;  hi=100 ;;
+      instant)   lo=0;   hi=0 ;;
+      *) die "invalid --period: $period (annual|quarterly|instant)" ;;
+    esac
+
+    tmpd=$(mktemp -d); trap 'rm -rf "$tmpd"' EXIT
+    IFS=',' read -ra tags <<< "$tags_csv"
+    for raw in "${tags[@]}"; do
+      [[ -z "$raw" ]] && continue
+      if [[ "$raw" == *:* ]]; then ttax="${raw%%:*}"; tag="${raw#*:}"; else ttax="$tax"; tag="$raw"; fi
+      body=$(fetch "https://data.sec.gov/api/xbrl/companyconcept/CIK${cik}/${ttax}/${tag}.json") \
+        || die "no data for ${ttax}:${tag}" 3
+      printf '%s' "$body" | jq \
+        --arg u "$unit" --arg key "$tag" --arg period "$period" \
+        --argjson lo "$lo" --argjson hi "$hi" '
+        ((.units[$u]) // [])
+        | map(. + {_dur: (if (.start and .end)
+              then (((.end|strptime("%Y-%m-%d")|mktime)-(.start|strptime("%Y-%m-%d")|mktime))/86400)
+              else null end)})
+        | map(select(
+            if $period=="instant" then (.start==null)
+            else (._dur!=null and ._dur>=$lo and ._dur<=$hi) end))
+        | group_by(.end) | map(max_by(.filed))
+        | map({end, fy, fp, form, filed, ($key): .val})
+      ' > "$tmpd/$tag.json"
+    done
+
+    jq -s --arg since "${since}-01-01" --argjson limit "$limit" '
+      (flatten | group_by(.end) | map(add)
+       | map(select(.end >= $since)) | sort_by(.end))
+      | if $limit>0 then .[-$limit:] else . end
+    ' "$tmpd"/*.json
+    ;;
+
+  *) die "unknown command: $cmd (see --help)" ;;
+esac
