@@ -28,7 +28,7 @@ To maintain high velocity and low technical debt, all agents must adhere to thes
 
 ## 6. Comments and Documentation
 
-Comments explain design decisions and context that cannot be inferred from code alone.
+Default to no comment. Comments explain design decisions and context that cannot be inferred from code alone.
 
 - **Describe Intent, Not Behavior:** Capture the _why_, not the _what_.
 - **No Conversation Artifacts:** No debugging history or previous attempts.
