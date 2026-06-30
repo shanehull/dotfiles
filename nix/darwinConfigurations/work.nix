@@ -15,6 +15,13 @@
           config = {
             allowUnfree = true;
           };
+          overlays = [
+            # statix/mise tests broken upstream in sandbox; skip checks
+            (_: prev: {
+              statix = prev.statix.overrideAttrs (_: {doCheck = false;});
+              mise = prev.mise.overrideAttrs (_: {doCheck = false;});
+            })
+          ];
         };
       }
     ];
