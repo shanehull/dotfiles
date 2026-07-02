@@ -28,19 +28,21 @@ scripts/cotality <command> [args...]
 
 ```
 scripts/cotality auctions vic                             # VIC auction results
+scripts/cotality auctions vic | jq '.weeklyResults[] | {date: .summaryDate, clearanceRate, scheduled: .totalScheduledAuctions, soldPrior, soldAt, passedIn, withdrawn}'
 scripts/cotality auctions nsw                             # NSW auction results
 scripts/cotality indices                                  # all index data (public)
 scripts/cotality indices | jq '.daily[] | {city: .location, value, change, yearlyChangePercent}'
-scripts/cotality indices | jq '.monthly[] | {city: .location, houses: .houseValue, units: .unitValue}'
+scripts/cotality indices | jq '.monthly[] | {city: .location, houses: .houseValue, houseMo: .housePercentChangeMonth, units: .unitValue, unitMo: .unitPercentChangeMonth}'
 scripts/cotality suggest 2000                             # find locationId for postcode
 scripts/cotality suggest 2000 | jq '.suggestions[0].postcodeId'
 scripts/cotality stats 101812                             # % stock on market for postcode 2000
 scripts/cotality stats 101812 64                          # total listings for postcode 2000
 scripts/cotality sales 2000                               # recent sales in 2000
-scripts/cotality sales 2000 | jq '.data[].properties[] | {price: .salesLastSoldPrice, address: .addressFirstLine, suburb: .addressSuburb, beds: .bedrooms}'
+scripts/cotality sales 2000 | jq '.data[].properties[] | {price: .salesLastSoldPrice, address: .addressFirstLine, suburb: .addressSuburb, beds: .beds}'
 ```
 
 ## Gotchas
 
 - **Stats use numeric metric IDs** — `58` = % Stock on Market (12mo), `64` = Total Listings (12mo).
 - **`suggest` returns `postcodeId`** — use that as the `locationId` for `stats`, not the postcode string.
+- **Auction clearance rate is `sold / reported`, not `sold / scheduled`.** Unreported auctions (no-bid cancellations, ghost listings) are silently excluded from the denominator. When `scheduled − reported` spikes (normally near zero), demand is evaporating faster than the headline CR suggests. The real clearance rate is `sold / scheduled`. Cotality routinely misses 20–40% of auctions in weak weeks — track `scheduled − reported` as the primary demand signal.
