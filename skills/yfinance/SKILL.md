@@ -1,6 +1,6 @@
 ---
 name: yfinance
-description: Fetch stock data and financial information — quotes, price history, company financials, option chains, market sectors, institutional holders, insider transactions, and news. Use this skill when the user asks about stocks, company financials, options, or market analysis, even if they don't mention a ticker symbol or Yahoo Finance.
+description: Fetch stock data and financial information — quotes, price history, company financials, option chains, market sectors, institutional holders, insider transactions, news, and screeners. Use this skill when the user asks about stocks, company financials, options, market analysis, or stock screening, even if they don't mention a ticker symbol or Yahoo Finance.
 compatibility: Requires yfinance MCP server connection.
 allowed-tools: yfinance_*
 ---
@@ -88,6 +88,30 @@ Use for: insider ownership %, institutional concentration, insider trading patte
 
 Valid sectors: Basic Materials, Communication Services, Consumer Cyclical, Consumer Defensive, Energy, Financial Services, Healthcare, Industrials, Real Estate, Technology, Utilities
 
+### Screen
+
+`yfinance_screen` — Run Yahoo Finance screeners using predefined keys or custom query trees.
+
+- `query`: For `query_type="predefined"`: screener key like `"day_gainers"`. For `"equity"` or `"fund"`: custom query tree with `{operator, operands}` nodes.
+- `query_type`: `"predefined"` (default), `"equity"`, or `"fund"`
+- `size`: Rows for custom queries (max 250). `count`: Rows for predefined queries (max 250).
+- `sort_field`: e.g. `"percentchange"`, `"returnontotalcapital.lasttwelvemonths"`. `sort_asc`: ascending if `true`.
+
+See `references/screener-fields.md` for the full field list.
+
+**Examples**:
+`yfinance_screen(query="day_gainers", query_type="predefined")`
+`yfinance_screen(query_type="equity", query={"operator": "and", "operands": [{"operator": "gt", "operands": ["percentchange", 3]}, {"operator": "eq", "operands": ["region", "us"]}, {"operator": "gte", "operands": ["intradayprice", 5]}, {"operator": "gt", "operands": ["dayvolume", 500000]}]}, sort_field="percentchange", sort_asc=false, size=50)`
+`yfinance_screen(query_type="equity", query={"operator": "and", "operands": [{"operator": "eq", "operands": ["region", "no"]}, {"operator": "eq", "operands": ["sector", "Energy"]}, {"operator": "eq", "operands": ["industry", "Oil & Gas Drilling"]}, {"operator": "gt", "operands": ["returnontotalcapital.lasttwelvemonths", 5]}]}, sort_field="returnontotalcapital.lasttwelvemonths", sort_asc=false, size=25)`
+
+### Screen Gappers
+
+`yfinance_screen_gappers` — Purpose-built screener for opening-session bullish gappers.
+
+Parameters: `min_percent_change` (default 3.0), `min_price` (default 5.0), `min_volume` (default 500000), `min_market_cap` (default 2B), `region` (default `"us"`), `size` (default 50, max 250), `offset`, `sort_asc` (default `false`).
+
+**Example**: `yfinance_screen_gappers(min_percent_change=5, min_price=10, min_volume=1000000)`
+
 ### Get Option Dates
 
 `yfinance_get_option_dates` - Available expiration dates for a stock's options.
@@ -110,6 +134,10 @@ Returns per contract: `strike`, `lastPrice`, `bid`, `ask`, `volume`, `openIntere
 - **Option expiration dates** — call `yfinance_get_option_dates` first to get valid dates. Passing an invalid or expired date to `yfinance_get_option_chain` silently returns empty data.
 - **Missing fields** — `yfinance_get_ticker_info` field availability varies by security type. ETFs lack some fields (e.g., `pegRatio`). Check for `null` before using.
 - **Sector names are exact** — `yfinance_get_top` requires exact sector names from the list below. `"Tech"` or `"finance"` won't match — use `"Technology"`, `"Financial Services"`.
+- **Predefined screener keys** — valid keys include `day_gainers`, `day_losers`, `most_actives`, `undervalued_large_caps`, `undervalued_growth_stocks`, `growth_technology_stocks`, `aggressive_small_caps`, `small_cap_gainers`. These are Yahoo-defined; availability may change.
+- **Custom screener operators** — lowercase: `gt`, `lt`, `eq`, `gte`, `lte`, `and`, `or`, `btwn`, `is-in`. Each `or` group must have at least 2 operands.
+- **Sector/industry filtering** — `sector` must be set before `industry` will match. Both are exact string matches: `"Energy"`, `"Oil & Gas Drilling"`. Case-sensitive.
+- **Dotted field names** — many fields use dot notation: `returnontotalcapital.lasttwelvemonths` (ROIC), `peratio.lasttwelvemonths` (trailing P/E), `lastclosetevebit.lasttwelvemonths` (EV/EBIT).
 
 ## Options Formulas
 
