@@ -81,6 +81,7 @@ Once the final note has been written, use surgical edits only.
 
 - **Back-and-forth is the engine.** One message per heading is never enough. Probe, challenge, adapt — do not arrive with a fixed question list.
 - **Source everything.** Cite the actual document ("Annual Report FY2025," "Q2 earnings call transcript"), not the tool used to fetch it. If data is missing (segment detail, off-balance-sheet items, insider specifics), ask the user if they have the source. Do not make assumptions to fill gaps.
+- **Source link format.** Sources must use markdown links: `[document title](full-url)`. Every source is a clickable link.
 - **Do not fill the template during discussion.** Only populate at the end after all headings are exhausted.
 - **Third person only.** Analysis, not personal opinion.
 - **Information-dense, not terse.** Pack analytical weight into every line, but maintain narrative flow. Data should do the heavy lifting — commentary is seasoning, not filler.
