@@ -51,7 +51,7 @@
       "mcp__plugin_mcps_honeycomb__run_bubbleup"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "enabledPlugins": {
     "mcps@shane-mcps": true,
     "linear@claude-plugins-official": true,

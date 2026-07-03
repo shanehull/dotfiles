@@ -19,6 +19,10 @@
     "pganalyze-production": {
       "type": "http",
       "url": "https://pganalyze.eu-west-1.remote.com/mcp"
+    },
+    "buildkite": {
+      "type": "http",
+      "url": "https://mcp.buildkite.com/mcp"
     }
   }
 }
