@@ -63,6 +63,8 @@ Filter and sort fields for `yfinance_screen(query_type="equity")`. Source: `yfin
 
 | Field                                        | Description                          |
 | -------------------------------------------- | ------------------------------------ |
+| `dividendyield`                              | Trailing dividend yield              |
+| `dividendpershare.lasttwelvemonths`          | Dividend per share (TTM)             |
 | `consecutive_years_of_dividend_growth_count` | Years of consecutive dividend growth |
 | `returnonassets.lasttwelvemonths`            | ROA (TTM)                            |
 | `returnonequity.lasttwelvemonths`            | ROE (TTM)                            |
