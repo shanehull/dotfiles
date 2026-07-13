@@ -126,6 +126,7 @@
           terraform-ls
           tflint
           gotools
+          gopls
           golines
           golangci-lint
           templ

@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+usage() { cat <<EOF
+Usage: enso-soi [--months <n>] [--json] [--standardized]
+
+Fetch the Southern Oscillation Index (SOI) from NOAA CPC.
+SOI = standardized Tahiti SLP - standardized Darwin SLP.
+Negative SOI indicates El Niño; positive SOI indicates La Niña.
+
+Options:
+  --months <n>    Number of recent months (default: 6)
+  --json          Output as JSON
+  --standardized  Use standardized values instead of anomalies (default: anomalies)
+  -h, --help      Show this help
+EOF
+exit 0; }
+MONTHS=6; FORMAT="text"; MODE="anom"
+while [[ $# -gt 0 ]]; do case "$1" in
+  --months) MONTHS="$2"; shift 2 ;; --json) FORMAT="json"; shift ;;
+  --standardized) MODE="std"; shift ;; -h|--help) usage ;;
+  *) echo "Unknown option: $1"; usage ;;
+esac; done
+URL="https://www.cpc.ncep.noaa.gov/data/indices/soi"
+
+fetch_raw() { curl -sSf "$URL" 2>/dev/null || { echo "ERROR: Failed to fetch $URL" >&2; exit 2; }; }
+
+parse_soi() {
+  # SOI file has two blocks: anomalies first, then standardized below "STANDARDIZED    DATA"
+  # Each block: YEAR JAN FEB ... DEC
+  local raw; raw=$(fetch_raw)
+  if [[ "$MODE" == "std" ]]; then
+    echo "$raw" | awk '
+      /STANDARDIZED[[:space:]]+DATA/ { in_std=1; next }
+      in_std && /^[0-9]{4}/ {
+        yr=$1
+        for(m=2; m<=13; m++) {
+          mon=sprintf("%02d", m-1)
+          if($m+0 != -999.9 && $m+0 != -99.9)
+            printf "%04d-%s|%.1f\n", yr, mon, $m
+        }
+      }'
+  else
+    echo "$raw" | awk '
+      /^YEAR/ { in_data=1; next }
+      in_data && /^[0-9]{4}/ {
+        yr=$1
+        if(yr > 2026) next
+        for(m=2; m<=13; m++) {
+          mon=sprintf("%02d", m-1)
+          val=$m+0
+          if(val == -999.9 || val == -99.9 || val == 0.0) continue
+          if(yr == 2026 && mon+0 > 7) continue
+          printf "%04d-%s|%.1f\n", yr, mon, val
+        }
+      }
+      /STANDARDIZED/ { exit }
+    '
+  fi
+}
+
+main() {
+  local data; data=$(parse_soi | tail -n "$MONTHS")
+  if [[ "$FORMAT" == "json" ]]; then
+    echo "["; local first=true
+    while IFS='|' read -r ym val; do
+      [[ -z "$ym" ]] && continue; $first || echo ","; first=false
+      printf '  {"date":"%s","soi":%.1f}' "$ym" "$val"
+    done <<< "$data"; echo ""; echo "]"
+  else
+    printf "%-7s  %6s\n" "Date" "SOI"
+    while IFS='|' read -r ym val; do
+      [[ -z "$ym" ]] && continue
+      local label=""
+      if awk -v v="$val" 'BEGIN{exit(v <= -8 ? 0 : 1)}'; then label=" (El Nino)"
+      elif awk -v v="$val" 'BEGIN{exit(v >= 8 ? 0 : 1)}'; then label=" (La Nina)"
+      fi
+      printf "%-7s  %+6.1f%s\n" "$ym" "$val" "$label"
+    done <<< "$data"
+  fi
+}
+main "$@"

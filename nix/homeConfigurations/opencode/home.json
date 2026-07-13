@@ -1,10 +1,34 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-browser"],
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "opencode-go/deepseek-v4-flash",
+  "agent": {
+    "plan": {
+      "model": "opencode-go/deepseek-v4-pro"
+    },
+    "general": {
+      "model": "opencode-go/deepseek-v4-pro"
+    },
+    "explore": {
+      "model": "opencode-go/deepseek-v4-flash"
+    }
+  },
   "autoupdate": false,
   "mcp": {
+    "browsermcp": {
+      "type": "local",
+      "command": ["npx", "-y", "@browsermcp/mcp@0.1.3"],
+      "enabled": true
+    },
     "fred": {
       "type": "remote",
       "url": "https://fred.shanehull.com/mcp",
+      "enabled": true
+    },
+    "go": {
+      "type": "local",
+      "command": ["gopls", "mcp"],
       "enabled": true
     },
     "ibkr": {

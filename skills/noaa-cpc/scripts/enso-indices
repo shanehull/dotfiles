@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+set -euo pipefail
+usage() { cat <<EOF
+Usage: enso-indices [--index <name>] [--period weekly|monthly] [--json] [--months <n>]
+
+Fetch Niño SST anomaly indices from NOAA CPC.
+
+Options:
+  --index <name>  Single index: nino12, nino3, nino34, nino4 (default: all)
+  --period <p>    weekly (OISSTv2.1) or monthly (ERSSTv5) [default: weekly]
+  --json          Output as JSON
+  --months <n>    Number of recent weeks/months (default: 1 weekly, 3 monthly)
+  -h, --help      Show this help
+EOF
+exit 0; }
+INDEX=""; PERIOD="weekly"; MONTHS=""; FORMAT="text"
+while [[ $# -gt 0 ]]; do case "$1" in
+  --index) INDEX="$2"; shift 2 ;; --period) PERIOD="$2"; shift 2 ;;
+  --months) MONTHS="$2"; shift 2 ;; --json) FORMAT="json"; shift ;;
+  -h|--help) usage ;; *) echo "Unknown option: $1"; usage ;;
+esac; done
+COL=""
+case "$INDEX" in
+  nino12|nino1+2) COL="n12" ;; nino3) COL="n3" ;;
+  nino34|nino3.4) COL="n34" ;; nino4) COL="n4" ;; "") COL="" ;;
+  *) echo "ERROR: Unknown index '$INDEX'" >&2; exit 1 ;;
+esac
+[[ -z "$MONTHS" ]] && { [[ "$PERIOD" == "weekly" ]] && MONTHS=1 || MONTHS=3; }
+WURL="https://www.cpc.ncep.noaa.gov/data/indices/wksst9120.for"
+MURL="https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices"
+
+parse_weekly() { awk --re-interval '
+/^[[:space:]]*[0-9]{2}[A-Z]{3}[0-9]{4}/ {
+  week=$1; delete t; tc=0; i=2
+  while(i<=NF){v=$i
+    if(v~/\.[0-9]+-[0-9]/&&v!~/^-/){match(v,/-[0-9]/);t[++tc]=substr(v,1,RSTART-1);t[++tc]=substr(v,RSTART);i++}
+    else if(v~/^-/){t[++tc]=$(i+1);t[++tc]=v;i+=2}
+    else{t[++tc]=v;if(i+1<=NF)t[++tc]=$(i+1);i+=2}
+  }
+  if(tc>=8)printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n",week,t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8]
+}'; }
+
+parse_monthly() { awk --re-interval '
+/^[0-9]{4} / { printf "%04d-%02d|%s|%s|%s|%s\n", $1, $2, $4, $6, $8, $10 }'; }
+
+output_weekly() {
+  local data="$1"
+  if [[ "$FORMAT" == "json" ]]; then
+    echo "["; local first=true
+    while IFS='|' read -r w s1 a1 s2 a2 s3 a3 s4 a4; do
+      [[ -z "$w" ]] && continue; $first || echo ","; first=false
+      printf '  {"date":"%s","nino12":{"sst":%s,"ssta":%s},"nino3":{"sst":%s,"ssta":%s},"nino34":{"sst":%s,"ssta":%s},"nino4":{"sst":%s,"ssta":%s}}' "$w" "$s1" "$a1" "$s2" "$a2" "$s3" "$a3" "$s4" "$a4"
+    done <<< "$data"; echo ""; echo "]"
+  elif [[ -n "$COL" ]]; then
+    while IFS='|' read -r w s1 a1 s2 a2 s3 a3 s4 a4; do
+      [[ -z "$w" ]] && continue
+      case "$COL" in
+        n12) printf "%s  %s  %s\n" "$w" "$s1" "$a1" ;; n3) printf "%s  %s  %s\n" "$w" "$s2" "$a2" ;;
+        n34) printf "%s  %s  %s\n" "$w" "$s3" "$a3" ;; n4) printf "%s  %s  %s\n" "$w" "$s4" "$a4" ;;
+      esac
+    done <<< "$data"
+  else
+    printf "%-11s  %5s %5s  %5s %5s  %5s %5s  %5s %5s\n" "Week" "N1+2" "SSTA" "Nino3" "SSTA" "N3.4" "SSTA" "Nino4" "SSTA"
+    while IFS='|' read -r w s1 a1 s2 a2 s3 a3 s4 a4; do
+      [[ -z "$w" ]] && continue
+      printf "%-11s  %5s %5s  %5s %5s  %5s %5s  %5s %5s\n" "$w" "$s1" "$a1" "$s2" "$a2" "$s3" "$a3" "$s4" "$a4"
+    done <<< "$data"
+  fi
+}
+
+output_monthly() {
+  local data="$1"
+  if [[ "$FORMAT" == "json" ]]; then
+    echo "["; local first=true
+    while IFS='|' read -r ym n12 n3 n4 n34; do
+      [[ -z "$ym" ]] && continue; $first || echo ","; first=false
+      printf '  {"date":"%s","nino12":%s,"nino3":%s,"nino4":%s,"nino34":%s}' "$ym" "$n12" "$n3" "$n4" "$n34"
+    done <<< "$data"; echo ""; echo "]"
+  elif [[ -n "$COL" ]]; then
+    while IFS='|' read -r ym n12 n3 n4 n34; do
+      [[ -z "$ym" ]] && continue
+      case "$COL" in
+        n12) printf "%s  %s\n" "$ym" "$n12" ;; n3) printf "%s  %s\n" "$ym" "$n3" ;;
+        n34) printf "%s  %s\n" "$ym" "$n34" ;; n4) printf "%s  %s\n" "$ym" "$n4" ;;
+      esac
+    done <<< "$data"
+  else
+    printf "%-7s  %6s  %6s  %6s  %6s\n" "Date" "N1+2" "Nino3" "Nino4" "N3.4"
+    while IFS='|' read -r ym n12 n3 n4 n34; do
+      [[ -z "$ym" ]] && continue
+      printf "%-7s  %6s  %6s  %6s  %6s\n" "$ym" "$n12" "$n3" "$n4" "$n34"
+    done <<< "$data"
+  fi
+}
+
+main() {
+  if [[ "$PERIOD" == "weekly" ]]; then
+    local raw; raw=$(curl -sSf "$WURL" 2>/dev/null) || { echo "ERROR: Failed to fetch $WURL" >&2; exit 2; }
+    local data; data=$(echo "$raw" | parse_weekly | tail -n "$MONTHS" || true)
+    output_weekly "$data"
+  else
+    local raw; raw=$(curl -sSf "$MURL" 2>/dev/null) || { echo "ERROR: Failed to fetch $MURL" >&2; exit 2; }
+    local data; data=$(echo "$raw" | parse_monthly | tail -n "$MONTHS" || true)
+    output_monthly "$data"
+  fi
+}
+main "$@"

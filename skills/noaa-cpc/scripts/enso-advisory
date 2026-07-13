@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: enso-advisory [--text] [--json]
+
+Fetch the latest ENSO Diagnostic Discussion from NOAA CPC.
+
+Options:
+  --text    Output text content
+  --json    Output extracted fields as JSON (default)
+  -h, --help Show this help
+EOF
+  exit 0
+}
+
+FORMAT="json"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --text) FORMAT="text"; shift ;;
+    --json) FORMAT="json"; shift ;;
+    -h|--help) usage ;;
+    *) echo "Unknown option: $1"; usage ;;
+  esac
+done
+
+URL="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.html"
+
+fetch_advisory() {
+  curl -sSf "$URL" 2>/dev/null || { echo "ERROR: Failed to fetch $URL" >&2; exit 2; }
+}
+
+# Decode basic HTML entities and strip tags
+clean_text() {
+  sed 's/<[^>]*>//g' \
+    | sed 's/&nbsp;/ /g' \
+    | sed 's/&amp;/\&/g' \
+    | sed 's/&lt;/</g' \
+    | sed 's/&gt;/>/g' \
+    | sed "s/&ntilde;/n/g" \
+    | sed "s/&#37;/%/g" \
+    | sed "s/&deg;/°/g"
+}
+
+main() {
+  local html
+  html=$(fetch_advisory)
+
+  if [[ "$FORMAT" == "text" ]]; then
+    echo "$html" | clean_text | sed '/^[[:space:]]*$/d' | head -150
+    return
+  fi
+
+  # Extract fields for JSON
+  local plain
+  plain=$(echo "$html" | clean_text)
+
+  # Date: e.g. "9 July 2026"
+  local date
+  date=$(echo "$plain" | grep -Eo '[0-9]{1,2} [A-Z][a-z]+ [0-9]{4}' | head -1)
+  [[ -z "$date" ]] && date="unknown"
+
+  # Status: "El Niño Advisory" or "La Niña Advisory" etc.
+  local status
+  status=$(echo "$plain" | sed 's/nino/Nino/g; s/nina/Nina/g' | grep -Eo '(El Nino|La Nina) (Watch|Advisory|Warning)' | head -1)
+  [[ -z "$status" ]] && status="none"
+
+  # Synopsis line (after "Synopsis:")
+  local synopsis
+  synopsis=$(echo "$plain" | sed -n '/Synopsis:/{n;p;}' | xargs)
+  [[ -z "$synopsis" ]] && synopsis="unknown"
+
+  # Nino 3.4 value: e.g. +1.2°C
+  local nino34
+  nino34=$(echo "$plain" | grep -Eo 'Nino[- ]?3\.?4[^+]*\+[0-9]+\.[0-9]+' | head -1 | grep -Eo '\+[0-9]+\.[0-9]+')
+  [[ -z "$nino34" ]] && nino34="unknown"
+
+  # Probability: e.g. "97% chance"
+  local prob
+  prob=$(echo "$plain" | grep -Eo '[0-9]{2,3}% chance' | head -1 | grep -Eo '[0-9]{2,3}%')
+  [[ -z "$prob" ]] && prob="unknown"
+
+  printf '{"date":"%s","status":"%s","synopsis":"%s","nino34":"%s","probability":"%s"}\n' \
+         "$date" "$status" "$synopsis" "$nino34" "$prob"
+}
+
+main "$@"

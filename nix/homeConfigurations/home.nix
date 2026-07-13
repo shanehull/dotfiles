@@ -30,6 +30,7 @@
       "ibkr"
       "myschool"
       "netnet-worksheet"
+      "noaa-cpc"
       "obsidian-remote"
       "owid"
       "qmd"
@@ -146,6 +147,7 @@
           terraform-ls
           tflint
           gotools
+          gopls
           golines
           golangci-lint
           templ

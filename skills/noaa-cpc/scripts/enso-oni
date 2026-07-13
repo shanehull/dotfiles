@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: enso-oni [--months <n>] [--json] [--threshold <t>]
+
+Fetch the Oceanic Niño Index (ONI) from NOAA CPC.
+ONI is the 3-month running mean of ERSSTv5 Niño 3.4 SST anomalies.
+El Niño: >= +0.5°C for 5 consecutive overlapping seasons
+La Niña: <= -0.5°C for 5 consecutive overlapping seasons
+
+Options:
+  --months <n>    Number of recent seasons (default: 6)
+  --json          Output as JSON
+  --threshold <t> Filter to seasons with |anomaly| >= this value (default: 0)
+  -h, --help      Show this help
+
+Examples:
+  enso-oni                          # Last 6 ONI seasons
+  enso-oni --months 12 --json       # Last 12 seasons as JSON
+  enso-oni --threshold 0.5          # Only El Niño/La Niña seasons
+EOF
+  exit 0
+}
+
+MONTHS=6
+FORMAT="text"
+THRESHOLD=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --months) MONTHS="$2"; shift 2 ;;
+    --json) FORMAT="json"; shift ;;
+    --threshold) THRESHOLD="$2"; shift 2 ;;
+    -h|--help) usage ;;
+    *) echo "Unknown option: $1"; usage ;;
+  esac
+done
+
+fetch_oni() {
+  local url="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
+  curl -sSf "$url" 2>/dev/null || { echo "ERROR: Failed to fetch $url" >&2; exit 2; }
+}
+
+parse_oni() {
+  # ONI format: fixed-width columns
+  #  SEAS  YR   TOTAL   ANOM
+  #   DJF 1950  24.72  -1.53
+  awk '
+    /^[[:space:]]*[A-Z]{3}[[:space:]]+[0-9]{4}/ {
+      seas=$1; yr=$2; total=$3; anom=$4
+      if (total+0 == -999.90 || total+0 == -99.90) next
+      printf "%s-%d|%.1f|%.2f|%.2f\n", seas, yr, total, anom, (anom < 0 ? -anom : anom)
+    }'
+}
+
+main() {
+  local raw
+  raw=$(fetch_oni | parse_oni)
+  # Filter by threshold, take last N months
+  local filtered
+  filtered=$(echo "$raw" | while IFS='|' read -r season total anom abs; do
+    if awk -v a="$abs" -v t="$THRESHOLD" 'BEGIN { exit (a+0 >= t+0 ? 0 : 1) }'; then
+      echo "$season|$total|$anom|$abs"
+    fi
+  done | tail -n "$MONTHS")
+
+  if [[ "$FORMAT" == "json" ]]; then
+    echo "["
+    local first=true
+    while IFS='|' read -r season total anom abs; do
+      [[ -z "$season" ]] && continue
+      $first || echo ","
+      first=false
+      printf '  {"season":"%s","oni":%.2f,"sst":%.1f}' "$season" "$anom" "$total"
+    done <<< "$filtered"
+    echo ""
+    echo "]"
+  else
+    printf "%-9s  %6s  %6s\n" "Season" "ONI" "SST"
+    while IFS='|' read -r season total anom abs; do
+      [[ -z "$season" ]] && continue
+      local label=""
+      if awk -v a="$anom" 'BEGIN { exit (a+0 >= 0.5 ? 0 : 1) }'; then
+        label=" (El Nino)"
+      elif awk -v a="$anom" 'BEGIN { exit (a+0 <= -0.5 ? 0 : 1) }'; then
+        label=" (La Nina)"
+      fi
+      printf "%-9s  %+6.2f  %6.1f%s\n" "$season" "$anom" "$total" "$label"
+    done <<< "$filtered"
+  fi
+}
+
+main "$@"
