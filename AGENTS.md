@@ -139,6 +139,7 @@ Professional, senior-level engineering tone. No AI writing patterns.
 - **Think Before You Write:** One thought per sentence.
 - **Reader Context:** If a sentence can be misunderstood, it will be. Clarity is respect.
 - **No Abbreviations or Acronyms:** Write words in full (e.g. "work from home" not "WFH", "marginal cost" not "MC"). If unavoidable, define on first use ("marginal cost (MC)", then use MC thereafter).
+- **No Em Dashes:** Never use em dashes (—). Restructure the sentence, or use a comma, colon, or parentheses instead.
 
 # Surgical Edits Only
 
