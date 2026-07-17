@@ -13,7 +13,7 @@ return {
 				elixir = { "credo" },
 				go = { "golangcilint" },
 				nix = { "statix" },
-			terraform = { "terraform_validate" },
+				terraform = { "terraform_validate" },
 				yaml = { "yamllint" },
 			}
 

@@ -20,6 +20,11 @@ return {
 					args = { "hclfmt", "--terragrunt-hclfmt-file", "$FILENAME" },
 					stdin = false,
 				},
+				hledger_fmt = {
+					command = "hledger-fmt",
+					args = { "--no-diff", "--exit-zero-on-changes", "-" },
+					stdin = true,
+				},
 			},
 			formatters_by_ft = {
 				lua = { "stylua" },
@@ -42,6 +47,7 @@ return {
 				graphql = { "prettierd", "prettier", stop_after_first = true },
 				markdown = { "prettierd", "prettier", stop_after_first = true },
 				pandoc = { "prettierd", "prettier", stop_after_first = true },
+				hledger = { "hledger_fmt" },
 			},
 			format_on_save = {
 				timeout_ms = 2500,

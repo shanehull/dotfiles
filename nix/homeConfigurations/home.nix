@@ -130,6 +130,9 @@
           fred-mcp-pkg
           slides
           bitwarden-cli
+          hledger
+          hledger-ui
+          hledger-fmt
 
           # k8s tools
           k9s

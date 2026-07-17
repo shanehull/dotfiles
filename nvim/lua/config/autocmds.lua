@@ -40,6 +40,9 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 	end,
 })
 
+-- hledger journal filetype
+vim.filetype.add({ extension = { journal = "hledger" } })
+
 -- Use hover/float for diagnostics text
 vim.api.nvim_create_autocmd("CursorHold", {
 	group = augroup("hover_diags"),
