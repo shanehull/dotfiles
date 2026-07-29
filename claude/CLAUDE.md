@@ -1,0 +1,1 @@
+/Users/shane/.config/AGENTS.md
