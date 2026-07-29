@@ -1,1 +1,1 @@
-AGENTS.md
+/Users/shane/.config/AGENTS.md
