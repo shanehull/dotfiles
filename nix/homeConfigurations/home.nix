@@ -119,6 +119,7 @@
           pandoc
           pngpaste
           poppler-utils
+          tesseract
           vhs
           btop
           awscli2
