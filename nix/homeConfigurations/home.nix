@@ -134,6 +134,7 @@
           hledger
           hledger-ui
           hledger-fmt
+          stripe-cli
 
           # k8s tools
           k9s
