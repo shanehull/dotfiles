@@ -57,7 +57,7 @@
       "enabled": true
     }
   },
-  "lsp": true,
+  "lsp": false,
   "permission": {
     "read": {
       "*": "allow",
