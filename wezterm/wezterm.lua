@@ -7,7 +7,7 @@ return {
 	color_scheme = "Gruvbox dark, medium (base16)",
 	enable_tab_bar = false,
 	window_background_opacity = 0.90,
-	font_size = 11.0,
+	font_size = 10,
 	font = wezterm.font_with_fallback({
 		"Hack Nerd Font",
 		"Hiragino Sans GB",
