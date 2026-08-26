@@ -73,6 +73,7 @@
     "bash": {
       "*": "ask",
       "*/.config/opencode/skills/*/scripts/*": "allow",
+      "/var/folders/*/*/T/opencode/**": "allow",
       "basename *": "allow",
       "bun --version": "allow",
       "cat *": "allow",
@@ -160,8 +161,8 @@
     "external_directory": {
       "*": "ask",
       "/tmp/*": "allow",
-      "*/.config/opencode/skills/*/scripts/*": "allow",
-      "*/.config/opencode/skills/*/references/*": "allow",
+      "/var/folders/*/*/T/opencode/**": "allow",
+      "*/.config/opencode/skills/**": "allow",
       "*/.claude/*": "deny"
     },
     "question": "allow",
