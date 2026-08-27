@@ -56,11 +56,9 @@
           AWS_PROFILE = "sts";
           K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
         };
-        file =
-          // agentSkillLinks
-          // {
-            ".config/opencode/opencode.json".source = ./opencode/work.json;
-          };
+        file = {
+          ".config/opencode/opencode.json".source = ./opencode/work.json;
+        };
         packages = with pkgs; [
           # fonts
           fontconfig
