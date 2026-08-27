@@ -23,8 +23,6 @@
     ];
     agentSkillsDirs = [
       ".claude/skills"
-      ".gemini/skills"
-      ".cursor/skills"
       ".config/opencode/skills"
     ];
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
@@ -57,14 +55,8 @@
 
           AWS_PROFILE = "sts";
           K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
-          GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
         };
         file =
-          {
-            ".cursor/mcp.json" = {
-              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/cursor/mcp.json";
-            };
-          }
           // agentSkillLinks
           // {
             ".config/opencode/opencode.json".source = ./opencode/work.json;
@@ -104,8 +96,6 @@
           gh
           _1password-cli
           glab
-          gemini-cli
-          cursor-cli
           opencode-pkg
           claude-code
 

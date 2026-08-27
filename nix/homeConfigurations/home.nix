@@ -47,7 +47,6 @@
     ];
     agentSkillsDirs = [
       ".claude/skills"
-      ".gemini/skills"
       ".config/opencode/skills"
     ];
     agentSkillLinks = lib.listToAttrs (lib.concatMap (dir:
@@ -80,7 +79,6 @@
 
           SECOND_BRAIN = "${config.home.homeDirectory}/secondbrain";
           K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
-          GEMINI_CLI_SYSTEM_SETTINGS_PATH = "${config.home.homeDirectory}/.config/gemini/settings.json";
           ENABLE_COPILOT = "false";
         };
         file =
@@ -125,7 +123,6 @@
           awscli2
           gh
           qmd-pkg
-          gemini-cli
           amp-cli
           opencode-pkg
           fred-mcp-pkg
