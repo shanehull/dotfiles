@@ -3,6 +3,7 @@ return {
 	version = "v2.*",
 	cmd = { "Sidekick" },
 	opts = {
+		nes = { enabled = false },
 		cli = {
 			mux = {
 				backend = "tmux",
