@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# CFTC Commitments of Traders - fetch and print as clear text.
+# Pure bash + curl + awk. No python, no jq required.
+
+USAGE="cot [--report legacy|disagg|tff|cit] [--combined] [--year YYYY] [--term STR] [--limit N] [--csv]
+
+Fetch CFTC Commitments of Traders positioning data and print readable text.
+
+Options:
+  --report TYPE   legacy (Non-Commercial/Commercial), disagg (Producer/Swap/Managed Money),
+                  tff (Dealer/Asset Manager/Leveraged Funds), cit (Index Traders)
+                  [default: disagg]
+  --combined      Use futures-and-options combined file (default: futures only)
+  --year YYYY     Fetch annual compressed file for that calendar year in place of the
+                  current week. Legacy 1986+, CIT 2006+, Disagg/TFF 2010+
+                  (June 2006 available via the 2006-2016 all-in-one file).
+  --term STR      Case-insensitive substring of the market name (e.g. 'wti', 'corn')
+  --limit N       With no --term, list at most N markets [default: 30]
+  --csv           One machine-readable row per market/date with a header line instead of
+                  readable text. Column order is fixed per report type; see SKILL.md.
+
+The weekly report uses data as of the prior Tuesday, released Friday 3:30 pm ET.
+"
+
+die() { echo "cot: $*" >&2; exit 1; }
+usage() { echo "$USAGE"; }
+
+BASE_CURRENT="https://www.cftc.gov/dea/newcot"
+BASE_HIST="https://www.cftc.gov/files/dea/history"
+
+report=disagg
+combined=0
+year=""
+term=""
+limit=30
+csv=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --report) report="$2"; shift 2 ;;
+    --combined) combined=1; shift ;;
+    --year) year="$2"; shift 2 ;;
+    --term) term="$2"; shift 2 ;;
+    --limit) limit="$2"; shift 2 ;;
+    --csv) csv=1; shift ;;
+    --help|-h) usage; exit 0 ;;
+    *) die "unknown argument: $1 (try --help)" ;;
+  esac
+done
+
+case "$report" in
+  legacy|disagg|tff|cit) ;;
+  *) die "unknown --report '$report' (legacy|disagg|tff|cit)" ;;
+esac
+
+case "$report.$combined" in
+  legacy.0) cur="$BASE_CURRENT/deafut.txt";    hist="deacot${year}.zip" ;;
+  legacy.1) cur="$BASE_CURRENT/deacom.txt";    hist="deahistfo${year}.zip" ;;
+  disagg.0) cur="$BASE_CURRENT/f_disagg.txt";  hist="fut_disagg_txt_${year}.zip" ;;
+  disagg.1) cur="$BASE_CURRENT/c_disagg.txt";  hist="com_disagg_txt_${year}.zip" ;;
+  tff.0)    cur="$BASE_CURRENT/FinFutWk.txt";  hist="fut_fin_txt_${year}.zip" ;;
+  tff.1)    cur="$BASE_CURRENT/FinComWk.txt";  hist="com_fin_txt_${year}.zip" ;;
+  cit.0|cit.1) cur="$BASE_CURRENT/deacit.txt"; hist="dea_cit_txt_${year}.zip" ;;
+esac
+if [ -n "$year" ] && [ -z "$hist" ]; then
+  die "no historical file mapping for $report"
+fi
+
+fetch() {
+  if [ -n "$year" ]; then
+    [ -x "$(command -v unzip)" ] || die "unzip required for --year"
+    case "$year" in
+      [0-9][0-9][0-9][0-9]) ;;
+      *) die "invalid --year '$year' (expect YYYY)" ;;
+    esac
+    tmp="$(mktemp -d /tmp/cot.XXXXXX)"
+    trap 'rm -rf "$tmp"' EXIT
+    if ! curl -fsSL -A "Mozilla/5.0 (Macintosh)" "$BASE_HIST/$hist" -o "$tmp/a.zip" 2>/dev/null; then
+      die "no annual file for $year ($hist). Legacy 1986+, CIT 2006+, Disagg/TFF 2010+. Try 2010 or later."
+    fi
+    # Historical zips contain a single data file whose name case varies by year.
+    unzip -o -q "$tmp/a.zip" -d "$tmp/x" 2>/dev/null
+    inner="$(find "$tmp/x" -maxdepth 1 -type f -iname '*.txt' | head -n1)"
+    [ -n "$inner" ] || die "no data file inside $hist"
+    tr -d '\r' < "$inner"
+  else
+    curl -fsSL -A "Mozilla/5.0 (Macintosh)" "$cur" | tr -d '\r'
+  fi
+}
+
+# Column indices below are the CFTC field numbers from the variable-name
+# reference pages, minus 1 (the market name field is stripped first).
+awkout() {
+  awk -F, -v type="$report" -v term="$term" -v limit="$limit" -v csv="$csv" '
+  function trim(s){ gsub(/^[ \t"]+|[ \t"]+$/, "", s); return s }
+  function comma(n){
+    s=trim(n); if(s=="") return "0"
+    neg=""; if(s ~ /^-/){ neg="-"; s=substr(s,2) }
+    out=""; while(length(s)>3){ out="," substr(s,length(s)-2) out; s=substr(s,1,length(s)-3) }
+    return neg (s out)
+  }
+  function v(i){ s=trim(col[i]); return (s=="" ? "0" : s) }
+  function raw(i){ s=trim(col[i]); if(s=="") return "0"; return s }
+  function pct(i){ s=trim(col[i]); return (s=="" ? "-" : s) }
+  function sign(i){
+    s=trim(col[i]); if(s=="") s="0"; if(s ~ /^-/) return s; return "+" s
+  }
+  BEGIN {
+    if (type=="disagg")
+      hdr="date,market,open_interest,producer_merc_long,producer_merc_short,swap_long,swap_short,swap_spread,managed_money_long,managed_money_short,managed_money_spread,other_reportable_long,other_reportable_short,other_reportable_spread,total_reportable_long,total_reportable_short,nonreportable_long,nonreportable_short,change_open_interest,change_producer_merc_long,change_producer_merc_short,change_swap_long,change_swap_short,change_managed_money_long,change_managed_money_short,change_other_reportable_long,change_other_reportable_short"
+    else if (type=="legacy")
+      hdr="date,market,open_interest,non_commercial_long,non_commercial_short,non_commercial_spread,commercial_long,commercial_short,total_reportable_long,total_reportable_short,nonreportable_long,nonreportable_short,change_open_interest,change_non_commercial_long,change_non_commercial_short,change_commercial_long,change_commercial_short"
+    else if (type=="tff")
+      hdr="date,market,open_interest,dealer_long,dealer_short,dealer_spread,asset_mgr_long,asset_mgr_short,asset_mgr_spread,leveraged_funds_long,leveraged_funds_short,leveraged_funds_spread,other_reportable_long,other_reportable_short,other_reportable_spread,total_reportable_long,total_reportable_short,nonreportable_long,nonreportable_short,change_open_interest,change_dealer_long,change_dealer_short,change_asset_mgr_long,change_asset_mgr_short,change_leveraged_funds_long,change_leveraged_funds_short,change_other_reportable_long,change_other_reportable_short"
+    else
+      hdr="date,market,open_interest,non_commercial_long,non_commercial_short,commercial_long,commercial_short,index_trader_long,index_trader_short,total_reportable_long,total_reportable_short,nonreportable_long,nonreportable_short,change_open_interest,change_non_commercial_long,change_non_commercial_short,change_commercial_long,change_commercial_short,change_index_trader_long,change_index_trader_short"
+    if (csv) print hdr
+  }
+  {
+    line=$0
+    if (substr(line,1,1)=="\"") {
+      s=substr(line,2); q=index(s,"\""); name=substr(s,1,q-1)
+      tail=substr(s,q+1); c=index(tail,","); rest=substr(tail,c+1)
+    } else {
+      name=$1; rest=substr(line,index(line,",")+1)
+    }
+    if (name ~ /^Market/) next
+    nf=split(rest,col,",")
+    date=trim(col[2])
+
+    if (type=="disagg") {
+      # positions
+      oi=7
+      pmL=8; pmS=9
+      swL=10; swS=11; swSp=12
+      mmL=13; mmS=14; mmSp=15
+      otL=16; otS=17; otSp=18
+      totL=19; totS=20
+      nrL=21; nrS=22
+      # changes
+      chOI=55; chPmL=56; chPmS=57; chSwL=58; chSwS=59; chSwSp=60
+      chMmL=61; chMmS=62; chMmSp=63; chOtL=64; chOtS=65; chOtSp=66
+      # percent of OI
+      pPm=72; pSw=74; pMm=77; pOt=80
+      # traders
+      trTot=119; trPm=120; trSw=122; trMm=125; trOt=128
+    } else if (type=="legacy") {
+      oi=7
+      ncL=8; ncS=9; ncSp=10
+      comL=11; comS=12
+      totL=13; totS=14
+      nrL=15; nrS=16
+      chOI=37; chNcL=38; chNcS=39; chNcSp=40
+      chComL=41; chComS=42
+      pNc=48; pCom=51
+      trTot=77; trNc=78; trCom=81
+    } else if (type=="tff") {
+      oi=7
+      dL=8; dS=9; dSp=10
+      aL=11; aS=12; aSp=13
+      mmL=14; mmS=15; mmSp=16
+      otL=17; otS=18; otSp=19
+      totL=20; totS=21
+      nrL=22; nrS=23
+      chOI=24
+      chDL=25; chDS=26; chDSp=27
+      chAL=28; chAS=29; chASp=30
+      chMmL=31; chMmS=32; chMmSp=33
+      chOtL=34; chOtS=35; chOtSp=36
+      pD=42; pA=45; pMm=48; pOt=51
+      trTot=58; trD=59; trA=62; trMm=65; trOt=68
+    } else { # cit
+      oi=7
+      ncL=8; ncS=9; ncSp=10
+      comL=11; comS=12
+      totL=13; totS=14
+      nrL=15; nrS=16
+      citL=17; citS=18
+      chOI=19
+      chNcL=20; chNcS=21; chNcSp=22
+      chComL=23; chComS=24
+      chCitL=29; chCitS=30
+      pNc=32; pCom=35; pCit=41
+      trTot=43; trNc=44; trCom=47; trCit=51
+    }
+
+    if (term!="" && tolower(name) !~ tolower(term)) next
+    if (shown >= limit && term=="") next
+    shown++
+
+    if (csv) {
+      if (type=="disagg")
+        printf "%s,\"%s\",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", date, name, raw(oi), raw(pmL), raw(pmS), raw(swL), raw(swS), raw(swSp), raw(mmL), raw(mmS), raw(mmSp), raw(otL), raw(otS), raw(otSp), raw(totL), raw(totS), raw(nrL), raw(nrS), raw(chOI), raw(chPmL), raw(chPmS), raw(chSwL), raw(chSwS), raw(chMmL), raw(chMmS), raw(chOtL), raw(chOtS)
+      else if (type=="legacy")
+        printf "%s,\"%s\",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", date, name, raw(oi), raw(ncL), raw(ncS), raw(ncSp), raw(comL), raw(comS), raw(totL), raw(totS), raw(nrL), raw(nrS), raw(chOI), raw(chNcL), raw(chNcS), raw(chComL), raw(chComS)
+      else if (type=="tff")
+        printf "%s,\"%s\",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", date, name, raw(oi), raw(dL), raw(dS), raw(dSp), raw(aL), raw(aS), raw(aSp), raw(mmL), raw(mmS), raw(mmSp), raw(otL), raw(otS), raw(otSp), raw(totL), raw(totS), raw(nrL), raw(nrS), raw(chOI), raw(chDL), raw(chDS), raw(chAL), raw(chAS), raw(chMmL), raw(chMmS), raw(chOtL), raw(chOtS)
+      else
+        printf "%s,\"%s\",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", date, name, raw(oi), raw(ncL), raw(ncS), raw(comL), raw(comS), raw(citL), raw(citS), raw(totL), raw(totS), raw(nrL), raw(nrS), raw(chOI), raw(chNcL), raw(chNcS), raw(chComL), raw(chComS), raw(chCitL), raw(chCitS)
+      next
+    }
+
+    printf "\n%s\n", name
+    printf "  Report date %s   CFTC code #%s   Open interest %s\n", \
+      v(2), trim(col[3]), comma(v(oi))
+
+    if (type=="legacy") {
+      printf "    %-24s Long %10s  Short %10s\n", "Non-Commercial", comma(v(ncL)), comma(v(ncS))
+      printf "    %-24s Long %10s  Short %10s\n", "Commercial", comma(v(comL)), comma(v(comS))
+    } else if (type=="disagg") {
+      printf "    %-24s Long %10s  Short %10s\n", "Producer/Merchant", comma(v(pmL)), comma(v(pmS))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Swap Dealers", comma(v(swL)), comma(v(swS)), comma(v(swSp))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Managed Money", comma(v(mmL)), comma(v(mmS)), comma(v(mmSp))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Other Reportables", comma(v(otL)), comma(v(otS)), comma(v(otSp))
+    } else if (type=="tff") {
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Dealer/Intermediary", comma(v(dL)), comma(v(dS)), comma(v(dSp))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Asset Manager/Institutional", comma(v(aL)), comma(v(aS)), comma(v(aSp))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Leveraged Funds", comma(v(mmL)), comma(v(mmS)), comma(v(mmSp))
+      printf "    %-24s Long %10s  Short %10s  Spread %10s\n", "Other Reportables", comma(v(otL)), comma(v(otS)), comma(v(otSp))
+    } else {
+      printf "    %-24s Long %10s  Short %10s\n", "Non-Commercial (ex-CIT)", comma(v(ncL)), comma(v(ncS))
+      printf "    %-24s Long %10s  Short %10s\n", "Commercial (ex-CIT)", comma(v(comL)), comma(v(comS))
+      printf "    %-24s Long %10s  Short %10s\n", "Index Traders (CIT)", comma(v(citL)), comma(v(citS))
+    }
+    printf "    %-24s Long %10s  Short %10s\n", "Total Reportable", comma(v(totL)), comma(v(totS))
+    printf "    %-24s Long %10s  Short %10s\n", "Non-reportable", comma(v(nrL)), comma(v(nrS))
+
+    printf "  Change    %-24s %s\n", "Open interest", sign(chOI)
+    if (type=="legacy") {
+      printf "  Change    %-24s Long %s  Short %s\n", "Non-Commercial", sign(chNcL), sign(chNcS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Commercial", sign(chComL), sign(chComS)
+    } else if (type=="disagg") {
+      printf "  Change    %-24s Long %s  Short %s\n", "Producer/Merchant", sign(chPmL), sign(chPmS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Swap Dealers", sign(chSwL), sign(chSwS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Managed Money", sign(chMmL), sign(chMmS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Other Reportables", sign(chOtL), sign(chOtS)
+    } else if (type=="tff") {
+      printf "  Change    %-24s Long %s  Short %s\n", "Dealer/Intermediary", sign(chDL), sign(chDS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Asset Manager/Institutional", sign(chAL), sign(chAS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Leveraged Funds", sign(chMmL), sign(chMmS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Other Reportables", sign(chOtL), sign(chOtS)
+    } else {
+      printf "  Change    %-24s Long %s  Short %s\n", "Non-Commercial (ex-CIT)", sign(chNcL), sign(chNcS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Commercial (ex-CIT)", sign(chComL), sign(chComS)
+      printf "  Change    %-24s Long %s  Short %s\n", "Index Traders (CIT)", sign(chCitL), sign(chCitS)
+    }
+
+    printf "  Percent of OI   "
+    if (type=="legacy") {
+      printf "Non-Comm %s/%s   Comm %s/%s\n", pct(pNc), pct(pNc+1), pct(pCom), pct(pCom+1)
+    } else if (type=="disagg") {
+      printf "P/M %s/%s   Swaps %s/%s   MM %s/%s   Other %s/%s\n", \
+        pct(pPm), pct(pPm+1), pct(pSw), pct(pSw+1), pct(pMm), pct(pMm+1), pct(pOt), pct(pOt+1)
+    } else if (type=="tff") {
+      printf "Dealer %s/%s   AssetMgr %s/%s   LevFunds %s/%s   Other %s/%s\n", \
+        pct(pD), pct(pD+1), pct(pA), pct(pA+1), pct(pMm), pct(pMm+1), pct(pOt), pct(pOt+1)
+    } else {
+      printf "Non-Comm %s/%s   Comm %s/%s   CIT %s/%s\n", pct(pNc), pct(pNc+1), pct(pCom), pct(pCom+1), pct(pCit), pct(pCit+1)
+    }
+
+    printf "  Traders        Tot %s   ", trim(col[trTot])
+    if (type=="legacy") printf "Non-Comm %s   Comm %s\n", trim(col[trNc]), trim(col[trCom])
+    else if (type=="disagg") printf "P/M %s   Swaps %s   MM %s   Other %s\n", trim(col[trPm]), trim(col[trSw]), trim(col[trMm]), trim(col[trOt])
+    else if (type=="tff") printf "Dealer %s   AssetMgr %s   LevFunds %s   Other %s\n", trim(col[trD]), trim(col[trA]), trim(col[trMm]), trim(col[trOt])
+    else printf "Non-Comm %s   Comm %s   CIT %s\n", trim(col[trNc]), trim(col[trCom]), trim(col[trCit])
+  }'
+}
+
+fetch | awkout
