@@ -75,7 +75,7 @@ Metrics to monitor. What confirms the thesis? What invalidates it? Use concrete 
 Direct links to sources used in the analysis — annual reports, ASX filings, industry data, company websites, news articles. No landing pages or generic investor relations URLs.
 ```
 
-Once the final note has been written, use surgical edits only.
+When writing, focus on pure signal, but without sacrificing flow. It must read well. Once the final note has been written, use surgical edits only.
 
 ## Gotchas
 
