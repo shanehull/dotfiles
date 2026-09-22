@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="https://asx.api.markitdigital.com/asx-research/1.0"
+
+usage() {
+  cat <<'EOF'
+Usage: asx-warrants SYMBOL
+
+Fetch ASX-listed warrants for one equity: Citi MINIs (long and short), rolling
+and standard instalments, and instalment MINIs. Output is the raw JSON response,
+grouped by "Calls" and "Puts". There is no server-side filtering; pipe to jq.
+
+Examples:
+  scripts/asx-warrants LLC
+  scripts/asx-warrants LLC | jq -r '.data.items[].items[] | [.symbol,.name,.priceExercise,.priceLast]|@tsv'
+  scripts/asx-warrants LLC | jq -r '.data.items[].items[] | select(.name|test("MINI SHORT")) | [.symbol,.priceExercise,.priceLast]|@tsv'
+
+Exit codes: 0 ok, 1 usage error, 2 ASX API or network error.
+EOF
+}
+
+die() { echo "error: $*" >&2; exit 2; }
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  "") usage >&2; exit 1 ;;
+esac
+[[ $# -eq 1 ]] || { usage >&2; exit 1; }
+
+SYMBOL="$1"
+url="$BASE/companies/$SYMBOL/warrants"
+
+resp=$(curl -s -w $'\n%{http_code}' "$url") || die "request failed for $SYMBOL (network?)"
+code="${resp##*$'\n'}"
+body="${resp%$'\n'*}"
+
+[[ "$code" == "200" ]] || die "ASX API returned HTTP $code for $SYMBOL: $body"
+
+printf '%s\n' "$body"
