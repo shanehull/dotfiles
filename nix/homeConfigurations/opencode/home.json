@@ -1,17 +1,16 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-browser"],
-  "model": "deepseek-v4-flash",
-  "small_model": "deepseek-v4-flash",
+  "model": "deepseek/deepseek-flash",
+  "small_model": "deepseek/deepseek-flash",
   "agent": {
     "plan": {
-      "model": "deepseek-v4-flash"
+      "model": "deepseek/deepseek-flash"
     },
     "general": {
-      "model": "deepseek-v4-flash"
+      "model": "deepseek/deepseek-flash"
     },
     "explore": {
-      "model": "deepseek-v4-flash"
+      "model": "deepseek/deepseek-flash"
     }
   },
   "autoupdate": false,
