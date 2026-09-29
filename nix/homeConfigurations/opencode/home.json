@@ -54,6 +54,11 @@
       "type": "local",
       "command": ["uvx", "yfmcp@latest"],
       "enabled": true
+    },
+    "wolfram": {
+      "type": "remote",
+      "url": "https://agenttools.wolfram.com/mcp",
+      "enabled": true
     }
   },
   "lsp": false,
