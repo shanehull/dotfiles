@@ -31,6 +31,7 @@
       "fred"
       "github"
       "ibkr"
+      "jev"
       "myschool"
       "netnet-worksheet"
       "noaa-cpc"
