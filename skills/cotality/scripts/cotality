@@ -17,9 +17,15 @@ Commands:
   indices               Home value indices (public, no auth).
   suggest <postcode>    Resolve postcode to locationId.
   stats <locationId>    Market statistics for a location.
-  sales <postcode>      Recent property sales in a postcode.
+  sales <postcode>      Settled sales in a postcode (last 6 months, newest first).
 
 Options:
+  --sort date|price     Sort by settlement date (default) or sale price.
+  --months N            Settlement window in months back from today (default 6).
+  --from YYYY-MM-DD     Explicit window start (overrides --months).
+  --to YYYY-MM-DD       Explicit window end (default today).
+  --limit N             Max results per request (default 10, max 200).
+  --all                 Page through every result in the window.
   -h, --help            Show this help.
 
 Examples:
@@ -28,6 +34,8 @@ Examples:
   cotality suggest 2000
   cotality stats 101812
   cotality sales 2000 | jq '.data[].properties[] | {price: .salesLastSoldPrice, address: .addressFirstLine, suburb: .addressSuburb, type, beds: .bedrooms, baths: .bathrooms, cars: .carSpaces}'
+  cotality sales 3095 --all --sort date
+  cotality sales 3095 --all --sort price --months 12
 EOF
   exit 0
 }
@@ -92,19 +100,65 @@ JSON
 }
 
 cmd_sales() {
-  local postcode="$1"
-  local limit="${2:-10}"
+  local postcode="" sort="-salesLastSaleSettlementDate" months=6 limit=10 fetch_all=0
+  local from="" to=""
 
-  local data
-  data=$(cat <<JSON
-{"requests":[{"resultsFormat":{"sort":"-salesLastSoldPrice","offset":0,"limit":$limit},"filters":[{"operation":"and","filters":[{"field":"salesLastSaleSettlementDate","operation":"from","value":"$(date -v-6m +%Y-%m-%d 2>/dev/null || date -d '-6 months' +%Y-%m-%d)"},{"field":"salesLastSaleSettlementDate","operation":"to","value":"$(date +%Y-%m-%d)"},{"field":"addressPostcode","operation":"equals","value":"$postcode"}]},{"operation":"or","filters":[{"field":"type","operation":"equals","value":"HOUSE"},{"field":"type","operation":"equals","value":"UNIT"}]}]}]}
-JSON
-)
-  local body
-  body=$(curl -sS "${AUTH[@]}" -H "Content-Type: application/json" -d "$data" \
-    "$API_BASE/rapid-search/batchSearch/au") || die "sales request failed"
-  check_json_err "$body" "sales"
-  echo "$body"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sort) sort="$2"; shift 2;;
+      --months) months="$2"; shift 2;;
+      --limit) limit="$2"; shift 2;;
+      --all) fetch_all=1; shift;;
+      --from) from="$2"; shift 2;;
+      --to) to="$2"; shift 2;;
+      --*) die "unknown option: $1";;
+      *) [[ -z "$postcode" ]] && postcode="$1" || die "unexpected argument: $1"; shift;;
+    esac
+  done
+
+  [[ -z "$postcode" ]] && die "missing postcode argument. Usage: cotality sales <postcode> [--sort date|price] [--months N] [--limit N] [--all]"
+
+  case "$sort" in
+    date|-date) sort="-salesLastSaleSettlementDate";;
+    price|-price) sort="-salesLastSoldPrice";;
+  esac
+
+  from="${from:-$(date -v-${months}m +%Y-%m-%d 2>/dev/null || date -d "-${months} months" +%Y-%m-%d)}"
+  to="${to:-$(date +%Y-%m-%d)}"
+
+  # API caps a single page at 200; deep offset paging is unreliable, so page via searchAfter.
+  if [[ $fetch_all -eq 1 || $limit -gt 200 ]]; then limit=200; fi
+
+  local props_file after="" page=0
+  props_file=$(mktemp)
+  trap 'rm -f "$props_file"' RETURN
+
+  while :; do
+    local results data body n ref
+    if [[ -z "$after" ]]; then
+      results="{\"sort\":\"$sort\",\"offset\":0,\"limit\":$limit}"
+    else
+      results="{\"sort\":\"$sort\",\"searchAfter\":$after,\"limit\":$limit}"
+    fi
+    data="{\"requests\":[{\"resultsFormat\":$results,\"filters\":[{\"operation\":\"and\",\"filters\":[{\"field\":\"salesLastSaleSettlementDate\",\"operation\":\"from\",\"value\":\"$from\"},{\"field\":\"salesLastSaleSettlementDate\",\"operation\":\"to\",\"value\":\"$to\"},{\"field\":\"addressPostcode\",\"operation\":\"equals\",\"value\":\"$postcode\"}]},{\"operation\":\"or\",\"filters\":[{\"field\":\"type\",\"operation\":\"equals\",\"value\":\"HOUSE\"},{\"field\":\"type\",\"operation\":\"equals\",\"value\":\"UNIT\"}]}]}]}"
+
+    body=$(curl -sS "${AUTH[@]}" -H "Content-Type: application/json" -d "$data" \
+      "$API_BASE/rapid-search/batchSearch/au") || die "sales request failed"
+    check_json_err "$body" "sales"
+
+    echo "$body" | jq -c '.data[0].properties[]?' >> "$props_file"
+    n=$(echo "$body" | jq -r '.data[0].properties | length')
+    ref=$(echo "$body" | jq -c '.data[0].metadata.searchAfterReference // empty')
+
+    [[ $fetch_all -eq 0 ]] && break
+    page=$((page + 1))
+    [[ -z "$ref" || "$n" -eq 0 || "$n" -lt "$limit" || $page -ge 100 ]] && break
+    after="$ref"
+  done
+
+  jq -nc --slurpfile p "$props_file" --arg pc "$postcode" \
+    --arg from "$from" --arg to "$to" \
+    '{postcode:$pc, from:$from, to:$to, count:($p|length), data:[{properties:$p}]}'
 }
 
 main() {
@@ -136,7 +190,7 @@ main() {
           ;;
         sales)
           [[ $# -lt 1 ]] && die "missing postcode argument. Usage: cotality sales <postcode>"
-          cmd_sales "$1" "${2:-}"
+          cmd_sales "$@"
           ;;
       esac
       ;;

@@ -22,7 +22,7 @@ scripts/cotality <command> [args...]
 | `indices`            | Daily/monthly home value indices (public). |
 | `suggest <postcode>` | Resolve postcode to numeric locationId.    |
 | `stats <locationId>` | Market statistics for a location.          |
-| `sales <postcode>`   | Recent property sales in a postcode.       |
+| `sales <postcode>`   | Settled sales, newest first (last 6mo).    |
 
 **Examples:**
 
@@ -37,12 +37,18 @@ scripts/cotality suggest 2000                             # find locationId for 
 scripts/cotality suggest 2000 | jq '.suggestions[0].postcodeId'
 scripts/cotality stats 101812                             # % stock on market for postcode 2000
 scripts/cotality stats 101812 64                          # total listings for postcode 2000
-scripts/cotality sales 2000                               # recent sales in 2000
+scripts/cotality sales 2000                               # settled sales in 2000 (newest first, 10 rows)
+scripts/cotality sales 2000 --all                         # every settled sale in the 6mo window
+scripts/cotality sales 3095 --all --sort date             # all sales, newest first
+scripts/cotality sales 3095 --all --sort price --months 12
 scripts/cotality sales 2000 | jq '.data[].properties[] | {price: .salesLastSoldPrice, address: .addressFirstLine, suburb: .addressSuburb, beds: .beds}'
 ```
+
+`sales` options: `--sort date|price` (default `date`), `--months N` (default 6), `--from`/`--to YYYY-MM-DD`, `--limit N` (default 10, max 200), `--all` (page through every result). Output shape is `{postcode, from, to, count, data:[{properties:[...]}]}`. `--all` issues one request per 200 results.
 
 ## Gotchas
 
 - **Stats use numeric metric IDs** — `58` = % Stock on Market (12mo), `64` = Total Listings (12mo).
 - **`suggest` returns `postcodeId`** — use that as the `locationId` for `stats`, not the postcode string.
 - **Auction clearance rate is `sold / reported`, not `sold / scheduled`.** Unreported auctions (no-bid cancellations, ghost listings) are silently excluded from the denominator. When `scheduled − reported` spikes (normally near zero), demand is evaporating faster than the headline CR suggests. The real clearance rate is `sold / scheduled`. Cotality routinely misses 20–40% of auctions in weak weeks — track `scheduled − reported` as the primary demand signal.
+- **Some sale prices are withheld or zero.** Filter `salesLastSoldPriceIsWithheld == true`, null, or `salesLastSoldPrice <= 0` before computing medians; disclosed `salesLastSaleSource` is `Valuer General Confirmed` or `Agent Not Withheld`. `salesLastSaleContractDate` is the contract date; `salesLastSaleSettlementDate` is what the window filters on.
