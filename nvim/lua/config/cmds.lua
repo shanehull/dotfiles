@@ -40,7 +40,7 @@ id: %s
 aliases: []
 tags:
   - change-me
-date: "%s"
+date: %s
 ---
 
 # %s
