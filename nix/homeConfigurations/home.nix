@@ -39,6 +39,7 @@
       "owid"
       "qmd"
       "wb-pink-sheet"
+      "worldbank"
       "silo-weather"
       "skill-creator"
       "sqm-research"

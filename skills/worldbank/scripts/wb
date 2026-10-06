@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# World Bank data client. Free, no API key. Emits JSON to stdout.
+# Commands print clean data (observations, objects, or arrays); use --raw where
+# offered to get the full unmodified response.
+
+CACHE_DIR="${TMPDIR:-/tmp}"
+IND_CACHE="$CACHE_DIR/wb_indicators.json"
+CTY_CACHE="$CACHE_DIR/wb_countries.json"
+MAX_AGE_DAYS="${WB_CACHE_DAYS:-30}"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <command> [args] [options]
+
+World Bank data client. No API key. Emits JSON to stdout; pipe to jq.
+
+Commands:
+  data --indicator CODE[,CODE] [options]
+      Indicator time series for one or more economies.
+      Options:
+        --countries LIST    comma-separated economy codes (default: all)
+        --date RANGE        e.g. 2000:2025 (range) or 2010,2020 (list)
+        --mrv N             the N most recent years per economy
+        --mrnev N           the N most recent years that have a value
+        --per-page N        rows per request (default 1000)
+        --page N            page number (default 1)
+        --raw               emit the full response instead of just the data rows
+
+  indicator <CODE>            Metadata for one indicator.
+  indicators [--search TERM]  Browse or search the indicator catalog (cached).
+      --limit N               cap results (default 50)
+  country <CODE>              Metadata for one economy.
+  countries [--search TERM]   List economies.
+      --region CODE --income CODE
+
+  sources | topics | regions | incomelevels | lendingtypes
+  download --indicator CODE [--countries LIST] [--date RANGE] [--format csv|xls]
+      Print a bulk-download URL (zip). Fetches nothing.
+
+Common options:
+  -h, --help                  Show this help
+
+Examples:
+  $(basename "$0") data --indicator NY.GDP.MKTP.KD.ZG --countries USA,CHN --date 2015:2025
+  $(basename "$0") data --indicator NY.GNS.ICTR.ZS --countries USA,GBR --mrv 3
+  $(basename "$0") indicators --search "gross savings" --limit 10
+  $(basename "$0") country SWE
+  $(basename "$0") countries --search swed
+
+Exit codes: 0 ok | 1 usage error | 3 API/network error
+EOF
+  exit 0
+}
+
+die() { local msg="$1" code="${2:-1}"; echo "Error: $msg" >&2; exit "$code"; }
+
+fetch() {
+  # fetch <url> ; raw body to stdout, dies on failure or API error.
+  local url="$1" tmp code
+  tmp=$(mktemp)
+  code=$(curl -sS -w "%{http_code}" -o "$tmp" --compressed "$url") \
+    || { rm -f "$tmp"; die "request failed: $url" 3; }
+  if [[ "$code" != "200" ]]; then
+    rm -f "$tmp"
+    die "HTTP $code for $url" 3
+  fi
+  if jq -e '.[0].message' "$tmp" >/dev/null 2>&1; then
+    local msg
+    msg=$(jq -r '.[0].message[0] | "\(.key): \(.value)"' "$tmp")
+    rm -f "$tmp"
+    die "World Bank API error: $msg" 3
+  fi
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+fresh() {
+  local f="$1"
+  [[ -f "$f" ]] && find "$f" -mtime -"$MAX_AGE_DAYS" 2>/dev/null | grep -q .
+}
+
+join_codes() { printf '%s' "$1" | tr ',' ';'; }
+
+cmd_data() {
+  local ind="" ctry="all" date="" mrv="" mrnev="" per="1000" page="" raw=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --indicator) ind="$2"; shift 2 ;;
+      --indicator=*) ind="${1#*=}"; shift ;;
+      --countries) ctry="$2"; shift 2 ;;
+      --countries=*) ctry="${1#*=}"; shift ;;
+      --date) date="$2"; shift 2 ;;
+      --date=*) date="${1#*=}"; shift ;;
+      --mrv) mrv="$2"; shift 2 ;;
+      --mrv=*) mrv="${1#*=}"; shift ;;
+      --mrnev) mrnev="$2"; shift 2 ;;
+      --mrnev=*) mrnev="${1#*=}"; shift ;;
+      --per-page) per="$2"; shift 2 ;;
+      --per-page=*) per="${1#*=}"; shift ;;
+      --page) page="$2"; shift 2 ;;
+      --page=*) page="${1#*=}"; shift ;;
+      --raw) raw=1; shift ;;
+      -h|--help) usage ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [[ -z "$ind" ]] && die "data requires --indicator CODE"
+
+  local q="format=json&per_page=${per}"
+  [[ -n "$date" ]] && q="$q&date=$date"
+  [[ -n "$mrv" ]] && q="$q&mrv=$mrv"
+  [[ -n "$mrnev" ]] && q="$q&mrnev=$mrnev"
+  [[ -n "$page" ]] && q="$q&page=$page"
+  # multiple indicators in one request must come from a single dataset
+  case "$ind" in
+    *,*|*\;*) q="$q&source=2" ;;
+  esac
+
+  local body pages
+  body=$(fetch "https://api.worldbank.org/v2/country/$(join_codes "$ctry")/indicator/$(join_codes "$ind")?$q")
+  pages=$(printf '%s' "$body" | jq -r '.[0].pages // 1')
+  [[ "$pages" -gt 1 ]] && echo "note: more pages available; add --page" >&2
+  if [[ "$raw" == "1" ]]; then
+    printf '%s' "$body"
+  else
+    printf '%s' "$body" | jq '.[1]'
+  fi
+}
+
+cmd_indicator() {
+  [[ $# -lt 1 ]] && die "indicator requires a CODE"
+  fetch "https://api.worldbank.org/v2/indicator/$1?format=json" | jq '.[1][0]'
+}
+
+cmd_indicators() {
+  local search="" limit="50"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --search) search="$2"; shift 2 ;;
+      --search=*) search="${1#*=}"; shift ;;
+      --limit) limit="$2"; shift 2 ;;
+      --limit=*) limit="${1#*=}"; shift ;;
+      -h|--help) usage ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  if ! fresh "$IND_CACHE"; then
+    echo "note: downloading the indicator catalog (cached for $MAX_AGE_DAYS days)" >&2
+    curl -sS --compressed "https://api.worldbank.org/v2/indicator?format=json&per_page=40000" -o "$IND_CACHE" \
+      || die "could not download the indicator catalog" 3
+  fi
+  jq --arg s "$(printf '%s' "$search" | tr '[:upper:]' '[:lower:]')" --argjson lim "$limit" '
+    [ .[1][]
+      | select(($s=="") or (((.id|ascii_downcase)|contains($s)) or ((.name|ascii_downcase)|contains($s))))
+      | {id, name, source: .source.value} ]
+    | .[:$lim]
+  ' "$IND_CACHE"
+}
+
+cmd_country() {
+  [[ $# -lt 1 ]] && die "country requires a CODE"
+  fetch "https://api.worldbank.org/v2/country/$1?format=json" | jq '.[1][0]'
+}
+
+cmd_countries() {
+  local search="" region="" income=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --search) search="$2"; shift 2 ;;
+      --search=*) search="${1#*=}"; shift ;;
+      --region) region="$2"; shift 2 ;;
+      --region=*) region="${1#*=}"; shift ;;
+      --income) income="$2"; shift 2 ;;
+      --income=*) income="${1#*=}"; shift ;;
+      -h|--help) usage ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  if ! fresh "$CTY_CACHE"; then
+    curl -sS --compressed "https://api.worldbank.org/v2/country?format=json&per_page=400" -o "$CTY_CACHE" \
+      || die "could not download the economy list" 3
+  fi
+  jq --arg s "$(printf '%s' "$search" | tr '[:upper:]' '[:lower:]')" \
+     --arg region "$region" --arg income "$income" '
+    [ .[1][]
+      | select($region=="" or .region.id==$region)
+      | select($income=="" or .incomeLevel.id==$income)
+      | select($s=="" or ((.name|ascii_downcase)|contains($s)) or ((.id|ascii_downcase)|contains($s)) or ((.iso2Code|ascii_downcase)|contains($s)))
+      | {id, iso2: .iso2Code, name, region: .region.value, income: .incomeLevel.value} ]
+  ' "$CTY_CACHE"
+}
+
+cmd_download() {
+  local ind="" ctry="all" date="" fmt="csv"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --indicator) ind="$2"; shift 2 ;;
+      --indicator=*) ind="${1#*=}"; shift ;;
+      --countries) ctry="$2"; shift 2 ;;
+      --countries=*) ctry="${1#*=}"; shift ;;
+      --date) date="$2"; shift 2 ;;
+      --date=*) date="${1#*=}"; shift ;;
+      --format) fmt="$2"; shift 2 ;;
+      --format=*) fmt="${1#*=}"; shift ;;
+      -h|--help) usage ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [[ -z "$ind" ]] && die "download requires --indicator CODE"
+  local q="downloadformat=$fmt"
+  [[ -n "$date" ]] && q="$q&date=$date"
+  echo "https://api.worldbank.org/v2/country/$(join_codes "$ctry")/indicator/$(join_codes "$ind")?$q"
+}
+
+[[ $# -eq 0 ]] && usage
+cmd="$1"; shift || true
+
+case "$cmd" in
+  -h|--help) usage ;;
+  data)        cmd_data "$@" ;;
+  indicator)   cmd_indicator "$@" ;;
+  indicators)  cmd_indicators "$@" ;;
+  country)     cmd_country "$@" ;;
+  countries)   cmd_countries "$@" ;;
+  sources)     fetch "https://api.worldbank.org/v2/sources?format=json&per_page=500" | jq '.[1]' ;;
+  topics)      fetch "https://api.worldbank.org/v2/topic?format=json&per_page=200" | jq '.[1]' ;;
+  regions)     fetch "https://api.worldbank.org/v2/region?format=json&per_page=100" | jq '.[1]' ;;
+  incomelevels) fetch "https://api.worldbank.org/v2/incomelevel?format=json&per_page=100" | jq '.[1]' ;;
+  lendingtypes) fetch "https://api.worldbank.org/v2/lendingtype?format=json&per_page=100" | jq '.[1]' ;;
+  download)    cmd_download "$@" ;;
+  *) die "unknown command: $cmd (see --help)" ;;
+esac
