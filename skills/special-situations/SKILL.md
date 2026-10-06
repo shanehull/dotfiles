@@ -5,8 +5,6 @@ description: Evaluate spinoffs, merger securities, post-bankruptcy orphan equiti
 
 # Special Situations
 
-Framework from _You Can Be a Stock Market Genius_ by Joel Greenblatt.
-
 ---
 
 ## Strategy Tier List
@@ -200,7 +198,6 @@ Equity multiplier = 1 / (Equity / EV)
 ```
 Upside   = (TargetPrice − Strike − Premium) / Premium
 Downside = 1.0 (lose entire premium)
-Require: Upside ≥ 3.0
 ```
 
 **When LEAPS beat common stock:** Binary outcome with catalyst within expiration window; high-conviction idea where you want to limit downside.
@@ -217,7 +214,7 @@ Option pricing models use **historical** volatility. Corporate events (spinoff d
 
 ## Free Cash Flow
 
-Greenblatt's default valuation metric when amortization charges are large.
+Default valuation metric when amortization charges are large.
 
 ```
 FCF = Net Income + Depreciation + Amortization − Capital Expenditures
@@ -276,4 +273,4 @@ Spinoff listing documents: the summary section (first 5–10 pages after content
 - Good business in bankruptcy due to overleverage, not bad operations
 - Dutch auction where management tenders zero shares
 - Parent EPS **increases** after spinoff (debt interest shifted > forgone income)
-- LEAPS upside:downside ≥3:1 with catalyst inside expiration window
+- LEAPS with a binary catalyst inside the expiration window and a large margin of safety
