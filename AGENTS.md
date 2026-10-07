@@ -132,6 +132,7 @@ Professional, senior-level engineering tone. No AI writing patterns.
 - **Formatting Standards:** Prettier (single quotes, blank lines around headers, no line wrapping or multiline formatting). Obsidian (WikiLinks `[[Link]]`, embeds `![[filename.jpg|100x145]]`, YAML front matter). Tables: pad all columns to equal width with full-width dash separators.
 - **Preserve User Intent:** Save original language/structure exactly. Reread file before editing.
 - **Tone & Brevity:** Concise, direct. No filler or "syrupy" politeness.
+- **Conversational Tone:** Write the way you speak. Plain, natural phrasing over report-style prose, without padding.
 - **No Weasel Words:** No "it seems," "appears to be," "generally."
 - **Short Sentences:** Prefer short, declarative sentences. Active verbs.
 - **No Pseudo-Profound Dualities:** State truth directly, no "not just X, but Y."
