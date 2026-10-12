@@ -23,6 +23,10 @@
     "buildkite": {
       "type": "http",
       "url": "https://mcp.buildkite.com/mcp"
+    },
+    "dexter": {
+      "command": "/Users/shane.hull/.local/bin/dexter",
+      "args": ["mcp"]
     }
   }
 }

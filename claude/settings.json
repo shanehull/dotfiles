@@ -4,19 +4,11 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
+    "defaultMode": "manual",
     "allow": [
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git fetch *)",
-      "Bash(git -C * log *)",
-      "Bash(git -C * diff *)",
-      "Bash(git -C * show *)",
-      "Bash(git -C * status*)",
-      "Bash(git -C * branch*)",
-      "Bash(git -C * remote*)",
-      "Bash(git -C * add *)",
-      "Bash(git -C * commit *)",
-      "Bash(git -C * fetch*)",
       "Bash(glab mr view *)",
       "Bash(glab mr diff *)",
       "Bash(glab ci trace *)",
@@ -48,7 +40,34 @@
       "mcp__plugin_mcps_honeycomb__list_*",
       "mcp__plugin_mcps_honeycomb__search_*",
       "mcp__plugin_mcps_honeycomb__run_query",
-      "mcp__plugin_mcps_honeycomb__run_bubbleup"
+      "mcp__plugin_mcps_honeycomb__run_bubbleup",
+      "Bash(aws acm describe-*)",
+      "Bash(aws acm list-*)",
+      "Bash(aws ec2 describe-*)",
+      "Bash(aws elbv2 describe-*)",
+      "Bash(aws route53 list-*)",
+      "Bash(dig *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/argocd-config log *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/argocd-config ls-tree *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/argocd-config show *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/argocd-config worktree list*)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/infra-live diff *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/infra-live log *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/infra-live show *)",
+      "Bash(git -C /Users/shane.hull/remote-com/devops/infra-live worktree list*)",
+      "Bash(kubectl config get-contexts*)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl explain *)",
+      "Bash(openssl x509 *)",
+      "Bash(terragrunt state list*)",
+      "mcp__dexter__dexter_call_hierarchy",
+      "mcp__dexter__dexter_definition",
+      "mcp__dexter__dexter_file_outline",
+      "mcp__dexter__dexter_implementations",
+      "mcp__dexter__dexter_module_api",
+      "mcp__dexter__dexter_references",
+      "mcp__dexter__dexter_search",
+      "mcp__dexter__dexter_workspace"
     ]
   },
   "enabledPlugins": {
@@ -76,7 +95,7 @@
       }
     }
   },
-  "includeCoAuthouredBy": false,
   "theme": "dark-ansi",
+  "includeCoAuthouredBy": false,
   "model": "opus[1m]"
 }
