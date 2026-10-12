@@ -1,7 +1,7 @@
 ---
 name: edgar
 description: Fetch free long-term U.S. company financial data from the SEC EDGAR REST API — filing histories, company metadata (CIK, SIC, tickers, exchanges), and standardized XBRL financials (revenue, assets, EPS, cash flow) over many years for any U.S. filer. Use this skill when the user asks about a public company's SEC filings, fundamentals, historical financial statements, or wants to compare a metric across companies, even if they don't mention EDGAR, the SEC, or XBRL by name. No API key required.
-compatibility: Requires bash, curl, jq, and internet access to data.sec.gov and www.sec.gov.
+compatibility: Requires bash, curl, jq, and internet access to data.sec.gov and www.sec.gov. `document` text mode also needs perl.
 allowed-tools: bash
 ---
 
@@ -19,7 +19,10 @@ scripts/edgar archive <filename>                        # older filing history (
 scripts/edgar concept <ticker|cik> <taxonomy> <tag>     # one metric over time, 1 company
 scripts/edgar series <ticker|cik> <tag[,tag...]>        # tidy per-period history, aligned
 scripts/edgar facts <ticker|cik>                        # every XBRL fact, 1 company
+scripts/edgar tags <ticker|cik> [--taxonomy T]          # list every tag a company reports
+scripts/edgar latest <ticker|cik> <tag>                 # most recent value of one tag
 scripts/edgar frames <taxonomy> <tag> <unit> <period>   # one metric, all companies
+scripts/edgar document <ticker|cik> [options]           # fetch filing content (text/html)
 ```
 
 `<taxonomy>` is `us-gaap` (most financials), `dei` (entity info), `ifrs-full`, or `srt`.
@@ -30,8 +33,11 @@ Accepts a ticker or a CIK anywhere a company is expected.
 - **Single metric history for one company** → `concept` (small, targeted).
 - **A tidy multi-year table of one or several metrics** → `series` (filters to full-period values, dedupes restatements, aligns metrics by period end). Use `--period annual|quarterly|instant`, `--since YYYY`, `--limit N`.
 - **Whole financial picture for one company** → `facts` (large; always pipe to `jq`).
+- **The tag names a company actually reports** → `tags` (run this before guessing tags for `concept`/`series`; it fetches the same large file as `facts`).
+- **One most-recent value** (latest balance or flow) → `latest`, rather than a nested `jq` path into `facts`.
 - **Same metric across all filers for a period** (peer comparison, screening) → `frames`.
 - **What/when a company filed, or its identity** → `submissions`.
+- **The content of a filing** (proxy/S-4 narrative, risk factors, exhibits) → `document`.
 
 ## Common XBRL tags (us-gaap)
 
@@ -48,7 +54,20 @@ Accepts a ticker or a CIK anywhere a company is expected.
 | Diluted EPS             | `EarningsPerShareDiluted`                             | USD-per-shares |
 | Shares outstanding      | `dei:EntityCommonStockSharesOutstanding`              | shares         |
 
-To discover the exact tags a company uses: `scripts/edgar facts <co> | jq '.facts."us-gaap" | keys'`.
+To discover the exact tags a company uses, run `scripts/edgar tags <co>` (or `scripts/edgar facts <co> | jq '.facts."us-gaap" | keys'`).
+
+## Filing content
+
+`document` retrieves the substance of a filing, which XBRL facts never carry (proxy narrative, S-4 terms, risk factors, exhibits).
+
+```
+scripts/edgar document PASG --form S-4                  # newest S-4* primary doc, as text
+scripts/edgar document AAPL --form 10-K --html          # raw HTML
+scripts/edgar document PASG --accession 0001140361-26-039151
+scripts/edgar document PASG --form S-4 --file ny20077915x12_ex23-1.htm
+```
+
+Default form is the newest filing of any type; `--form S-4` also matches `S-4/A`. `--accession` takes the dotted accession from `submissions` (or the dash-less form). `--file` selects any document in the filing, e.g. an exhibit named in the filing index. Text mode strips tags and renders each table row on one line with tab-separated cells (`awk -F'\t'`, `cut -f`); `--html` leaves the file intact for a parser. Text mode requires `perl`.
 
 ## Gotchas
 
@@ -63,3 +82,6 @@ To discover the exact tags a company uses: `scripts/edgar facts <co> | jq '.fact
 - **Units vary.** Most values are `USD`, but EPS is `USD-per-shares`, share counts are `shares`. Foreign filers (20-F/40-F/6-K) may report in local currency under a different unit key — inspect `.units` keys before comparing across companies.
 - **Duplicate facts per period.** A concept can list the same period multiple times (restatements / different filings). Each fact has `accn` (accession) and `filed` date; take the latest `filed` for the as-reported-now value.
 - **Newly listed or renamed tickers may not resolve.** If `cik`/ticker lookup fails for a recent IPO or rename, pass the CIK directly.
+- **`series` errors on empty, rather than printing `[]`.** Exit code 3 with a message names the likely cause. The usual one: `--period annual|quarterly` filters to durations, but balance-sheet tags (Assets, Cash) are instantaneous — use `--period instant` for those; annual/quarterly are for flows (revenue, income, cash flow).
+- **Filing content lives in the Archives, not the JSON API.** `document` builds `www.sec.gov/Archives/edgar/data/<cik>/<accession-no-dashes>/<doc>`; the accession is dash-less there. Only the ~1000 newest filings resolve through `submissions`; for an older accession pass `--file` with the document name from the filing index.
+- **`document` text is a stripped approximation.** It keeps table rows and cells and decodes common entities, but a scanned or image-based exhibit yields little. Use `--html` when exact markup matters.

@@ -7,6 +7,7 @@ set -euo pipefail
 
 UA="${EDGAR_USER_AGENT:-secondbrain-research agent@example.com}"
 CACHE="${TMPDIR:-/tmp}/edgar_company_tickers.json"
+SD=$(cd "$(dirname "$0")" && pwd)
 
 usage() {
   cat <<EOF
@@ -54,6 +55,25 @@ Commands:
       period: CY#### (annual) | CY####Q# (quarterly) | CY####Q#I (instantaneous)
       e.g. frames us-gaap AccountsPayableCurrent USD CY2019Q1I
 
+  tags <ticker|cik> [--taxonomy TAX]
+      List every XBRL tag the company reports under a taxonomy (default us-gaap).
+      Discovery path before concept/series; downloads companyfacts (large).
+
+  latest <ticker|cik> <tag> [--taxonomy TAX] [--unit UNIT]
+      The most recent value of one tag, as one JSON object:
+      {tag,end,fy,fp,form,filed,unit,val}. A tag may carry a taxonomy prefix,
+      e.g. dei:EntityCommonStockSharesOutstanding.
+
+  document <ticker|cik> [--form FORM] [--accession ACC] [--file NAME] [--html]
+      Download a filing document as text (tags stripped, tables kept as
+      tab-separated rows) or raw HTML with --html. Default: the primary document
+      of the company's most recent filing.
+        --form FORM      restrict to a form type (e.g. S-4, 10-K); S-4 also
+                         matches S-4/A, S-4MEF. Default: the latest filing.
+        --accession ACC  a specific filing accession (dashed or not).
+        --file NAME      a specific document in that filing (e.g. an exhibit).
+      Text mode requires perl.
+
 Common options:
   --unit UNIT   restrict to one unit of measure (concept, series)
   -h, --help    Show this help
@@ -65,6 +85,9 @@ Examples:
   $(basename "$0") frames us-gaap Revenues USD CY2022 | jq '.data | length'
   $(basename "$0") series XOM NetIncomeLoss,NetCashProvidedByUsedInOperatingActivities,PaymentsToAcquirePropertyPlantAndEquipment --since 2010
   $(basename "$0") series AAPL Assets --period instant --limit 8
+  $(basename "$0") latest AAPL Assets
+  $(basename "$0") tags MSFT --taxonomy us-gaap | head
+  $(basename "$0") document PASG --form S-4 --file ny20077915x12_ex23-1.htm
 
 Exit codes: 0 ok | 1 usage error | 2 ticker not found | 3 HTTP/API error
 EOF
@@ -89,6 +112,7 @@ fetch() {
 }
 
 pad_cik() { printf '%010d' "$((10#$1))"; }
+cik_num() { printf '%d' "$((10#$1))"; }
 
 resolve_cik() {
   # echoes a zero-padded 10-digit CIK for a ticker or numeric CIK
@@ -210,11 +234,108 @@ case "$cmd" in
       ' > "$tmpd/$tag.json"
     done
 
-    jq -s --arg since "${since}-01-01" --argjson limit "$limit" '
+    result=$(jq -s --arg since "${since}-01-01" --argjson limit "$limit" '
       (flatten | group_by(.end) | map(add)
        | map(select(.end >= $since)) | sort_by(.end))
       | if $limit>0 then .[-$limit:] else . end
-    ' "$tmpd"/*.json
+    ' "$tmpd"/*.json)
+    if [[ "$(printf '%s' "$result" | jq 'length')" -eq 0 ]]; then
+      die "series produced no rows for [$tags_csv] (period=$period, since=$since). Balance-sheet items (Cash, Assets) are instantaneous: use --period instant; revenue/income are flows: use annual/quarterly." 3
+    fi
+    printf '%s\n' "$result"
+    ;;
+
+  tags)
+    [[ $# -lt 1 ]] && die "tags requires a ticker or CIK"
+    cik=$(resolve_cik "$1"); shift
+    tax="us-gaap"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --taxonomy) tax="$2"; shift 2 ;;
+        --taxonomy=*) tax="${1#*=}"; shift ;;
+        *) die "unknown option: $1" ;;
+      esac
+    done
+    echo "note: downloads companyfacts (large); listing ${tax} tags" >&2
+    out=$(fetch "https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json" \
+      | jq -r --arg t "$tax" '.facts[$t] // {} | keys[]')
+    [[ -z "$out" ]] && die "no $tax facts for CIK $cik" 3
+    printf '%s\n' "$out"
+    ;;
+
+  latest)
+    [[ $# -lt 2 ]] && die "latest requires <ticker|cik> <tag>"
+    cik=$(resolve_cik "$1"); rawtag="$2"; shift 2
+    tax="us-gaap"; unit=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --taxonomy) tax="$2"; shift 2 ;;
+        --taxonomy=*) tax="${1#*=}"; shift ;;
+        --unit) unit="$2"; shift 2 ;;
+        --unit=*) unit="${1#*=}"; shift ;;
+        *) die "unknown option: $1" ;;
+      esac
+    done
+    if [[ "$rawtag" == *:* ]]; then tax="${rawtag%%:*}"; tag="${rawtag#*:}"; else tag="$rawtag"; fi
+    out=$(fetch "https://data.sec.gov/api/xbrl/companyconcept/CIK${cik}/${tax}/${tag}.json")
+    res=$(printf '%s' "$out" | jq --arg u "$unit" --arg tag "$tag" '
+      [ .units | to_entries[] as $e | $e.value[] | . + {unit: $e.key} ]
+      | (if $u=="" then . else map(select(.unit==$u)) end)
+      | sort_by(.end, .filed) | last
+      | if .==null then empty else {tag:$tag, end, fy, fp, form, filed, unit, val} end
+    ')
+    [[ -z "$res" ]] && die "no values for ${tax}:${tag} (CIK $cik)" 3
+    printf '%s\n' "$res"
+    ;;
+
+  document)
+    [[ $# -lt 1 ]] && die "document requires <ticker|cik>"
+    cik=$(resolve_cik "$1"); shift
+    form=""; acc=""; docname=""; mode="text"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --form) form="$2"; shift 2 ;;
+        --form=*) form="${1#*=}"; shift ;;
+        --accession) acc="$2"; shift 2 ;;
+        --accession=*) acc="${1#*=}"; shift ;;
+        --file) docname="$2"; shift 2 ;;
+        --file=*) docname="${1#*=}"; shift ;;
+        --html) mode="html"; shift ;;
+        --text) mode="text"; shift ;;
+        --primary) shift ;;
+        *) die "unknown option: $1" ;;
+      esac
+    done
+    if [[ -z "$acc" ]]; then
+      subs=$(fetch "https://data.sec.gov/submissions/CIK${cik}.json")
+      pick=$(printf '%s' "$subs" | jq -r --arg f "$form" '
+        .filings.recent as $r
+        | [range(0; ($r.accessionNumber|length))]
+        | map(select($f=="" or ($r.form[.]==$f) or ($r.form[.]|startswith($f))))
+        | (.[0] // null) as $i
+        | if $i==null then empty else "\($r.accessionNumber[$i])\t\($r.primaryDocument[$i])" end
+      ')
+      [[ -z "$pick" ]] && die "no ${form:-recent} filing found for CIK $cik" 3
+      acc=$(printf '%s' "$pick" | cut -f1)
+      [[ -z "$docname" ]] && docname=$(printf '%s' "$pick" | cut -f2)
+    elif [[ -z "$docname" ]]; then
+      acc_nodash="${acc//-/}"
+      subs=$(fetch "https://data.sec.gov/submissions/CIK${cik}.json")
+      docname=$(printf '%s' "$subs" | jq -r --arg a "$acc_nodash" '
+        .filings.recent as $r
+        | [range(0; ($r.accessionNumber|length))]
+        | map(select(($r.accessionNumber[.]|gsub("-";""))==$a))
+        | (.[0] // null) as $i
+        | if $i==null then empty else $r.primaryDocument[$i] end')
+      [[ -z "$docname" ]] && die "accession $acc not in recent filings; pass --file NAME (see the filing index)" 3
+    fi
+    nodash="${acc//-/}"
+    url="https://www.sec.gov/Archives/edgar/data/$(cik_num "$cik")/${nodash}/${docname}"
+    if [[ "$mode" == html ]]; then
+      fetch "$url"
+    else
+      fetch "$url" | "$SD/html2text"
+    fi
     ;;
 
   *) die "unknown command: $cmd (see --help)" ;;

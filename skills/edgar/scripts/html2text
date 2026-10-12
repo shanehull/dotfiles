@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+# Convert an SEC filing HTML document to text on stdout.
+# Table structure is preserved: every <tr> becomes one line and each cell is
+# tab-separated, so financial tables stay machine-readable (cut -f, awk -F'\t').
+use strict;
+use warnings;
+
+local $/;
+my $h = <STDIN>;
+$h = '' unless defined $h;
+
+sub cp2str {
+  my $c = shift;
+  return ' '
+    if $c == 160
+    || ($c >= 8192 && $c <= 8203)
+    || $c == 8239
+    || $c == 8287
+    || $c == 12288
+    || $c == 65279;
+  return '' if $c < 0 || $c > 0x10FFFF;
+  return chr($c) if $c < 0x80;
+  return pack('C*', 0xC0 | ($c >> 6), 0x80 | ($c & 0x3F)) if $c < 0x800;
+  return pack('C*', 0xE0 | ($c >> 12), 0x80 | (($c >> 6) & 0x3F), 0x80 | ($c & 0x3F))
+    if $c < 0x10000;
+  return pack('C*', 0xF0 | ($c >> 18), 0x80 | (($c >> 12) & 0x3F),
+    0x80 | (($c >> 6) & 0x3F), 0x80 | ($c & 0x3F));
+}
+
+my %named = (
+  amp => 38, lt => 60, gt => 62, quot => 34, apos => 39, nbsp => 32,
+  mdash => 8212, ndash => 8211, hellip => 8230, bull => 8226,
+  lsquo => 8216, rsquo => 8217, ldquo => 8220, rdquo => 8221,
+  sbquo => 8218, bdquo => 8222, dagger => 8224, Dagger => 8225,
+  permil => 8240, prime => 8242, Prime => 8243, oline => 8254,
+  frasl => 8260, euro => 8364, trade => 8482, copy => 169, reg => 174,
+  deg => 176, plusmn => 177, sup2 => 178, sup3 => 179, micro => 181,
+  para => 182, middot => 183, frac14 => 188, frac12 => 189, frac34 => 190,
+  times => 215, divide => 247, szlig => 223, aelig => 230, oelig => 339,
+  ensp => 32, emsp => 32, thinsp => 32, zwnj => 32, zwj => 32,
+);
+
+sub decode {
+  my ($s) = @_;
+  $s =~ s/&#x([0-9a-fA-F]+);/cp2str(hex $1)/ge;
+  $s =~ s/&#([0-9]+);/cp2str($1)/ge;
+  $s =~ s/&([a-zA-Z][a-zA-Z0-9]*);/exists $named{lc $1} ? cp2str($named{lc $1}) : "&$1;"/ge;
+  return $s;
+}
+
+sub row {
+  my ($r) = @_;
+  $r =~ s{</t[dh]\s*>}{\t}gi;
+  $r =~ s{<br\b[^>]*/?>}{ }gi;
+  $r =~ s{<[^>]*>}{ }g;
+  $r =~ s/[^\S\t]+/ /g;
+  my @c = split /\t/, $r, -1;
+  $r = join "\t", map { s/^ +| +$//gr } @c;
+  return "\n$r\n";
+}
+
+$h =~ s/\A\s*<DOCUMENT>.*?<TEXT>//s;
+$h =~ s{</TEXT>.*\z}{}s;
+
+$h =~ s{<script\b[^>]*>.*?</script>}{}gis;
+$h =~ s{<style\b[^>]*>.*?</style>}{}gis;
+$h =~ s{<!--.*?-->}{}gs;
+
+$h =~ s{<tr\b[^>]*>(.*?)</tr>}{row($1)}gise;
+
+$h =~ s{<(?:br|hr)\b[^>]*/?>}{\n}gi;
+$h =~ s{</(?:p|div|li|ul|ol|h[1-6]|table|thead|tbody|tfoot|section|article|blockquote|dl|dt|dd|pre)\s*>}{\n}gi;
+
+$h =~ s{<[^>]*>}{}g;
+$h = decode($h);
+
+$h =~ s/\r//g;
+$h =~ s/[^\S\n\t]+/ /g;
+$h =~ s/[ \t]+\n/\n/g;
+$h =~ s/\n[ \t]+/\n/g;
+$h =~ s/\n{3,}/\n\n/g;
+$h =~ s/^\s+|\s+$//g;
+
+print $h, "\n";
