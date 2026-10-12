@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_BASE="https://api.corelogic.asia/webflow"
+API_BASE="https://api.cotality.com.au/webflow"
 INDICES_URL="https://au-indices.cotality.com/asx.json"
 API_KEY=""
 AUTH=()
