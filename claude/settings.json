@@ -4,7 +4,6 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
-    "defaultMode": "manual",
     "allow": [
       "Bash(git add *)",
       "Bash(git commit *)",
@@ -68,8 +67,10 @@
       "mcp__dexter__dexter_references",
       "mcp__dexter__dexter_search",
       "mcp__dexter__dexter_workspace"
-    ]
+    ],
+    "defaultMode": "manual"
   },
+  "model": "opus[1m]",
   "enabledPlugins": {
     "mcps@shane-mcps": true,
     "linear@claude-plugins-official": true,
@@ -96,6 +97,5 @@
     }
   },
   "theme": "dark-ansi",
-  "includeCoAuthouredBy": false,
-  "model": "opus[1m]"
+  "includeCoAuthouredBy": false
 }
