@@ -18,6 +18,6 @@
 !claude
 !opencode/
 opencode/*
-!opencode/tui.json
+!opencode/cli.json
 !opencode/AGENTS.md
 !opencode/agents/
