@@ -31,6 +31,11 @@
       "remote": {
         "type": "remote",
         "url": "https://mcp.remote.com/mcp"
+      },
+      "wolfram": {
+        "type": "remote",
+        "url": "https://agenttools.wolfram.com/mcp",
+        "codemode": false
       }
     }
   },
@@ -64,12 +69,32 @@
     { "action": "skill", "resource": "*", "effect": "allow" },
     { "action": "external_directory", "resource": "*", "effect": "ask" },
     { "action": "external_directory", "resource": "/tmp/*", "effect": "allow" },
-    { "action": "external_directory", "resource": "/var/folders/*/*/T/opencode/**", "effect": "allow" },
-    { "action": "external_directory", "resource": "*/.config/opencode/skills/**", "effect": "allow" },
-    { "action": "external_directory", "resource": "*/.claude/*", "effect": "deny" },
+    {
+      "action": "external_directory",
+      "resource": "/var/folders/*/*/T/opencode/**",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "*/.config/opencode/skills/**",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "*/.claude/*",
+      "effect": "deny"
+    },
     { "action": "shell", "resource": "*", "effect": "ask" },
-    { "action": "shell", "resource": "*/.config/opencode/skills/*/scripts/*", "effect": "allow" },
-    { "action": "shell", "resource": "/var/folders/*/*/T/opencode/**", "effect": "allow" },
+    {
+      "action": "shell",
+      "resource": "*/.config/opencode/skills/*/scripts/*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "/var/folders/*/*/T/opencode/**",
+      "effect": "allow"
+    },
     { "action": "shell", "resource": "basename *", "effect": "allow" },
     { "action": "shell", "resource": "bun --version", "effect": "allow" },
     { "action": "shell", "resource": "cat *", "effect": "allow" },
