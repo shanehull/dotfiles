@@ -2,6 +2,47 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "deepseek/deepseek-flash",
   "update": "disable",
+  "providers": {
+    "litellm": {
+      "name": "AI Gateway",
+      "env": ["LITELLM_API_KEY"],
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://ai-gateway-internal.eu-west-1.remote.com/v1"
+      },
+      "models": {
+        "gpt-5.6-sol": {},
+        "gpt-5.6-terra": {},
+        "gpt-5.6-luna": {},
+        "gpt-6-astra": {},
+        "gpt-6-sol": {},
+        "gpt-6-luna": {},
+        "gpt-6.1-sol": {},
+        "gpt-6.1-terra": {},
+        "gemini-4-argon": {},
+        "gemini-3.8-flash": {},
+        "deepseek-v4.1-flash": {
+          "limit": { "context": 1048576, "output": 393216 }
+        },
+        "ember-1": {
+          "limit": { "context": 1048576 }
+        },
+        "glm-5.3": {
+          "capabilities": { "input": ["text"] },
+          "limit": { "context": 1048576, "output": 128000 }
+        },
+        "glm-5.3-flash": {
+          "limit": { "context": 1048576, "output": 131072 }
+        },
+        "kimi-k3": {
+          "limit": { "context": 1048576, "output": 131072 }
+        },
+        "qwen-3.8-max": {
+          "limit": { "context": 262144 }
+        }
+      }
+    }
+  },
   "mcp": {
     "servers": {
       "browsermcp": {
