@@ -55,6 +55,10 @@
 
           AWS_PROFILE = "sts";
           K9S_CONFIG_DIR = "${config.home.homeDirectory}/.config/k9s";
+
+          # nixpkgs defaults to the macOS keychain store, which this build cannot read,
+          # so TLS verification fails and org settings never load.
+          CLAUDE_CODE_CERT_STORE = "bundled";
         };
         file = {
           ".config/opencode/opencode.json".source = ./opencode/work.json;
